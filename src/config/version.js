@@ -1,13 +1,20 @@
-export type OpenClawVersion = {
-  major: number;
-  minor: number;
-  patch: number;
-  revision: number;
-};
+/**
+ * @module version
+ * OpenClaw version parsing and comparison utilities.
+ */
+
+/**
+ * @typedef {{ major: number, minor: number, patch: number, revision: number }} OpenClawVersion
+ */
 
 const VERSION_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-(\d+))?/;
 
-export function parseOpenClawVersion(raw: string | null | undefined): OpenClawVersion | null {
+/**
+ * Parses an OpenClaw version string into its components.
+ * @param {string | null | undefined} raw
+ * @returns {OpenClawVersion | null}
+ */
+export function parseOpenClawVersion(raw) {
   if (!raw) {
     return null;
   }
@@ -20,14 +27,17 @@ export function parseOpenClawVersion(raw: string | null | undefined): OpenClawVe
     major: Number.parseInt(major, 10),
     minor: Number.parseInt(minor, 10),
     patch: Number.parseInt(patch, 10),
-    revision: revision ? Number.parseInt(revision, 10) : 0,
+    revision: revision ? Number.parseInt(revision, 10) : 0
   };
 }
 
-export function compareOpenClawVersions(
-  a: string | null | undefined,
-  b: string | null | undefined,
-): number | null {
+/**
+ * Compares two OpenClaw version strings. Returns -1, 0, 1, or null if unparseable.
+ * @param {string | null | undefined} a
+ * @param {string | null | undefined} b
+ * @returns {number | null}
+ */
+export function compareOpenClawVersions(a, b) {
   const parsedA = parseOpenClawVersion(a);
   const parsedB = parseOpenClawVersion(b);
   if (!parsedA || !parsedB) {
