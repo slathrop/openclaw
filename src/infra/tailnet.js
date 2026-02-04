@@ -1,12 +1,24 @@
-import os from "node:os";
+/**
+ * Tailnet address detection.
+ *
+ * Enumerates local network interfaces to find Tailscale IPv4 (100.x CGNAT)
+ * and IPv6 (fd7a:115c:a1e0::/48 ULA) addresses.
+ */
+import os from 'node:os';
 
-export type TailnetAddresses = {
-  ipv4: string[];
-  ipv6: string[];
-};
+/**
+ * @typedef {{
+ *   ipv4: string[],
+ *   ipv6: string[]
+ * }} TailnetAddresses
+ */
 
-function isTailnetIPv4(address: string): boolean {
-  const parts = address.split(".");
+/**
+ * @param {string} address
+ * @returns {boolean}
+ */
+function isTailnetIPv4(address) {
+  const parts = address.split('.');
   if (parts.length !== 4) {
     return false;
   }
@@ -21,16 +33,25 @@ function isTailnetIPv4(address: string): boolean {
   return a === 100 && b >= 64 && b <= 127;
 }
 
-function isTailnetIPv6(address: string): boolean {
+/**
+ * @param {string} address
+ * @returns {boolean}
+ */
+function isTailnetIPv6(address) {
   // Tailscale IPv6 ULA prefix: fd7a:115c:a1e0::/48
   // (stable across tailnets; nodes get per-device suffixes)
   const normalized = address.trim().toLowerCase();
-  return normalized.startsWith("fd7a:115c:a1e0:");
+  return normalized.startsWith('fd7a:115c:a1e0:');
 }
 
-export function listTailnetAddresses(): TailnetAddresses {
-  const ipv4: string[] = [];
-  const ipv6: string[] = [];
+/**
+ * @returns {TailnetAddresses}
+ */
+export function listTailnetAddresses() {
+  /** @type {string[]} */
+  const ipv4 = [];
+  /** @type {string[]} */
+  const ipv6 = [];
 
   const ifaces = os.networkInterfaces();
   for (const entries of Object.values(ifaces)) {
@@ -54,13 +75,19 @@ export function listTailnetAddresses(): TailnetAddresses {
     }
   }
 
-  return { ipv4: [...new Set(ipv4)], ipv6: [...new Set(ipv6)] };
+  return {ipv4: [...new Set(ipv4)], ipv6: [...new Set(ipv6)]};
 }
 
-export function pickPrimaryTailnetIPv4(): string | undefined {
+/**
+ * @returns {string | undefined}
+ */
+export function pickPrimaryTailnetIPv4() {
   return listTailnetAddresses().ipv4[0];
 }
 
-export function pickPrimaryTailnetIPv6(): string | undefined {
+/**
+ * @returns {string | undefined}
+ */
+export function pickPrimaryTailnetIPv6() {
   return listTailnetAddresses().ipv6[0];
 }
