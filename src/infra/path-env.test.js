@@ -1,31 +1,31 @@
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { ensureOpenClawCliOnPath } from "./path-env.js";
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {describe, expect, it} from 'vitest';
+import {ensureOpenClawCliOnPath} from './path-env.js';
 
-describe("ensureOpenClawCliOnPath", () => {
-  it("prepends the bundled app bin dir when a sibling openclaw exists", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-path-"));
+describe('ensureOpenClawCliOnPath', () => {
+  it('prepends the bundled app bin dir when a sibling openclaw exists', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'openclaw-path-'));
     try {
-      const appBinDir = path.join(tmp, "AppBin");
-      await fs.mkdir(appBinDir, { recursive: true });
-      const cliPath = path.join(appBinDir, "openclaw");
-      await fs.writeFile(cliPath, "#!/bin/sh\necho ok\n", "utf-8");
+      const appBinDir = path.join(tmp, 'AppBin');
+      await fs.mkdir(appBinDir, {recursive: true});
+      const cliPath = path.join(appBinDir, 'openclaw');
+      await fs.writeFile(cliPath, '#!/bin/sh\necho ok\n', 'utf-8');
       await fs.chmod(cliPath, 0o755);
 
       const originalPath = process.env.PATH;
       const originalFlag = process.env.OPENCLAW_PATH_BOOTSTRAPPED;
-      process.env.PATH = "/usr/bin";
+      process.env.PATH = '/usr/bin';
       delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
       try {
         ensureOpenClawCliOnPath({
           execPath: cliPath,
           cwd: tmp,
           homeDir: tmp,
-          platform: "darwin",
+          platform: 'darwin'
         });
-        const updated = process.env.PATH ?? "";
+        const updated = process.env.PATH ?? '';
         expect(updated.split(path.delimiter)[0]).toBe(appBinDir);
       } finally {
         process.env.PATH = originalPath;
@@ -36,23 +36,23 @@ describe("ensureOpenClawCliOnPath", () => {
         }
       }
     } finally {
-      await fs.rm(tmp, { recursive: true, force: true });
+      await fs.rm(tmp, {recursive: true, force: true});
     }
   });
 
-  it("is idempotent", () => {
+  it('is idempotent', () => {
     const originalPath = process.env.PATH;
     const originalFlag = process.env.OPENCLAW_PATH_BOOTSTRAPPED;
-    process.env.PATH = "/bin";
-    process.env.OPENCLAW_PATH_BOOTSTRAPPED = "1";
+    process.env.PATH = '/bin';
+    process.env.OPENCLAW_PATH_BOOTSTRAPPED = '1';
     try {
       ensureOpenClawCliOnPath({
-        execPath: "/tmp/does-not-matter",
-        cwd: "/tmp",
-        homeDir: "/tmp",
-        platform: "darwin",
+        execPath: '/tmp/does-not-matter',
+        cwd: '/tmp',
+        homeDir: '/tmp',
+        platform: 'darwin'
       });
-      expect(process.env.PATH).toBe("/bin");
+      expect(process.env.PATH).toBe('/bin');
     } finally {
       process.env.PATH = originalPath;
       if (originalFlag === undefined) {
@@ -63,39 +63,39 @@ describe("ensureOpenClawCliOnPath", () => {
     }
   });
 
-  it("prepends mise shims when available", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-path-"));
+  it('prepends mise shims when available', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'openclaw-path-'));
     const originalPath = process.env.PATH;
     const originalFlag = process.env.OPENCLAW_PATH_BOOTSTRAPPED;
     const originalMiseDataDir = process.env.MISE_DATA_DIR;
     try {
-      const appBinDir = path.join(tmp, "AppBin");
-      await fs.mkdir(appBinDir, { recursive: true });
-      const appCli = path.join(appBinDir, "openclaw");
-      await fs.writeFile(appCli, "#!/bin/sh\necho ok\n", "utf-8");
+      const appBinDir = path.join(tmp, 'AppBin');
+      await fs.mkdir(appBinDir, {recursive: true});
+      const appCli = path.join(appBinDir, 'openclaw');
+      await fs.writeFile(appCli, '#!/bin/sh\necho ok\n', 'utf-8');
       await fs.chmod(appCli, 0o755);
 
-      const localBinDir = path.join(tmp, "node_modules", ".bin");
-      await fs.mkdir(localBinDir, { recursive: true });
-      const localCli = path.join(localBinDir, "openclaw");
-      await fs.writeFile(localCli, "#!/bin/sh\necho ok\n", "utf-8");
+      const localBinDir = path.join(tmp, 'node_modules', '.bin');
+      await fs.mkdir(localBinDir, {recursive: true});
+      const localCli = path.join(localBinDir, 'openclaw');
+      await fs.writeFile(localCli, '#!/bin/sh\necho ok\n', 'utf-8');
       await fs.chmod(localCli, 0o755);
 
-      const miseDataDir = path.join(tmp, "mise");
-      const shimsDir = path.join(miseDataDir, "shims");
-      await fs.mkdir(shimsDir, { recursive: true });
+      const miseDataDir = path.join(tmp, 'mise');
+      const shimsDir = path.join(miseDataDir, 'shims');
+      await fs.mkdir(shimsDir, {recursive: true});
       process.env.MISE_DATA_DIR = miseDataDir;
-      process.env.PATH = "/usr/bin";
+      process.env.PATH = '/usr/bin';
       delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
 
       ensureOpenClawCliOnPath({
         execPath: appCli,
         cwd: tmp,
         homeDir: tmp,
-        platform: "darwin",
+        platform: 'darwin'
       });
 
-      const updated = process.env.PATH ?? "";
+      const updated = process.env.PATH ?? '';
       const parts = updated.split(path.delimiter);
       const appBinIndex = parts.indexOf(appBinDir);
       const localIndex = parts.indexOf(localBinDir);
@@ -115,40 +115,40 @@ describe("ensureOpenClawCliOnPath", () => {
       } else {
         process.env.MISE_DATA_DIR = originalMiseDataDir;
       }
-      await fs.rm(tmp, { recursive: true, force: true });
+      await fs.rm(tmp, {recursive: true, force: true});
     }
   });
 
-  it("prepends Linuxbrew dirs when present", async () => {
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-path-"));
+  it('prepends Linuxbrew dirs when present', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'openclaw-path-'));
     const originalPath = process.env.PATH;
     const originalFlag = process.env.OPENCLAW_PATH_BOOTSTRAPPED;
     const originalHomebrewPrefix = process.env.HOMEBREW_PREFIX;
     const originalHomebrewBrewFile = process.env.HOMEBREW_BREW_FILE;
     const originalXdgBinHome = process.env.XDG_BIN_HOME;
     try {
-      const execDir = path.join(tmp, "exec");
-      await fs.mkdir(execDir, { recursive: true });
+      const execDir = path.join(tmp, 'exec');
+      await fs.mkdir(execDir, {recursive: true});
 
-      const linuxbrewBin = path.join(tmp, ".linuxbrew", "bin");
-      const linuxbrewSbin = path.join(tmp, ".linuxbrew", "sbin");
-      await fs.mkdir(linuxbrewBin, { recursive: true });
-      await fs.mkdir(linuxbrewSbin, { recursive: true });
+      const linuxbrewBin = path.join(tmp, '.linuxbrew', 'bin');
+      const linuxbrewSbin = path.join(tmp, '.linuxbrew', 'sbin');
+      await fs.mkdir(linuxbrewBin, {recursive: true});
+      await fs.mkdir(linuxbrewSbin, {recursive: true});
 
-      process.env.PATH = "/usr/bin";
+      process.env.PATH = '/usr/bin';
       delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
       delete process.env.HOMEBREW_PREFIX;
       delete process.env.HOMEBREW_BREW_FILE;
       delete process.env.XDG_BIN_HOME;
 
       ensureOpenClawCliOnPath({
-        execPath: path.join(execDir, "node"),
+        execPath: path.join(execDir, 'node'),
         cwd: tmp,
         homeDir: tmp,
-        platform: "linux",
+        platform: 'linux'
       });
 
-      const updated = process.env.PATH ?? "";
+      const updated = process.env.PATH ?? '';
       const parts = updated.split(path.delimiter);
       expect(parts[0]).toBe(linuxbrewBin);
       expect(parts[1]).toBe(linuxbrewSbin);
@@ -174,7 +174,7 @@ describe("ensureOpenClawCliOnPath", () => {
       } else {
         process.env.XDG_BIN_HOME = originalXdgBinHome;
       }
-      await fs.rm(tmp, { recursive: true, force: true });
+      await fs.rm(tmp, {recursive: true, force: true});
     }
   });
 });

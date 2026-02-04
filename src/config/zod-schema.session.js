@@ -1,54 +1,61 @@
-import { z } from "zod";
+/**
+ * Session, messages, and commands Zod validation schemas.
+ *
+ * Validates session scope/reset/typing/send-policy configuration,
+ * message prefix/queue/inbound/ack/TTS settings, and command
+ * enablement (native, text, bash, config, debug, restart).
+ */
+import { z } from 'zod';
 import {
   GroupChatSchema,
   InboundDebounceSchema,
   NativeCommandsSettingSchema,
   QueueSchema,
-  TtsConfigSchema,
-} from "./zod-schema.core.js";
+  TtsConfigSchema
+} from './zod-schema.core.js';
 
 const SessionResetConfigSchema = z
   .object({
-    mode: z.union([z.literal("daily"), z.literal("idle")]).optional(),
+    mode: z.union([z.literal('daily'), z.literal('idle')]).optional(),
     atHour: z.number().int().min(0).max(23).optional(),
-    idleMinutes: z.number().int().positive().optional(),
+    idleMinutes: z.number().int().positive().optional()
   })
   .strict();
 
 export const SessionSendPolicySchema = z
   .object({
-    default: z.union([z.literal("allow"), z.literal("deny")]).optional(),
+    default: z.union([z.literal('allow'), z.literal('deny')]).optional(),
     rules: z
       .array(
         z
           .object({
-            action: z.union([z.literal("allow"), z.literal("deny")]),
+            action: z.union([z.literal('allow'), z.literal('deny')]),
             match: z
               .object({
                 channel: z.string().optional(),
                 chatType: z
-                  .union([z.literal("direct"), z.literal("group"), z.literal("channel")])
+                  .union([z.literal('direct'), z.literal('group'), z.literal('channel')])
                   .optional(),
-                keyPrefix: z.string().optional(),
+                keyPrefix: z.string().optional()
               })
               .strict()
-              .optional(),
+              .optional()
           })
-          .strict(),
+          .strict()
       )
-      .optional(),
+      .optional()
   })
   .strict();
 
 export const SessionSchema = z
   .object({
-    scope: z.union([z.literal("per-sender"), z.literal("global")]).optional(),
+    scope: z.union([z.literal('per-sender'), z.literal('global')]).optional(),
     dmScope: z
       .union([
-        z.literal("main"),
-        z.literal("per-peer"),
-        z.literal("per-channel-peer"),
-        z.literal("per-account-channel-peer"),
+        z.literal('main'),
+        z.literal('per-peer'),
+        z.literal('per-channel-peer'),
+        z.literal('per-account-channel-peer')
       ])
       .optional(),
     identityLinks: z.record(z.string(), z.array(z.string())).optional(),
@@ -59,7 +66,7 @@ export const SessionSchema = z
       .object({
         dm: SessionResetConfigSchema.optional(),
         group: SessionResetConfigSchema.optional(),
-        thread: SessionResetConfigSchema.optional(),
+        thread: SessionResetConfigSchema.optional()
       })
       .strict()
       .optional(),
@@ -68,20 +75,20 @@ export const SessionSchema = z
     typingIntervalSeconds: z.number().int().positive().optional(),
     typingMode: z
       .union([
-        z.literal("never"),
-        z.literal("instant"),
-        z.literal("thinking"),
-        z.literal("message"),
+        z.literal('never'),
+        z.literal('instant'),
+        z.literal('thinking'),
+        z.literal('message')
       ])
       .optional(),
     mainKey: z.string().optional(),
     sendPolicy: SessionSendPolicySchema.optional(),
     agentToAgent: z
       .object({
-        maxPingPongTurns: z.number().int().min(0).max(5).optional(),
+        maxPingPongTurns: z.number().int().min(0).max(5).optional()
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .optional();
@@ -94,25 +101,25 @@ export const MessagesSchema = z
     queue: QueueSchema,
     inbound: InboundDebounceSchema,
     ackReaction: z.string().optional(),
-    ackReactionScope: z.enum(["group-mentions", "group-all", "direct", "all"]).optional(),
+    ackReactionScope: z.enum(['group-mentions', 'group-all', 'direct', 'all']).optional(),
     removeAckAfterReply: z.boolean().optional(),
-    tts: TtsConfigSchema,
+    tts: TtsConfigSchema
   })
   .strict()
   .optional();
 
 export const CommandsSchema = z
   .object({
-    native: NativeCommandsSettingSchema.optional().default("auto"),
-    nativeSkills: NativeCommandsSettingSchema.optional().default("auto"),
+    native: NativeCommandsSettingSchema.optional().default('auto'),
+    nativeSkills: NativeCommandsSettingSchema.optional().default('auto'),
     text: z.boolean().optional(),
     bash: z.boolean().optional(),
     bashForegroundMs: z.number().int().min(0).max(30_000).optional(),
     config: z.boolean().optional(),
     debug: z.boolean().optional(),
     restart: z.boolean().optional(),
-    useAccessGroups: z.boolean().optional(),
+    useAccessGroups: z.boolean().optional()
   })
   .strict()
   .optional()
-  .default({ native: "auto", nativeSkills: "auto" });
+  .default({ native: 'auto', nativeSkills: 'auto' });

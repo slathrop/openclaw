@@ -1,12 +1,22 @@
-import { z } from "zod";
-import { parseDurationMs } from "../cli/parse-duration.js";
+/**
+ * Agent runtime Zod validation schemas.
+ *
+ * Defines heartbeat, sandbox (Docker/browser/prune), tool policy,
+ * tool profiles, web search/fetch, media understanding, memory search,
+ * agent entry, elevated exec, and top-level tools schemas.
+ *
+ * SECURITY: Contains sandbox configuration schemas (SandboxDockerSchema,
+ * SandboxBrowserSchema) that control isolation boundaries for agent execution.
+ */
+import { z } from 'zod';
+import { parseDurationMs } from '../cli/parse-duration.js';
 import {
   GroupChatSchema,
   HumanDelaySchema,
   IdentitySchema,
   ToolsLinksSchema,
-  ToolsMediaSchema,
-} from "./zod-schema.core.js";
+  ToolsMediaSchema
+} from './zod-schema.core.js';
 
 export const HeartbeatSchema = z
   .object({
@@ -15,7 +25,7 @@ export const HeartbeatSchema = z
       .object({
         start: z.string().optional(),
         end: z.string().optional(),
-        timezone: z.string().optional(),
+        timezone: z.string().optional()
       })
       .strict()
       .optional(),
@@ -26,7 +36,7 @@ export const HeartbeatSchema = z
     to: z.string().optional(),
     accountId: z.string().optional(),
     prompt: z.string().optional(),
-    ackMaxChars: z.number().int().nonnegative().optional(),
+    ackMaxChars: z.number().int().nonnegative().optional()
   })
   .strict()
   .superRefine((val, ctx) => {
@@ -34,12 +44,12 @@ export const HeartbeatSchema = z
       return;
     }
     try {
-      parseDurationMs(val.every, { defaultUnit: "m" });
+      parseDurationMs(val.every, { defaultUnit: 'm' });
     } catch {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["every"],
-        message: "invalid duration (use ms, s, m, h)",
+        path: ['every'],
+        message: 'invalid duration (use ms, s, m, h)'
       });
     }
 
@@ -48,40 +58,40 @@ export const HeartbeatSchema = z
       return;
     }
     const timePattern = /^([01]\d|2[0-3]|24):([0-5]\d)$/;
-    const validateTime = (raw: string | undefined, opts: { allow24: boolean }, path: string) => {
+    const validateTime = (raw, opts, path) => {
       if (!raw) {
         return;
       }
       if (!timePattern.test(raw)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["activeHours", path],
-          message: 'invalid time (use "HH:MM" 24h format)',
+          path: ['activeHours', path],
+          message: 'invalid time (use "HH:MM" 24h format)'
         });
         return;
       }
-      const [hourStr, minuteStr] = raw.split(":");
+      const [hourStr, minuteStr] = raw.split(':');
       const hour = Number(hourStr);
       const minute = Number(minuteStr);
       if (hour === 24 && minute !== 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["activeHours", path],
-          message: "invalid time (24:00 is the only allowed 24:xx value)",
+          path: ['activeHours', path],
+          message: 'invalid time (24:00 is the only allowed 24:xx value)'
         });
         return;
       }
       if (hour === 24 && !opts.allow24) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["activeHours", path],
-          message: "invalid time (start cannot be 24:00)",
+          path: ['activeHours', path],
+          message: 'invalid time (start cannot be 24:00)'
         });
       }
     };
 
-    validateTime(active.start, { allow24: false }, "start");
-    validateTime(active.end, { allow24: true }, "end");
+    validateTime(active.start, { allow24: false }, 'start');
+    validateTime(active.end, { allow24: true }, 'end');
   })
   .optional();
 
@@ -110,17 +120,17 @@ export const SandboxDockerSchema = z
           z
             .object({
               soft: z.number().int().nonnegative().optional(),
-              hard: z.number().int().nonnegative().optional(),
+              hard: z.number().int().nonnegative().optional()
             })
-            .strict(),
-        ]),
+            .strict()
+        ])
       )
       .optional(),
     seccompProfile: z.string().optional(),
     apparmorProfile: z.string().optional(),
     dns: z.array(z.string()).optional(),
     extraHosts: z.array(z.string()).optional(),
-    binds: z.array(z.string()).optional(),
+    binds: z.array(z.string()).optional()
   })
   .strict()
   .optional();
@@ -137,7 +147,7 @@ export const SandboxBrowserSchema = z
     enableNoVnc: z.boolean().optional(),
     allowHostControl: z.boolean().optional(),
     autoStart: z.boolean().optional(),
-    autoStartTimeoutMs: z.number().int().positive().optional(),
+    autoStartTimeoutMs: z.number().int().positive().optional()
   })
   .strict()
   .optional();
@@ -145,7 +155,7 @@ export const SandboxBrowserSchema = z
 export const SandboxPruneSchema = z
   .object({
     idleHours: z.number().int().nonnegative().optional(),
-    maxAgeDays: z.number().int().nonnegative().optional(),
+    maxAgeDays: z.number().int().nonnegative().optional()
   })
   .strict()
   .optional();
@@ -154,7 +164,7 @@ const ToolPolicyBaseSchema = z
   .object({
     allow: z.array(z.string()).optional(),
     alsoAllow: z.array(z.string()).optional(),
-    deny: z.array(z.string()).optional(),
+    deny: z.array(z.string()).optional()
   })
   .strict();
 
@@ -163,7 +173,7 @@ export const ToolPolicySchema = ToolPolicyBaseSchema.superRefine((value, ctx) =>
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message:
-        "tools policy cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)",
+        'tools policy cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)'
     });
   }
 }).optional();
@@ -171,7 +181,7 @@ export const ToolPolicySchema = ToolPolicyBaseSchema.superRefine((value, ctx) =>
 export const ToolsWebSearchSchema = z
   .object({
     enabled: z.boolean().optional(),
-    provider: z.union([z.literal("brave"), z.literal("perplexity")]).optional(),
+    provider: z.union([z.literal('brave'), z.literal('perplexity')]).optional(),
     apiKey: z.string().optional(),
     maxResults: z.number().int().positive().optional(),
     timeoutSeconds: z.number().int().positive().optional(),
@@ -180,10 +190,10 @@ export const ToolsWebSearchSchema = z
       .object({
         apiKey: z.string().optional(),
         baseUrl: z.string().optional(),
-        model: z.string().optional(),
+        model: z.string().optional()
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .optional();
@@ -196,7 +206,7 @@ export const ToolsWebFetchSchema = z
     timeoutSeconds: z.number().int().positive().optional(),
     cacheTtlMinutes: z.number().nonnegative().optional(),
     maxRedirects: z.number().int().nonnegative().optional(),
-    userAgent: z.string().optional(),
+    userAgent: z.string().optional()
   })
   .strict()
   .optional();
@@ -204,13 +214,13 @@ export const ToolsWebFetchSchema = z
 export const ToolsWebSchema = z
   .object({
     search: ToolsWebSearchSchema,
-    fetch: ToolsWebFetchSchema,
+    fetch: ToolsWebFetchSchema
   })
   .strict()
   .optional();
 
 export const ToolProfileSchema = z
-  .union([z.literal("minimal"), z.literal("coding"), z.literal("messaging"), z.literal("full")])
+  .union([z.literal('minimal'), z.literal('coding'), z.literal('messaging'), z.literal('full')])
   .optional();
 
 export const ToolPolicyWithProfileSchema = z
@@ -218,7 +228,7 @@ export const ToolPolicyWithProfileSchema = z
     allow: z.array(z.string()).optional(),
     alsoAllow: z.array(z.string()).optional(),
     deny: z.array(z.string()).optional(),
-    profile: ToolProfileSchema,
+    profile: ToolProfileSchema
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -226,7 +236,7 @@ export const ToolPolicyWithProfileSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "tools.byProvider policy cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)",
+          'tools.byProvider policy cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)'
       });
     }
   });
@@ -238,15 +248,15 @@ export const ElevatedAllowFromSchema = z
 
 export const AgentSandboxSchema = z
   .object({
-    mode: z.union([z.literal("off"), z.literal("non-main"), z.literal("all")]).optional(),
-    workspaceAccess: z.union([z.literal("none"), z.literal("ro"), z.literal("rw")]).optional(),
-    sessionToolsVisibility: z.union([z.literal("spawned"), z.literal("all")]).optional(),
-    scope: z.union([z.literal("session"), z.literal("agent"), z.literal("shared")]).optional(),
+    mode: z.union([z.literal('off'), z.literal('non-main'), z.literal('all')]).optional(),
+    workspaceAccess: z.union([z.literal('none'), z.literal('ro'), z.literal('rw')]).optional(),
+    sessionToolsVisibility: z.union([z.literal('spawned'), z.literal('all')]).optional(),
+    scope: z.union([z.literal('session'), z.literal('agent'), z.literal('shared')]).optional(),
     perSession: z.boolean().optional(),
     workspaceRoot: z.string().optional(),
     docker: SandboxDockerSchema,
     browser: SandboxBrowserSchema,
-    prune: SandboxPruneSchema,
+    prune: SandboxPruneSchema
   })
   .strict()
   .optional();
@@ -261,15 +271,15 @@ export const AgentToolsSchema = z
     elevated: z
       .object({
         enabled: z.boolean().optional(),
-        allowFrom: ElevatedAllowFromSchema,
+        allowFrom: ElevatedAllowFromSchema
       })
       .strict()
       .optional(),
     exec: z
       .object({
-        host: z.enum(["sandbox", "gateway", "node"]).optional(),
-        security: z.enum(["deny", "allowlist", "full"]).optional(),
-        ask: z.enum(["off", "on-miss", "always"]).optional(),
+        host: z.enum(['sandbox', 'gateway', 'node']).optional(),
+        security: z.enum(['deny', 'allowlist', 'full']).optional(),
+        ask: z.enum(['off', 'on-miss', 'always']).optional(),
         node: z.string().optional(),
         pathPrepend: z.array(z.string()).optional(),
         safeBins: z.array(z.string()).optional(),
@@ -281,19 +291,19 @@ export const AgentToolsSchema = z
         applyPatch: z
           .object({
             enabled: z.boolean().optional(),
-            allowModels: z.array(z.string()).optional(),
+            allowModels: z.array(z.string()).optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     sandbox: z
       .object({
-        tools: ToolPolicySchema,
+        tools: ToolPolicySchema
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -301,7 +311,7 @@ export const AgentToolsSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "agent tools cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)",
+          'agent tools cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)'
       });
     }
   })
@@ -310,15 +320,15 @@ export const AgentToolsSchema = z
 export const MemorySearchSchema = z
   .object({
     enabled: z.boolean().optional(),
-    sources: z.array(z.union([z.literal("memory"), z.literal("sessions")])).optional(),
+    sources: z.array(z.union([z.literal('memory'), z.literal('sessions')])).optional(),
     extraPaths: z.array(z.string()).optional(),
     experimental: z
       .object({
-        sessionMemory: z.boolean().optional(),
+        sessionMemory: z.boolean().optional()
       })
       .strict()
       .optional(),
-    provider: z.union([z.literal("openai"), z.literal("local"), z.literal("gemini")]).optional(),
+    provider: z.union([z.literal('openai'), z.literal('local'), z.literal('gemini')]).optional(),
     remote: z
       .object({
         baseUrl: z.string().optional(),
@@ -330,42 +340,42 @@ export const MemorySearchSchema = z
             wait: z.boolean().optional(),
             concurrency: z.number().int().positive().optional(),
             pollIntervalMs: z.number().int().nonnegative().optional(),
-            timeoutMinutes: z.number().int().positive().optional(),
+            timeoutMinutes: z.number().int().positive().optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     fallback: z
-      .union([z.literal("openai"), z.literal("gemini"), z.literal("local"), z.literal("none")])
+      .union([z.literal('openai'), z.literal('gemini'), z.literal('local'), z.literal('none')])
       .optional(),
     model: z.string().optional(),
     local: z
       .object({
         modelPath: z.string().optional(),
-        modelCacheDir: z.string().optional(),
+        modelCacheDir: z.string().optional()
       })
       .strict()
       .optional(),
     store: z
       .object({
-        driver: z.literal("sqlite").optional(),
+        driver: z.literal('sqlite').optional(),
         path: z.string().optional(),
         vector: z
           .object({
             enabled: z.boolean().optional(),
-            extensionPath: z.string().optional(),
+            extensionPath: z.string().optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     chunking: z
       .object({
         tokens: z.number().int().positive().optional(),
-        overlap: z.number().int().nonnegative().optional(),
+        overlap: z.number().int().nonnegative().optional()
       })
       .strict()
       .optional(),
@@ -379,10 +389,10 @@ export const MemorySearchSchema = z
         sessions: z
           .object({
             deltaBytes: z.number().int().nonnegative().optional(),
-            deltaMessages: z.number().int().nonnegative().optional(),
+            deltaMessages: z.number().int().nonnegative().optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
@@ -395,20 +405,20 @@ export const MemorySearchSchema = z
             enabled: z.boolean().optional(),
             vectorWeight: z.number().min(0).max(1).optional(),
             textWeight: z.number().min(0).max(1).optional(),
-            candidateMultiplier: z.number().int().positive().optional(),
+            candidateMultiplier: z.number().int().positive().optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     cache: z
       .object({
         enabled: z.boolean().optional(),
-        maxEntries: z.number().int().positive().optional(),
+        maxEntries: z.number().int().positive().optional()
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .optional();
@@ -417,9 +427,9 @@ export const AgentModelSchema = z.union([
   z
     .object({
       primary: z.string().optional(),
-      fallbacks: z.array(z.string()).optional(),
+      fallbacks: z.array(z.string()).optional()
     })
-    .strict(),
+    .strict()
 ]);
 export const AgentEntrySchema = z
   .object({
@@ -444,17 +454,17 @@ export const AgentEntrySchema = z
             z
               .object({
                 primary: z.string().optional(),
-                fallbacks: z.array(z.string()).optional(),
+                fallbacks: z.array(z.string()).optional()
               })
-              .strict(),
+              .strict()
           ])
           .optional(),
-        thinking: z.string().optional(),
+        thinking: z.string().optional()
       })
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
-    tools: AgentToolsSchema,
+    tools: AgentToolsSchema
   })
   .strict();
 
@@ -479,41 +489,41 @@ export const ToolsSchema = z
               .object({
                 enabled: z.boolean().optional(),
                 prefix: z.string().optional(),
-                suffix: z.string().optional(),
+                suffix: z.string().optional()
               })
               .strict()
-              .optional(),
+              .optional()
           })
           .strict()
           .optional(),
         broadcast: z
           .object({
-            enabled: z.boolean().optional(),
+            enabled: z.boolean().optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     agentToAgent: z
       .object({
         enabled: z.boolean().optional(),
-        allow: z.array(z.string()).optional(),
+        allow: z.array(z.string()).optional()
       })
       .strict()
       .optional(),
     elevated: z
       .object({
         enabled: z.boolean().optional(),
-        allowFrom: ElevatedAllowFromSchema,
+        allowFrom: ElevatedAllowFromSchema
       })
       .strict()
       .optional(),
     exec: z
       .object({
-        host: z.enum(["sandbox", "gateway", "node"]).optional(),
-        security: z.enum(["deny", "allowlist", "full"]).optional(),
-        ask: z.enum(["off", "on-miss", "always"]).optional(),
+        host: z.enum(['sandbox', 'gateway', 'node']).optional(),
+        security: z.enum(['deny', 'allowlist', 'full']).optional(),
+        ask: z.enum(['off', 'on-miss', 'always']).optional(),
         node: z.string().optional(),
         pathPrepend: z.array(z.string()).optional(),
         safeBins: z.array(z.string()).optional(),
@@ -524,25 +534,25 @@ export const ToolsSchema = z
         applyPatch: z
           .object({
             enabled: z.boolean().optional(),
-            allowModels: z.array(z.string()).optional(),
+            allowModels: z.array(z.string()).optional()
           })
           .strict()
-          .optional(),
+          .optional()
       })
       .strict()
       .optional(),
     subagents: z
       .object({
-        tools: ToolPolicySchema,
+        tools: ToolPolicySchema
       })
       .strict()
       .optional(),
     sandbox: z
       .object({
-        tools: ToolPolicySchema,
+        tools: ToolPolicySchema
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -550,7 +560,7 @@ export const ToolsSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "tools cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)",
+          'tools cannot set both allow and alsoAllow in the same scope (merge alsoAllow into allow, or remove allow and use profile + alsoAllow)'
       });
     }
   })

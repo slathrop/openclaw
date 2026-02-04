@@ -1,4 +1,12 @@
-import { z } from "zod";
+/**
+ * Hook mapping and Gmail hook Zod validation schemas.
+ *
+ * Validates webhook hook mappings (path matching, wake/agent actions,
+ * message templates, delivery targets), internal hook handlers with
+ * install records, and Gmail-specific hook configuration (pub/sub,
+ * serve, tailscale).
+ */
+import { z } from 'zod';
 
 export const HookMappingSchema = z
   .object({
@@ -6,11 +14,11 @@ export const HookMappingSchema = z
     match: z
       .object({
         path: z.string().optional(),
-        source: z.string().optional(),
+        source: z.string().optional()
       })
       .optional(),
-    action: z.union([z.literal("wake"), z.literal("agent")]).optional(),
-    wakeMode: z.union([z.literal("now"), z.literal("next-heartbeat")]).optional(),
+    action: z.union([z.literal('wake'), z.literal('agent')]).optional(),
+    wakeMode: z.union([z.literal('now'), z.literal('next-heartbeat')]).optional(),
     name: z.string().optional(),
     sessionKey: z.string().optional(),
     messageTemplate: z.string().optional(),
@@ -19,14 +27,14 @@ export const HookMappingSchema = z
     allowUnsafeExternalContent: z.boolean().optional(),
     channel: z
       .union([
-        z.literal("last"),
-        z.literal("whatsapp"),
-        z.literal("telegram"),
-        z.literal("discord"),
-        z.literal("slack"),
-        z.literal("signal"),
-        z.literal("imessage"),
-        z.literal("msteams"),
+        z.literal('last'),
+        z.literal('whatsapp'),
+        z.literal('telegram'),
+        z.literal('discord'),
+        z.literal('slack'),
+        z.literal('signal'),
+        z.literal('imessage'),
+        z.literal('msteams')
       ])
       .optional(),
     to: z.string().optional(),
@@ -36,10 +44,10 @@ export const HookMappingSchema = z
     transform: z
       .object({
         module: z.string(),
-        export: z.string().optional(),
+        export: z.string().optional()
       })
       .strict()
-      .optional(),
+      .optional()
   })
   .strict()
   .optional();
@@ -48,26 +56,26 @@ export const InternalHookHandlerSchema = z
   .object({
     event: z.string(),
     module: z.string(),
-    export: z.string().optional(),
+    export: z.string().optional()
   })
   .strict();
 
 const HookConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
-    env: z.record(z.string(), z.string()).optional(),
+    env: z.record(z.string(), z.string()).optional()
   })
   .strict();
 
 const HookInstallRecordSchema = z
   .object({
-    source: z.union([z.literal("npm"), z.literal("archive"), z.literal("path")]),
+    source: z.union([z.literal('npm'), z.literal('archive'), z.literal('path')]),
     spec: z.string().optional(),
     sourcePath: z.string().optional(),
     installPath: z.string().optional(),
     version: z.string().optional(),
     installedAt: z.string().optional(),
-    hooks: z.array(z.string()).optional(),
+    hooks: z.array(z.string()).optional()
   })
   .strict();
 
@@ -78,11 +86,11 @@ export const InternalHooksSchema = z
     entries: z.record(z.string(), HookConfigSchema).optional(),
     load: z
       .object({
-        extraDirs: z.array(z.string()).optional(),
+        extraDirs: z.array(z.string()).optional()
       })
       .strict()
       .optional(),
-    installs: z.record(z.string(), HookInstallRecordSchema).optional(),
+    installs: z.record(z.string(), HookInstallRecordSchema).optional()
   })
   .strict()
   .optional();
@@ -103,28 +111,28 @@ export const HooksGmailSchema = z
       .object({
         bind: z.string().optional(),
         port: z.number().int().positive().optional(),
-        path: z.string().optional(),
+        path: z.string().optional()
       })
       .strict()
       .optional(),
     tailscale: z
       .object({
-        mode: z.union([z.literal("off"), z.literal("serve"), z.literal("funnel")]).optional(),
+        mode: z.union([z.literal('off'), z.literal('serve'), z.literal('funnel')]).optional(),
         path: z.string().optional(),
-        target: z.string().optional(),
+        target: z.string().optional()
       })
       .strict()
       .optional(),
     model: z.string().optional(),
     thinking: z
       .union([
-        z.literal("off"),
-        z.literal("minimal"),
-        z.literal("low"),
-        z.literal("medium"),
-        z.literal("high"),
+        z.literal('off'),
+        z.literal('minimal'),
+        z.literal('low'),
+        z.literal('medium'),
+        z.literal('high')
       ])
-      .optional(),
+      .optional()
   })
   .strict()
   .optional();

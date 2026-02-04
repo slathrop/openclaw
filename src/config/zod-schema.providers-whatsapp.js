@@ -1,13 +1,23 @@
-import { z } from "zod";
-import { ToolPolicySchema } from "./zod-schema.agent-runtime.js";
-import { ChannelHeartbeatVisibilitySchema } from "./zod-schema.channels.js";
+/**
+ * WhatsApp channel Zod validation schema.
+ *
+ * Validates WhatsApp account and top-level channel configuration including
+ * DM/group policies, allowlists, streaming, ack reactions, debounce,
+ * media limits, and per-group tool policies.
+ *
+ * SECURITY: Enforces DM open-policy wildcard requirements via superRefine
+ * on both account-level and top-level WhatsApp configurations.
+ */
+import { z } from 'zod';
+import { ToolPolicySchema } from './zod-schema.agent-runtime.js';
+import { ChannelHeartbeatVisibilitySchema } from './zod-schema.channels.js';
 import {
   BlockStreamingCoalesceSchema,
   DmConfigSchema,
   DmPolicySchema,
   GroupPolicySchema,
-  MarkdownConfigSchema,
-} from "./zod-schema.core.js";
+  MarkdownConfigSchema
+} from './zod-schema.core.js';
 
 const ToolPolicyBySenderSchema = z.record(z.string(), ToolPolicySchema).optional();
 
@@ -23,16 +33,16 @@ export const WhatsAppAccountSchema = z
     responsePrefix: z.string().optional(),
     /** Override auth directory for this WhatsApp account (Baileys multi-file auth state). */
     authDir: z.string().optional(),
-    dmPolicy: DmPolicySchema.optional().default("pairing"),
+    dmPolicy: DmPolicySchema.optional().default('pairing'),
     selfChatMode: z.boolean().optional(),
     allowFrom: z.array(z.string()).optional(),
     groupAllowFrom: z.array(z.string()).optional(),
-    groupPolicy: GroupPolicySchema.optional().default("allowlist"),
+    groupPolicy: GroupPolicySchema.optional().default('allowlist'),
     historyLimit: z.number().int().min(0).optional(),
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
     textChunkLimit: z.number().int().positive().optional(),
-    chunkMode: z.enum(["length", "newline"]).optional(),
+    chunkMode: z.enum(['length', 'newline']).optional(),
     mediaMaxMb: z.number().int().positive().optional(),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
@@ -43,36 +53,36 @@ export const WhatsAppAccountSchema = z
           .object({
             requireMention: z.boolean().optional(),
             tools: ToolPolicySchema,
-            toolsBySender: ToolPolicyBySenderSchema,
+            toolsBySender: ToolPolicyBySenderSchema
           })
           .strict()
-          .optional(),
+          .optional()
       )
       .optional(),
     ackReaction: z
       .object({
         emoji: z.string().optional(),
         direct: z.boolean().optional().default(true),
-        group: z.enum(["always", "mentions", "never"]).optional().default("mentions"),
+        group: z.enum(['always', 'mentions', 'never']).optional().default('mentions')
       })
       .strict()
       .optional(),
     debounceMs: z.number().int().nonnegative().optional().default(0),
-    heartbeat: ChannelHeartbeatVisibilitySchema,
+    heartbeat: ChannelHeartbeatVisibilitySchema
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (value.dmPolicy !== "open") {
+    if (value.dmPolicy !== 'open') {
       return;
     }
     const allow = (value.allowFrom ?? []).map((v) => String(v).trim()).filter(Boolean);
-    if (allow.includes("*")) {
+    if (allow.includes('*')) {
       return;
     }
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ["allowFrom"],
-      message: 'channels.whatsapp.accounts.*.dmPolicy="open" requires allowFrom to include "*"',
+      path: ['allowFrom'],
+      message: 'channels.whatsapp.accounts.*.dmPolicy="open" requires allowFrom to include "*"'
     });
   });
 
@@ -83,18 +93,18 @@ export const WhatsAppConfigSchema = z
     markdown: MarkdownConfigSchema,
     configWrites: z.boolean().optional(),
     sendReadReceipts: z.boolean().optional(),
-    dmPolicy: DmPolicySchema.optional().default("pairing"),
+    dmPolicy: DmPolicySchema.optional().default('pairing'),
     messagePrefix: z.string().optional(),
     responsePrefix: z.string().optional(),
     selfChatMode: z.boolean().optional(),
     allowFrom: z.array(z.string()).optional(),
     groupAllowFrom: z.array(z.string()).optional(),
-    groupPolicy: GroupPolicySchema.optional().default("allowlist"),
+    groupPolicy: GroupPolicySchema.optional().default('allowlist'),
     historyLimit: z.number().int().min(0).optional(),
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
     textChunkLimit: z.number().int().positive().optional(),
-    chunkMode: z.enum(["length", "newline"]).optional(),
+    chunkMode: z.enum(['length', 'newline']).optional(),
     mediaMaxMb: z.number().int().positive().optional().default(50),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
@@ -102,7 +112,7 @@ export const WhatsAppConfigSchema = z
       .object({
         reactions: z.boolean().optional(),
         sendMessage: z.boolean().optional(),
-        polls: z.boolean().optional(),
+        polls: z.boolean().optional()
       })
       .strict()
       .optional(),
@@ -113,36 +123,36 @@ export const WhatsAppConfigSchema = z
           .object({
             requireMention: z.boolean().optional(),
             tools: ToolPolicySchema,
-            toolsBySender: ToolPolicyBySenderSchema,
+            toolsBySender: ToolPolicyBySenderSchema
           })
           .strict()
-          .optional(),
+          .optional()
       )
       .optional(),
     ackReaction: z
       .object({
         emoji: z.string().optional(),
         direct: z.boolean().optional().default(true),
-        group: z.enum(["always", "mentions", "never"]).optional().default("mentions"),
+        group: z.enum(['always', 'mentions', 'never']).optional().default('mentions')
       })
       .strict()
       .optional(),
     debounceMs: z.number().int().nonnegative().optional().default(0),
-    heartbeat: ChannelHeartbeatVisibilitySchema,
+    heartbeat: ChannelHeartbeatVisibilitySchema
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (value.dmPolicy !== "open") {
+    if (value.dmPolicy !== 'open') {
       return;
     }
     const allow = (value.allowFrom ?? []).map((v) => String(v).trim()).filter(Boolean);
-    if (allow.includes("*")) {
+    if (allow.includes('*')) {
       return;
     }
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ["allowFrom"],
+      path: ['allowFrom'],
       message:
-        'channels.whatsapp.dmPolicy="open" requires channels.whatsapp.allowFrom to include "*"',
+        'channels.whatsapp.dmPolicy="open" requires channels.whatsapp.allowFrom to include "*"'
     });
   });
