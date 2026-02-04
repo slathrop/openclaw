@@ -25,18 +25,18 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Goal**: The project builds, lints, and runs tests using a JavaScript-only toolchain
 **Depends on**: Nothing (first phase)
 **Requirements**: TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06
+**Plans:** 3 plans
 **Success Criteria** (what must be TRUE):
   1. Running `pnpm build` succeeds without invoking the TypeScript compiler (no tsc, no tsdown TS compilation)
   2. Running `pnpm check` applies Google Standard JavaScript Style with no trailing commas in multiline and reports violations
   3. Running `pnpm test` executes Vitest against JavaScript source files
   4. Lodash is available as a project dependency and importable via ESM
   5. All package.json scripts reference JavaScript files and tools only (no TS-specific scripts remain)
-**Plans**: TBD
 
 Plans:
-- [ ] 01-01: Remove TypeScript toolchain and configure JS build pipeline
-- [ ] 01-02: Set up ESLint with Google Standard Style, JSDoc validation, and ESM enforcement
-- [ ] 01-03: Update package.json scripts and add lodash dependency
+- [ ] 01-01-PLAN.md -- Remove TypeScript toolchain and create rolldown bundler config
+- [ ] 01-02-PLAN.md -- Install and configure ESLint with Google Style, JSDoc, and ESM enforcement
+- [ ] 01-03-PLAN.md -- Update package.json scripts, rename vitest configs, add lodash-es
 
 ### Phase 2: Foundation Layer
 **Goal**: The shared modules that every other layer depends on are converted to idiomatic JavaScript with established quality patterns
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Build Tooling | 0/3 | Not started | - |
+| 1. Build Tooling | 0/3 | Planned | - |
 | 2. Foundation Layer | 0/3 | Not started | - |
 | 3. Core Services | 0/3 | Not started | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
