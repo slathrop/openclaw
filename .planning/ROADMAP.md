@@ -42,18 +42,25 @@ Plans:
 **Goal**: The shared modules that every other layer depends on are converted to idiomatic JavaScript with established quality patterns
 **Depends on**: Phase 1
 **Requirements**: CORE-08, CORE-10, CORE-04, TEST-02, QUAL-04, QUAL-05, QUAL-06
+**Plans:** 10 plans
 **Success Criteria** (what must be TRUE):
   1. All files in `src/infra/`, `src/utils/`, `src/shared/`, `src/types/`, `src/config/`, `src/routing/` are JavaScript (.js) with no remaining .ts files
   2. Entry points (`src/index.js`, `src/entry.js`, `src/runtime.js`) load and bootstrap the CLI successfully
   3. Every converted module has a top-level comment explaining its purpose, and non-obvious functions have JSDoc annotations
   4. Security-sensitive code (auth tokens, credential handling, TLS) has explicit comments explaining the security concern
   5. Vitest configuration resolves and runs tests against .js source files
-**Plans**: TBD
 
 Plans:
-- [ ] 02-01: Convert shared infrastructure (infra, utils, types) with quality patterns
-- [ ] 02-02: Convert configuration and routing modules
-- [ ] 02-03: Convert entry points and update Vitest configuration
+- [ ] 02-01-PLAN.md -- Delete src/types/ declarations, convert src/shared/ and src/utils/ to JS
+- [ ] 02-02-PLAN.md -- Convert infra device/auth/security and heartbeat/diagnostics modules
+- [ ] 02-03-PLAN.md -- Convert infra update system, state migrations, and network discovery
+- [ ] 02-04-PLAN.md -- Convert infra provider-usage, shell/env, and session cost modules
+- [ ] 02-05-PLAN.md -- Convert infra misc utilities (retry, ports, platform, file I/O)
+- [ ] 02-06-PLAN.md -- Convert infra net/, outbound/, and tls/ subdirectories (security-critical)
+- [ ] 02-07-PLAN.md -- Convert config type definitions and Zod validation schemas
+- [ ] 02-08-PLAN.md -- Convert config core modules and legacy migration system
+- [ ] 02-09-PLAN.md -- Convert remaining config modules, sessions, and all config tests
+- [ ] 02-10-PLAN.md -- Convert routing, entry points, and update Vitest configuration
 
 ### Phase 3: Core Services
 **Goal**: The gateway server, agent runtime, AI providers, and support modules are converted to idiomatic JavaScript
@@ -131,7 +138,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
-| 2. Foundation Layer | 0/3 | Not started | - |
+| 2. Foundation Layer | 0/10 | Not started | - |
 | 3. Core Services | 0/3 | Not started | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
 | 5. UI and Extensions | 0/3 | Not started | - |
