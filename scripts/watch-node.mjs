@@ -1,32 +1,34 @@
 #!/usr/bin/env node
-import { spawn, spawnSync } from "node:child_process";
-import process from "node:process";
+import { spawn, spawnSync } from 'node:child_process';
+import process from 'node:process';
 
 const args = process.argv.slice(2);
 const env = { ...process.env };
 const cwd = process.cwd();
-const compiler = "tsdown";
+const compiler = 'rolldown';
 
-const initialBuild = spawnSync("pnpm", ["exec", compiler], {
+const initialBuild = spawnSync('pnpm', ['exec', compiler, '-c', 'rolldown.config.js'], {
   cwd,
   env,
-  stdio: "inherit",
+  stdio: 'inherit'
 });
 
 if (initialBuild.status !== 0) {
   process.exit(initialBuild.status ?? 1);
 }
 
-const compilerProcess = spawn("pnpm", ["exec", compiler, "--watch"], {
+// NOTE: rolldown's --watch flag may behave differently from tsdown's.
+// If watch mode is unsupported or buggy, consider using chokidar or nodemon.
+const compilerProcess = spawn('pnpm', ['exec', compiler, '--watch', '-c', 'rolldown.config.js'], {
   cwd,
   env,
-  stdio: "inherit",
+  stdio: 'inherit'
 });
 
-const nodeProcess = spawn(process.execPath, ["--watch", "openclaw.mjs", ...args], {
+const nodeProcess = spawn(process.execPath, ['--watch', 'openclaw.mjs', ...args], {
   cwd,
   env,
-  stdio: "inherit",
+  stdio: 'inherit'
 });
 
 let exiting = false;
@@ -36,22 +38,22 @@ function cleanup(code = 0) {
     return;
   }
   exiting = true;
-  nodeProcess.kill("SIGTERM");
-  compilerProcess.kill("SIGTERM");
+  nodeProcess.kill('SIGTERM');
+  compilerProcess.kill('SIGTERM');
   process.exit(code);
 }
 
-process.on("SIGINT", () => cleanup(130));
-process.on("SIGTERM", () => cleanup(143));
+process.on('SIGINT', () => cleanup(130));
+process.on('SIGTERM', () => cleanup(143));
 
-compilerProcess.on("exit", (code) => {
+compilerProcess.on('exit', (code) => {
   if (exiting) {
     return;
   }
   cleanup(code ?? 1);
 });
 
-nodeProcess.on("exit", (code, signal) => {
+nodeProcess.on('exit', (code, signal) => {
   if (signal || exiting) {
     return;
   }
