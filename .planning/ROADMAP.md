@@ -12,7 +12,7 @@ This roadmap converts the OpenClaw codebase from TypeScript to JavaScript in six
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
+- [x] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
 - [ ] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
 - [ ] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
 - [ ] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
@@ -34,9 +34,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. All package.json scripts reference JavaScript files and tools only (no TS-specific scripts remain)
 
 Plans:
-- [ ] 01-01-PLAN.md -- Remove TypeScript toolchain and create rolldown bundler config
-- [ ] 01-02-PLAN.md -- Install and configure ESLint with Google Style, JSDoc, and ESM enforcement
-- [ ] 01-03-PLAN.md -- Update package.json scripts, rename vitest configs, add lodash-es
+- [x] 01-01-PLAN.md -- Remove TypeScript toolchain and create rolldown bundler config
+- [x] 01-02-PLAN.md -- Install and configure ESLint with Google Style, JSDoc, and ESM enforcement
+- [x] 01-03-PLAN.md -- Update package.json scripts, rename vitest configs, add lodash-es
 
 ### Phase 2: Foundation Layer
 **Goal**: The shared modules that every other layer depends on are converted to idiomatic JavaScript with established quality patterns
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Build Tooling | 0/3 | Planned | - |
+| 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
 | 2. Foundation Layer | 0/3 | Not started | - |
 | 3. Core Services | 0/3 | Not started | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
