@@ -5,6 +5,18 @@
 // These will be updated to .js when source files convert in Phase 2+.
 import { defineConfig } from 'rolldown';
 
+// Externalize all bare imports (node_modules).
+// tsdown did this automatically; rolldown requires explicit config.
+const external = (id) => !id.startsWith('.') && !id.startsWith('/');
+
+const shared = {
+  platform: 'node',
+  external,
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production')
+  }
+};
+
 export default defineConfig([
   {
     input: 'src/index.ts',
@@ -12,10 +24,7 @@ export default defineConfig([
       dir: 'dist',
       format: 'esm'
     },
-    platform: 'node',
-    define: {
-      'process.env.NODE_ENV': JSON.stringify('production')
-    }
+    ...shared
   },
   {
     input: 'src/entry.ts',
@@ -23,10 +32,7 @@ export default defineConfig([
       dir: 'dist',
       format: 'esm'
     },
-    platform: 'node',
-    define: {
-      'process.env.NODE_ENV': JSON.stringify('production')
-    }
+    ...shared
   },
   {
     input: 'src/plugin-sdk/index.ts',
@@ -34,10 +40,7 @@ export default defineConfig([
       dir: 'dist/plugin-sdk',
       format: 'esm'
     },
-    platform: 'node',
-    define: {
-      'process.env.NODE_ENV': JSON.stringify('production')
-    }
+    ...shared
   },
   {
     input: 'src/extensionAPI.ts',
@@ -45,9 +48,6 @@ export default defineConfig([
       dir: 'dist',
       format: 'esm'
     },
-    platform: 'node',
-    define: {
-      'process.env.NODE_ENV': JSON.stringify('production')
-    }
+    ...shared
   }
 ]);
