@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
-import baseConfig from "./vitest.config.ts";
+import baseConfig from "./vitest.config.js";
 
-const baseTest = (baseConfig as { test?: { include?: string[]; exclude?: string[] } }).test ?? {};
+const baseTest = baseConfig?.test ?? {};
 const include = baseTest.include ?? [
   "src/**/*.test.ts",
   "extensions/**/*.test.ts",
