@@ -6,7 +6,7 @@ A comprehensive refactor of the OpenClaw multi-channel messaging gateway from Ty
 
 ## Core Value
 
-The code must be human-friendly to senior JavaScript engineers above all else. Every decision — style, structure, abstractions, comments — serves readability and maintainability for a team that will evaluate this code.
+The code must be human-friendly to senior JavaScript engineers above all else. Every decision — style, structure, abstractions, comments — serves readability and maintainability for a team that will evaluate this code. Comments (especially JSDoc comments) should generally NOT end in a period because they are typically not complete sentences. When a comment has multiple, actual sentences, then punctuation should be used, but a final period at the very end should still be avoided.
 
 ## Requirements
 
