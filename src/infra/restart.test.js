@@ -1,17 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   __testing,
   consumeGatewaySigusr1RestartAuthorization,
   isGatewaySigusr1RestartExternallyAllowed,
   scheduleGatewaySigusr1Restart,
-  setGatewaySigusr1RestartPolicy,
-} from "./restart.js";
+  setGatewaySigusr1RestartPolicy
+} from './restart.js';
 
-describe("restart authorization", () => {
+describe('restart authorization', () => {
   beforeEach(() => {
     __testing.resetSigusr1State();
     vi.useFakeTimers();
-    vi.spyOn(process, "kill").mockImplementation(() => true);
+    vi.spyOn(process, 'kill').mockImplementation(() => true);
   });
 
   afterEach(async () => {
@@ -21,10 +21,10 @@ describe("restart authorization", () => {
     __testing.resetSigusr1State();
   });
 
-  it("consumes a scheduled authorization once", async () => {
+  it('consumes a scheduled authorization once', async () => {
     expect(consumeGatewaySigusr1RestartAuthorization()).toBe(false);
 
-    scheduleGatewaySigusr1Restart({ delayMs: 0 });
+    scheduleGatewaySigusr1Restart({delayMs: 0});
 
     expect(consumeGatewaySigusr1RestartAuthorization()).toBe(true);
     expect(consumeGatewaySigusr1RestartAuthorization()).toBe(false);
@@ -32,9 +32,9 @@ describe("restart authorization", () => {
     await vi.runAllTimersAsync();
   });
 
-  it("tracks external restart policy", () => {
+  it('tracks external restart policy', () => {
     expect(isGatewaySigusr1RestartExternallyAllowed()).toBe(false);
-    setGatewaySigusr1RestartPolicy({ allowExternal: true });
+    setGatewaySigusr1RestartPolicy({allowExternal: true});
     expect(isGatewaySigusr1RestartExternallyAllowed()).toBe(true);
   });
 });

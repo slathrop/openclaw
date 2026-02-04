@@ -1,141 +1,168 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import type { OpenClawConfig } from "../config/config.js";
-import type { SessionEntry } from "../config/sessions.js";
-import type { SessionScope } from "../config/sessions/types.js";
-import { resolveDefaultAgentId } from "../agents/agent-scope.js";
+/**
+ * State migration versioning and legacy data migration.
+ *
+ * Handles detection and migration of legacy session stores, agent directories,
+ * WhatsApp auth files, and state directory paths to the current canonical
+ * per-agent layout.
+ */
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {resolveDefaultAgentId} from '../agents/agent-scope.js';
 import {
   resolveLegacyStateDirs,
   resolveNewStateDir,
   resolveOAuthDir,
-  resolveStateDir,
-} from "../config/paths.js";
-import { saveSessionStore } from "../config/sessions.js";
-import { canonicalizeMainSessionAlias } from "../config/sessions/main-session.js";
-import { createSubsystemLogger } from "../logging/subsystem.js";
+  resolveStateDir
+} from '../config/paths.js';
+import {saveSessionStore} from '../config/sessions.js';
+import {canonicalizeMainSessionAlias} from '../config/sessions/main-session.js';
+import {createSubsystemLogger} from '../logging/subsystem.js';
 import {
   buildAgentMainSessionKey,
   DEFAULT_ACCOUNT_ID,
   DEFAULT_MAIN_KEY,
-  normalizeAgentId,
-} from "../routing/session-key.js";
+  normalizeAgentId
+} from '../routing/session-key.js';
 import {
   ensureDir,
   existsDir,
   fileExists,
   isLegacyWhatsAppAuthFile,
   readSessionStoreJson5,
-  type SessionEntryLike,
-  safeReadDir,
-} from "./state-migrations.fs.js";
+  safeReadDir
+} from './state-migrations.fs.js';
 
-export type LegacyStateDetection = {
-  targetAgentId: string;
-  targetMainKey: string;
-  targetScope?: SessionScope;
-  stateDir: string;
-  oauthDir: string;
-  sessions: {
-    legacyDir: string;
-    legacyStorePath: string;
-    targetDir: string;
-    targetStorePath: string;
-    hasLegacy: boolean;
-    legacyKeys: string[];
-  };
-  agentDir: {
-    legacyDir: string;
-    targetDir: string;
-    hasLegacy: boolean;
-  };
-  whatsappAuth: {
-    legacyDir: string;
-    targetDir: string;
-    hasLegacy: boolean;
-  };
-  preview: string[];
-};
+/**
+ * @typedef {{
+ *   sessionId?: string,
+ *   updatedAt?: number
+ * } & Record<string, unknown>} SessionEntryLike
+ */
 
-type MigrationLogger = {
-  info: (message: string) => void;
-  warn: (message: string) => void;
-};
+/**
+ * @typedef {{
+ *   targetAgentId: string,
+ *   targetMainKey: string,
+ *   targetScope?: import('../config/sessions/types.js').SessionScope,
+ *   stateDir: string,
+ *   oauthDir: string,
+ *   sessions: {
+ *     legacyDir: string,
+ *     legacyStorePath: string,
+ *     targetDir: string,
+ *     targetStorePath: string,
+ *     hasLegacy: boolean,
+ *     legacyKeys: string[]
+ *   },
+ *   agentDir: {
+ *     legacyDir: string,
+ *     targetDir: string,
+ *     hasLegacy: boolean
+ *   },
+ *   whatsappAuth: {
+ *     legacyDir: string,
+ *     targetDir: string,
+ *     hasLegacy: boolean
+ *   },
+ *   preview: string[]
+ * }} LegacyStateDetection
+ */
+
+/**
+ * @typedef {{
+ *   info: (message: string) => void,
+ *   warn: (message: string) => void
+ * }} MigrationLogger
+ */
 
 let autoMigrateChecked = false;
 let autoMigrateStateDirChecked = false;
 
-function isSurfaceGroupKey(key: string): boolean {
-  return key.includes(":group:") || key.includes(":channel:");
+/**
+ * @param {string} key
+ * @returns {boolean}
+ */
+function isSurfaceGroupKey(key) {
+  return key.includes(':group:') || key.includes(':channel:');
 }
 
-function isLegacyGroupKey(key: string): boolean {
+/**
+ * @param {string} key
+ * @returns {boolean}
+ */
+function isLegacyGroupKey(key) {
   const trimmed = key.trim();
   if (!trimmed) {
     return false;
   }
-  if (trimmed.startsWith("group:")) {
+  if (trimmed.startsWith('group:')) {
     return true;
   }
   const lower = trimmed.toLowerCase();
-  if (!lower.includes("@g.us")) {
+  if (!lower.includes('@g.us')) {
     return false;
   }
-  // Legacy WhatsApp group keys: bare JID or "whatsapp:<jid>" without explicit ":group:" kind.
-  if (!trimmed.includes(":")) {
+  // Legacy WhatsApp group keys: bare JID or "whatsapp:<jid>" without
+  // explicit ":group:" kind.
+  if (!trimmed.includes(':')) {
     return true;
   }
-  if (lower.startsWith("whatsapp:") && !trimmed.includes(":group:")) {
+  if (lower.startsWith('whatsapp:') && !trimmed.includes(':group:')) {
     return true;
   }
   return false;
 }
 
-function canonicalizeSessionKeyForAgent(params: {
-  key: string;
-  agentId: string;
-  mainKey: string;
-  scope?: SessionScope;
-}): string {
+/**
+ * @param {{
+ *   key: string,
+ *   agentId: string,
+ *   mainKey: string,
+ *   scope?: import('../config/sessions/types.js').SessionScope
+ * }} params
+ * @returns {string}
+ */
+function canonicalizeSessionKeyForAgent(params) {
   const agentId = normalizeAgentId(params.agentId);
   const raw = params.key.trim();
   if (!raw) {
     return raw;
   }
-  if (raw.toLowerCase() === "global" || raw.toLowerCase() === "unknown") {
+  if (raw.toLowerCase() === 'global' || raw.toLowerCase() === 'unknown') {
     return raw.toLowerCase();
   }
 
   const canonicalMain = canonicalizeMainSessionAlias({
-    cfg: { session: { scope: params.scope, mainKey: params.mainKey } },
+    cfg: {session: {scope: params.scope, mainKey: params.mainKey}},
     agentId,
-    sessionKey: raw,
+    sessionKey: raw
   });
   if (canonicalMain !== raw) {
     return canonicalMain.toLowerCase();
   }
 
-  if (raw.toLowerCase().startsWith("agent:")) {
+  if (raw.toLowerCase().startsWith('agent:')) {
     return raw.toLowerCase();
   }
-  if (raw.toLowerCase().startsWith("subagent:")) {
-    const rest = raw.slice("subagent:".length);
+  if (raw.toLowerCase().startsWith('subagent:')) {
+    const rest = raw.slice('subagent:'.length);
     return `agent:${agentId}:subagent:${rest}`.toLowerCase();
   }
-  if (raw.startsWith("group:")) {
-    const id = raw.slice("group:".length).trim();
+  if (raw.startsWith('group:')) {
+    const id = raw.slice('group:'.length).trim();
     if (!id) {
       return raw;
     }
-    const channel = id.toLowerCase().includes("@g.us") ? "whatsapp" : "unknown";
+    const channel = id.toLowerCase().includes('@g.us') ? 'whatsapp' : 'unknown';
     return `agent:${agentId}:${channel}:group:${id}`.toLowerCase();
   }
-  if (!raw.includes(":") && raw.toLowerCase().includes("@g.us")) {
+  if (!raw.includes(':') && raw.toLowerCase().includes('@g.us')) {
     return `agent:${agentId}:whatsapp:group:${raw}`.toLowerCase();
   }
-  if (raw.toLowerCase().startsWith("whatsapp:") && raw.toLowerCase().includes("@g.us")) {
-    const remainder = raw.slice("whatsapp:".length).trim();
-    const cleaned = remainder.replace(/^group:/i, "").trim();
+  if (raw.toLowerCase().startsWith('whatsapp:') && raw.toLowerCase().includes('@g.us')) {
+    const remainder = raw.slice('whatsapp:'.length).trim();
+    const cleaned = remainder.replace(/^group:/i, '').trim();
     if (cleaned && !isSurfaceGroupKey(raw)) {
       return `agent:${agentId}:whatsapp:group:${cleaned}`.toLowerCase();
     }
@@ -146,32 +173,35 @@ function canonicalizeSessionKeyForAgent(params: {
   return `agent:${agentId}:${raw}`.toLowerCase();
 }
 
-function pickLatestLegacyDirectEntry(
-  store: Record<string, SessionEntryLike>,
-): SessionEntryLike | null {
-  let best: SessionEntryLike | null = null;
+/**
+ * @param {Record<string, SessionEntryLike>} store
+ * @returns {SessionEntryLike | null}
+ */
+function pickLatestLegacyDirectEntry(store) {
+  /** @type {SessionEntryLike | null} */
+  let best = null;
   let bestUpdated = -1;
   for (const [key, entry] of Object.entries(store)) {
-    if (!entry || typeof entry !== "object") {
+    if (!entry || typeof entry !== 'object') {
       continue;
     }
     const normalized = key.trim();
     if (!normalized) {
       continue;
     }
-    if (normalized === "global") {
+    if (normalized === 'global') {
       continue;
     }
-    if (normalized.startsWith("agent:")) {
+    if (normalized.startsWith('agent:')) {
       continue;
     }
-    if (normalized.toLowerCase().startsWith("subagent:")) {
+    if (normalized.toLowerCase().startsWith('subagent:')) {
       continue;
     }
     if (isLegacyGroupKey(normalized) || isSurfaceGroupKey(normalized)) {
       continue;
     }
-    const updatedAt = typeof entry.updatedAt === "number" ? entry.updatedAt : 0;
+    const updatedAt = typeof entry.updatedAt === 'number' ? entry.updatedAt : 0;
     if (updatedAt > bestUpdated) {
       bestUpdated = updatedAt;
       best = entry;
@@ -180,35 +210,47 @@ function pickLatestLegacyDirectEntry(
   return best;
 }
 
-function normalizeSessionEntry(entry: SessionEntryLike): SessionEntry | null {
-  const sessionId = typeof entry.sessionId === "string" ? entry.sessionId : null;
+/**
+ * @param {SessionEntryLike} entry
+ * @returns {import('../config/sessions.js').SessionEntry | null}
+ */
+function normalizeSessionEntry(entry) {
+  const sessionId = typeof entry.sessionId === 'string' ? entry.sessionId : null;
   if (!sessionId) {
     return null;
   }
   const updatedAt =
-    typeof entry.updatedAt === "number" && Number.isFinite(entry.updatedAt)
+    typeof entry.updatedAt === 'number' && Number.isFinite(entry.updatedAt)
       ? entry.updatedAt
       : Date.now();
-  const normalized = { ...(entry as unknown as SessionEntry), sessionId, updatedAt };
-  const rec = normalized as unknown as Record<string, unknown>;
-  if (typeof rec.groupChannel !== "string" && typeof rec.room === "string") {
+  const normalized = {.../** @type {import('../config/sessions.js').SessionEntry} */ (entry), sessionId, updatedAt};
+  const rec = /** @type {Record<string, unknown>} */ (normalized);
+  if (typeof rec.groupChannel !== 'string' && typeof rec.room === 'string') {
     rec.groupChannel = rec.room;
   }
   delete rec.room;
   return normalized;
 }
 
-function resolveUpdatedAt(entry: SessionEntryLike): number {
-  return typeof entry.updatedAt === "number" && Number.isFinite(entry.updatedAt)
+/**
+ * @param {SessionEntryLike} entry
+ * @returns {number}
+ */
+function resolveUpdatedAt(entry) {
+  return typeof entry.updatedAt === 'number' && Number.isFinite(entry.updatedAt)
     ? entry.updatedAt
     : 0;
 }
 
-function mergeSessionEntry(params: {
-  existing: SessionEntryLike | undefined;
-  incoming: SessionEntryLike;
-  preferIncomingOnTie?: boolean;
-}): SessionEntryLike {
+/**
+ * @param {{
+ *   existing: SessionEntryLike | undefined,
+ *   incoming: SessionEntryLike,
+ *   preferIncomingOnTie?: boolean
+ * }} params
+ * @returns {SessionEntryLike}
+ */
+function mergeSessionEntry(params) {
   if (!params.existing) {
     return params.incoming;
   }
@@ -223,25 +265,31 @@ function mergeSessionEntry(params: {
   return params.preferIncomingOnTie ? params.incoming : params.existing;
 }
 
-function canonicalizeSessionStore(params: {
-  store: Record<string, SessionEntryLike>;
-  agentId: string;
-  mainKey: string;
-  scope?: SessionScope;
-}): { store: Record<string, SessionEntryLike>; legacyKeys: string[] } {
-  const canonical: Record<string, SessionEntryLike> = {};
-  const meta = new Map<string, { isCanonical: boolean; updatedAt: number }>();
-  const legacyKeys: string[] = [];
+/**
+ * @param {{
+ *   store: Record<string, SessionEntryLike>,
+ *   agentId: string,
+ *   mainKey: string,
+ *   scope?: import('../config/sessions/types.js').SessionScope
+ * }} params
+ * @returns {{ store: Record<string, SessionEntryLike>, legacyKeys: string[] }}
+ */
+function canonicalizeSessionStore(params) {
+  /** @type {Record<string, SessionEntryLike>} */
+  const canonical = {};
+  const meta = new Map();
+  /** @type {string[]} */
+  const legacyKeys = [];
 
   for (const [key, entry] of Object.entries(params.store)) {
-    if (!entry || typeof entry !== "object") {
+    if (!entry || typeof entry !== 'object') {
       continue;
     }
     const canonicalKey = canonicalizeSessionKeyForAgent({
       key,
       agentId: params.agentId,
       mainKey: params.mainKey,
-      scope: params.scope,
+      scope: params.scope
     });
     const isCanonical = canonicalKey === key;
     if (!isCanonical) {
@@ -250,7 +298,7 @@ function canonicalizeSessionStore(params: {
     const existing = canonical[canonicalKey];
     if (!existing) {
       canonical[canonicalKey] = entry;
-      meta.set(canonicalKey, { isCanonical, updatedAt: resolveUpdatedAt(entry) });
+      meta.set(canonicalKey, {isCanonical, updatedAt: resolveUpdatedAt(entry)});
       continue;
     }
 
@@ -259,7 +307,7 @@ function canonicalizeSessionStore(params: {
     const existingUpdated = existingMeta?.updatedAt ?? resolveUpdatedAt(existing);
     if (incomingUpdated > existingUpdated) {
       canonical[canonicalKey] = entry;
-      meta.set(canonicalKey, { isCanonical, updatedAt: incomingUpdated });
+      meta.set(canonicalKey, {isCanonical, updatedAt: incomingUpdated});
       continue;
     }
     if (incomingUpdated < existingUpdated) {
@@ -270,27 +318,32 @@ function canonicalizeSessionStore(params: {
     }
     if (!existingMeta?.isCanonical && isCanonical) {
       canonical[canonicalKey] = entry;
-      meta.set(canonicalKey, { isCanonical, updatedAt: incomingUpdated });
+      meta.set(canonicalKey, {isCanonical, updatedAt: incomingUpdated});
       continue;
     }
   }
 
-  return { store: canonical, legacyKeys };
+  return {store: canonical, legacyKeys};
 }
 
-function listLegacySessionKeys(params: {
-  store: Record<string, SessionEntryLike>;
-  agentId: string;
-  mainKey: string;
-  scope?: SessionScope;
-}): string[] {
-  const legacy: string[] = [];
+/**
+ * @param {{
+ *   store: Record<string, SessionEntryLike>,
+ *   agentId: string,
+ *   mainKey: string,
+ *   scope?: import('../config/sessions/types.js').SessionScope
+ * }} params
+ * @returns {string[]}
+ */
+function listLegacySessionKeys(params) {
+  /** @type {string[]} */
+  const legacy = [];
   for (const key of Object.keys(params.store)) {
     const canonical = canonicalizeSessionKeyForAgent({
       key,
       agentId: params.agentId,
       mainKey: params.mainKey,
-      scope: params.scope,
+      scope: params.scope
     });
     if (canonical !== key) {
       legacy.push(key);
@@ -299,14 +352,21 @@ function listLegacySessionKeys(params: {
   return legacy;
 }
 
-function emptyDirOrMissing(dir: string): boolean {
+/**
+ * @param {string} dir
+ * @returns {boolean}
+ */
+function emptyDirOrMissing(dir) {
   if (!existsDir(dir)) {
     return true;
   }
   return safeReadDir(dir).length === 0;
 }
 
-function removeDirIfEmpty(dir: string) {
+/**
+ * @param {string} dir
+ */
+function removeDirIfEmpty(dir) {
   if (!existsDir(dir)) {
     return;
   }
@@ -332,14 +392,20 @@ export function resetAutoMigrateLegacyStateDirForTest() {
   autoMigrateStateDirChecked = false;
 }
 
-type StateDirMigrationResult = {
-  migrated: boolean;
-  skipped: boolean;
-  changes: string[];
-  warnings: string[];
-};
+/**
+ * @typedef {{
+ *   migrated: boolean,
+ *   skipped: boolean,
+ *   changes: string[],
+ *   warnings: string[]
+ * }} StateDirMigrationResult
+ */
 
-function resolveSymlinkTarget(linkPath: string): string | null {
+/**
+ * @param {string} linkPath
+ * @returns {string | null}
+ */
+function resolveSymlinkTarget(linkPath) {
   try {
     const target = fs.readlinkSync(linkPath);
     return path.resolve(path.dirname(linkPath), target);
@@ -348,11 +414,20 @@ function resolveSymlinkTarget(linkPath: string): string | null {
   }
 }
 
-function formatStateDirMigration(legacyDir: string, targetDir: string): string {
+/**
+ * @param {string} legacyDir
+ * @param {string} targetDir
+ * @returns {string}
+ */
+function formatStateDirMigration(legacyDir, targetDir) {
   return `State dir: ${legacyDir} → ${targetDir} (legacy path now symlinked)`;
 }
 
-function isDirPath(filePath: string): boolean {
+/**
+ * @param {string} filePath
+ * @returns {boolean}
+ */
+function isDirPath(filePath) {
   try {
     return fs.statSync(filePath).isDirectory();
   } catch {
@@ -360,19 +435,24 @@ function isDirPath(filePath: string): boolean {
   }
 }
 
-export async function autoMigrateLegacyStateDir(params: {
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-  log?: MigrationLogger;
-}): Promise<StateDirMigrationResult> {
+/**
+ * Auto-migrate legacy state directory to the new canonical location.
+ * @param {{
+ *   env?: NodeJS.ProcessEnv,
+ *   homedir?: () => string,
+ *   log?: MigrationLogger
+ * }} params
+ * @returns {Promise<StateDirMigrationResult>}
+ */
+export async function autoMigrateLegacyStateDir(params) {
   if (autoMigrateStateDirChecked) {
-    return { migrated: false, skipped: true, changes: [], warnings: [] };
+    return {migrated: false, skipped: true, changes: [], warnings: []};
   }
   autoMigrateStateDirChecked = true;
 
   const env = params.env ?? process.env;
   if (env.OPENCLAW_STATE_DIR?.trim()) {
-    return { migrated: false, skipped: true, changes: [], warnings: [] };
+    return {migrated: false, skipped: true, changes: [], warnings: []};
   }
 
   const homedir = params.homedir ?? os.homedir;
@@ -385,21 +465,24 @@ export async function autoMigrateLegacyStateDir(params: {
       return false;
     }
   });
-  const warnings: string[] = [];
-  const changes: string[] = [];
+  /** @type {string[]} */
+  const warnings = [];
+  /** @type {string[]} */
+  const changes = [];
 
-  let legacyStat: fs.Stats | null = null;
+  /** @type {fs.Stats | null} */
+  let legacyStat = null;
   try {
     legacyStat = legacyDir ? fs.lstatSync(legacyDir) : null;
   } catch {
     legacyStat = null;
   }
   if (!legacyStat) {
-    return { migrated: false, skipped: false, changes, warnings };
+    return {migrated: false, skipped: false, changes, warnings};
   }
   if (!legacyStat.isDirectory() && !legacyStat.isSymbolicLink()) {
     warnings.push(`Legacy state path is not a directory: ${legacyDir}`);
-    return { migrated: false, skipped: false, changes, warnings };
+    return {migrated: false, skipped: false, changes, warnings};
   }
 
   let symlinkDepth = 0;
@@ -407,12 +490,12 @@ export async function autoMigrateLegacyStateDir(params: {
     const legacyTarget = legacyDir ? resolveSymlinkTarget(legacyDir) : null;
     if (!legacyTarget) {
       warnings.push(
-        `Legacy state dir is a symlink (${legacyDir ?? "unknown"}); could not resolve target.`,
+        `Legacy state dir is a symlink (${legacyDir ?? 'unknown'}); could not resolve target.`
       );
-      return { migrated: false, skipped: false, changes, warnings };
+      return {migrated: false, skipped: false, changes, warnings};
     }
     if (path.resolve(legacyTarget) === path.resolve(targetDir)) {
-      return { migrated: false, skipped: false, changes, warnings };
+      return {migrated: false, skipped: false, changes, warnings};
     }
     if (legacyDirs.some((dir) => path.resolve(dir) === path.resolve(legacyTarget))) {
       legacyDir = legacyTarget;
@@ -423,57 +506,57 @@ export async function autoMigrateLegacyStateDir(params: {
       }
       if (!legacyStat) {
         warnings.push(`Legacy state dir missing after symlink resolution: ${legacyDir}`);
-        return { migrated: false, skipped: false, changes, warnings };
+        return {migrated: false, skipped: false, changes, warnings};
       }
       if (!legacyStat.isDirectory() && !legacyStat.isSymbolicLink()) {
         warnings.push(`Legacy state path is not a directory: ${legacyDir}`);
-        return { migrated: false, skipped: false, changes, warnings };
+        return {migrated: false, skipped: false, changes, warnings};
       }
       symlinkDepth += 1;
       if (symlinkDepth > 2) {
         warnings.push(`Legacy state dir symlink chain too deep: ${legacyDir}`);
-        return { migrated: false, skipped: false, changes, warnings };
+        return {migrated: false, skipped: false, changes, warnings};
       }
       continue;
     }
     warnings.push(
-      `Legacy state dir is a symlink (${legacyDir ?? "unknown"} → ${legacyTarget}); skipping auto-migration.`,
+      `Legacy state dir is a symlink (${legacyDir ?? 'unknown'} → ${legacyTarget}); skipping auto-migration.`
     );
-    return { migrated: false, skipped: false, changes, warnings };
+    return {migrated: false, skipped: false, changes, warnings};
   }
 
   if (isDirPath(targetDir)) {
     warnings.push(
-      `State dir migration skipped: target already exists (${targetDir}). Remove or merge manually.`,
+      `State dir migration skipped: target already exists (${targetDir}). Remove or merge manually.`
     );
-    return { migrated: false, skipped: false, changes, warnings };
+    return {migrated: false, skipped: false, changes, warnings};
   }
 
   try {
     if (!legacyDir) {
-      throw new Error("Legacy state dir not found");
+      throw new Error('Legacy state dir not found');
     }
     fs.renameSync(legacyDir, targetDir);
   } catch (err) {
     warnings.push(
-      `Failed to move legacy state dir (${legacyDir ?? "unknown"} → ${targetDir}): ${String(err)}`,
+      `Failed to move legacy state dir (${legacyDir ?? 'unknown'} → ${targetDir}): ${String(err)}`
     );
-    return { migrated: false, skipped: false, changes, warnings };
+    return {migrated: false, skipped: false, changes, warnings};
   }
 
   try {
     if (!legacyDir) {
-      throw new Error("Legacy state dir not found");
+      throw new Error('Legacy state dir not found');
     }
-    fs.symlinkSync(targetDir, legacyDir, "dir");
+    fs.symlinkSync(targetDir, legacyDir, 'dir');
     changes.push(formatStateDirMigration(legacyDir, targetDir));
   } catch (err) {
     try {
-      if (process.platform === "win32") {
+      if (process.platform === 'win32') {
         if (!legacyDir) {
-          throw new Error("Legacy state dir not found", { cause: err });
+          throw new Error('Legacy state dir not found', {cause: err});
         }
-        fs.symlinkSync(targetDir, legacyDir, "junction");
+        fs.symlinkSync(targetDir, legacyDir, 'junction');
         changes.push(formatStateDirMigration(legacyDir, targetDir));
       } else {
         throw err;
@@ -482,33 +565,38 @@ export async function autoMigrateLegacyStateDir(params: {
       try {
         if (!legacyDir) {
           // oxlint-disable-next-line preserve-caught-error
-          throw new Error("Legacy state dir not found", { cause: fallbackErr });
+          throw new Error('Legacy state dir not found', {cause: fallbackErr});
         }
         fs.renameSync(targetDir, legacyDir);
         warnings.push(
-          `State dir migration rolled back (failed to link legacy path): ${String(fallbackErr)}`,
+          `State dir migration rolled back (failed to link legacy path): ${String(fallbackErr)}`
         );
-        return { migrated: false, skipped: false, changes: [], warnings };
+        return {migrated: false, skipped: false, changes: [], warnings};
       } catch (rollbackErr) {
         warnings.push(
-          `State dir moved but failed to link legacy path (${legacyDir ?? "unknown"} → ${targetDir}): ${String(fallbackErr)}`,
+          `State dir moved but failed to link legacy path (${legacyDir ?? 'unknown'} → ${targetDir}): ${String(fallbackErr)}`
         );
         warnings.push(
-          `Rollback failed; set OPENCLAW_STATE_DIR=${targetDir} to avoid split state: ${String(rollbackErr)}`,
+          `Rollback failed; set OPENCLAW_STATE_DIR=${targetDir} to avoid split state: ${String(rollbackErr)}`
         );
-        changes.push(`State dir: ${legacyDir ?? "unknown"} → ${targetDir}`);
+        changes.push(`State dir: ${legacyDir ?? 'unknown'} → ${targetDir}`);
       }
     }
   }
 
-  return { migrated: changes.length > 0, skipped: false, changes, warnings };
+  return {migrated: changes.length > 0, skipped: false, changes, warnings};
 }
 
-export async function detectLegacyStateMigrations(params: {
-  cfg: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-}): Promise<LegacyStateDetection> {
+/**
+ * Detect legacy state that needs migration to the per-agent layout.
+ * @param {{
+ *   cfg: import('../config/config.js').OpenClawConfig,
+ *   env?: NodeJS.ProcessEnv,
+ *   homedir?: () => string
+ * }} params
+ * @returns {Promise<LegacyStateDetection>}
+ */
+export async function detectLegacyStateMigrations(params) {
   const env = params.env ?? process.env;
   const homedir = params.homedir ?? os.homedir;
   const stateDir = resolveStateDir(env, homedir);
@@ -517,42 +605,43 @@ export async function detectLegacyStateMigrations(params: {
   const targetAgentId = normalizeAgentId(resolveDefaultAgentId(params.cfg));
   const rawMainKey = params.cfg.session?.mainKey;
   const targetMainKey =
-    typeof rawMainKey === "string" && rawMainKey.trim().length > 0
+    typeof rawMainKey === 'string' && rawMainKey.trim().length > 0
       ? rawMainKey.trim()
       : DEFAULT_MAIN_KEY;
   const targetScope = params.cfg.session?.scope;
 
-  const sessionsLegacyDir = path.join(stateDir, "sessions");
-  const sessionsLegacyStorePath = path.join(sessionsLegacyDir, "sessions.json");
-  const sessionsTargetDir = path.join(stateDir, "agents", targetAgentId, "sessions");
-  const sessionsTargetStorePath = path.join(sessionsTargetDir, "sessions.json");
+  const sessionsLegacyDir = path.join(stateDir, 'sessions');
+  const sessionsLegacyStorePath = path.join(sessionsLegacyDir, 'sessions.json');
+  const sessionsTargetDir = path.join(stateDir, 'agents', targetAgentId, 'sessions');
+  const sessionsTargetStorePath = path.join(sessionsTargetDir, 'sessions.json');
   const legacySessionEntries = safeReadDir(sessionsLegacyDir);
   const hasLegacySessions =
     fileExists(sessionsLegacyStorePath) ||
-    legacySessionEntries.some((e) => e.isFile() && e.name.endsWith(".jsonl"));
+    legacySessionEntries.some((e) => e.isFile() && e.name.endsWith('.jsonl'));
 
   const targetSessionParsed = fileExists(sessionsTargetStorePath)
     ? readSessionStoreJson5(sessionsTargetStorePath)
-    : { store: {}, ok: true };
+    : {store: {}, ok: true};
   const legacyKeys = targetSessionParsed.ok
     ? listLegacySessionKeys({
-        store: targetSessionParsed.store,
-        agentId: targetAgentId,
-        mainKey: targetMainKey,
-        scope: targetScope,
-      })
+      store: targetSessionParsed.store,
+      agentId: targetAgentId,
+      mainKey: targetMainKey,
+      scope: targetScope
+    })
     : [];
 
-  const legacyAgentDir = path.join(stateDir, "agent");
-  const targetAgentDir = path.join(stateDir, "agents", targetAgentId, "agent");
+  const legacyAgentDir = path.join(stateDir, 'agent');
+  const targetAgentDir = path.join(stateDir, 'agents', targetAgentId, 'agent');
   const hasLegacyAgentDir = existsDir(legacyAgentDir);
 
-  const targetWhatsAppAuthDir = path.join(oauthDir, "whatsapp", DEFAULT_ACCOUNT_ID);
+  const targetWhatsAppAuthDir = path.join(oauthDir, 'whatsapp', DEFAULT_ACCOUNT_ID);
   const hasLegacyWhatsAppAuth =
-    fileExists(path.join(oauthDir, "creds.json")) &&
-    !fileExists(path.join(targetWhatsAppAuthDir, "creds.json"));
+    fileExists(path.join(oauthDir, 'creds.json')) &&
+    !fileExists(path.join(targetWhatsAppAuthDir, 'creds.json'));
 
-  const preview: string[] = [];
+  /** @type {string[]} */
+  const preview = [];
   if (hasLegacySessions) {
     preview.push(`- Sessions: ${sessionsLegacyDir} → ${sessionsTargetDir}`);
   }
@@ -578,40 +667,44 @@ export async function detectLegacyStateMigrations(params: {
       targetDir: sessionsTargetDir,
       targetStorePath: sessionsTargetStorePath,
       hasLegacy: hasLegacySessions || legacyKeys.length > 0,
-      legacyKeys,
+      legacyKeys
     },
     agentDir: {
       legacyDir: legacyAgentDir,
       targetDir: targetAgentDir,
-      hasLegacy: hasLegacyAgentDir,
+      hasLegacy: hasLegacyAgentDir
     },
     whatsappAuth: {
       legacyDir: oauthDir,
       targetDir: targetWhatsAppAuthDir,
-      hasLegacy: hasLegacyWhatsAppAuth,
+      hasLegacy: hasLegacyWhatsAppAuth
     },
-    preview,
+    preview
   };
 }
 
-async function migrateLegacySessions(
-  detected: LegacyStateDetection,
-  now: () => number,
-): Promise<{ changes: string[]; warnings: string[] }> {
-  const changes: string[] = [];
-  const warnings: string[] = [];
+/**
+ * @param {LegacyStateDetection} detected
+ * @param {() => number} now
+ * @returns {Promise<{ changes: string[], warnings: string[] }>}
+ */
+async function migrateLegacySessions(detected, now) {
+  /** @type {string[]} */
+  const changes = [];
+  /** @type {string[]} */
+  const warnings = [];
   if (!detected.sessions.hasLegacy) {
-    return { changes, warnings };
+    return {changes, warnings};
   }
 
   ensureDir(detected.sessions.targetDir);
 
   const legacyParsed = fileExists(detected.sessions.legacyStorePath)
     ? readSessionStoreJson5(detected.sessions.legacyStorePath)
-    : { store: {}, ok: true };
+    : {store: {}, ok: true};
   const targetParsed = fileExists(detected.sessions.targetStorePath)
     ? readSessionStoreJson5(detected.sessions.targetStorePath)
-    : { store: {}, ok: true };
+    : {store: {}, ok: true};
   const legacyStore = legacyParsed.store;
   const targetStore = targetParsed.store;
 
@@ -619,27 +712,28 @@ async function migrateLegacySessions(
     store: targetStore,
     agentId: detected.targetAgentId,
     mainKey: detected.targetMainKey,
-    scope: detected.targetScope,
+    scope: detected.targetScope
   });
   const canonicalizedLegacy = canonicalizeSessionStore({
     store: legacyStore,
     agentId: detected.targetAgentId,
     mainKey: detected.targetMainKey,
-    scope: detected.targetScope,
+    scope: detected.targetScope
   });
 
-  const merged: Record<string, SessionEntryLike> = { ...canonicalizedTarget.store };
+  /** @type {Record<string, SessionEntryLike>} */
+  const merged = {...canonicalizedTarget.store};
   for (const [key, entry] of Object.entries(canonicalizedLegacy.store)) {
     merged[key] = mergeSessionEntry({
       existing: merged[key],
       incoming: entry,
-      preferIncomingOnTie: false,
+      preferIncomingOnTie: false
     });
   }
 
   const mainKey = buildAgentMainSessionKey({
     agentId: detected.targetAgentId,
-    mainKey: detected.targetMainKey,
+    mainKey: detected.targetMainKey
   });
   if (!merged[mainKey]) {
     const latest = pickLatestLegacyDirectEntry(legacyStore);
@@ -651,7 +745,7 @@ async function migrateLegacySessions(
 
   if (!legacyParsed.ok) {
     warnings.push(
-      `Legacy sessions store unreadable; left in place at ${detected.sessions.legacyStorePath}`,
+      `Legacy sessions store unreadable; left in place at ${detected.sessions.legacyStorePath}`
     );
   }
 
@@ -659,7 +753,8 @@ async function migrateLegacySessions(
     (legacyParsed.ok || targetParsed.ok) &&
     (Object.keys(legacyStore).length > 0 || Object.keys(targetStore).length > 0)
   ) {
-    const normalized: Record<string, SessionEntry> = {};
+    /** @type {Record<string, import('../config/sessions.js').SessionEntry>} */
+    const normalized = {};
     for (const [key, entry] of Object.entries(merged)) {
       const normalizedEntry = normalizeSessionEntry(entry);
       if (!normalizedEntry) {
@@ -679,7 +774,7 @@ async function migrateLegacySessions(
     if (!entry.isFile()) {
       continue;
     }
-    if (entry.name === "sessions.json") {
+    if (entry.name === 'sessions.json') {
       continue;
     }
     const from = path.join(detected.sessions.legacyDir, entry.name);
@@ -698,7 +793,7 @@ async function migrateLegacySessions(
   if (legacyParsed.ok) {
     try {
       if (fileExists(detected.sessions.legacyStorePath)) {
-        fs.rmSync(detected.sessions.legacyStorePath, { force: true });
+        fs.rmSync(detected.sessions.legacyStorePath, {force: true});
       }
     } catch {
       // ignore
@@ -717,17 +812,22 @@ async function migrateLegacySessions(
     }
   }
 
-  return { changes, warnings };
+  return {changes, warnings};
 }
 
-export async function migrateLegacyAgentDir(
-  detected: LegacyStateDetection,
-  now: () => number,
-): Promise<{ changes: string[]; warnings: string[] }> {
-  const changes: string[] = [];
-  const warnings: string[] = [];
+/**
+ * Migrate a legacy agent directory to the per-agent layout.
+ * @param {LegacyStateDetection} detected
+ * @param {() => number} now
+ * @returns {Promise<{ changes: string[], warnings: string[] }>}
+ */
+export async function migrateLegacyAgentDir(detected, now) {
+  /** @type {string[]} */
+  const changes = [];
+  /** @type {string[]} */
+  const warnings = [];
   if (!detected.agentDir.hasLegacy) {
-    return { changes, warnings };
+    return {changes, warnings};
   }
 
   ensureDir(detected.agentDir.targetDir);
@@ -751,9 +851,9 @@ export async function migrateLegacyAgentDir(
   if (!emptyDirOrMissing(detected.agentDir.legacyDir)) {
     const backupDir = path.join(
       detected.stateDir,
-      "agents",
+      'agents',
       detected.targetAgentId,
-      `agent.legacy-${now()}`,
+      `agent.legacy-${now()}`
     );
     try {
       fs.renameSync(detected.agentDir.legacyDir, backupDir);
@@ -763,16 +863,20 @@ export async function migrateLegacyAgentDir(
     }
   }
 
-  return { changes, warnings };
+  return {changes, warnings};
 }
 
-async function migrateLegacyWhatsAppAuth(
-  detected: LegacyStateDetection,
-): Promise<{ changes: string[]; warnings: string[] }> {
-  const changes: string[] = [];
-  const warnings: string[] = [];
+/**
+ * @param {LegacyStateDetection} detected
+ * @returns {Promise<{ changes: string[], warnings: string[] }>}
+ */
+async function migrateLegacyWhatsAppAuth(detected) {
+  /** @type {string[]} */
+  const changes = [];
+  /** @type {string[]} */
+  const warnings = [];
   if (!detected.whatsappAuth.hasLegacy) {
-    return { changes, warnings };
+    return {changes, warnings};
   }
 
   ensureDir(detected.whatsappAuth.targetDir);
@@ -782,7 +886,7 @@ async function migrateLegacyWhatsAppAuth(
     if (!entry.isFile()) {
       continue;
     }
-    if (entry.name === "oauth.json") {
+    if (entry.name === 'oauth.json') {
       continue;
     }
     if (!isLegacyWhatsAppAuthFile(entry.name)) {
@@ -801,13 +905,18 @@ async function migrateLegacyWhatsAppAuth(
     }
   }
 
-  return { changes, warnings };
+  return {changes, warnings};
 }
 
-export async function runLegacyStateMigrations(params: {
-  detected: LegacyStateDetection;
-  now?: () => number;
-}): Promise<{ changes: string[]; warnings: string[] }> {
+/**
+ * Run all legacy state migrations for a detected state layout.
+ * @param {{
+ *   detected: LegacyStateDetection,
+ *   now?: () => number
+ * }} params
+ * @returns {Promise<{ changes: string[], warnings: string[] }>}
+ */
+export async function runLegacyStateMigrations(params) {
   const now = params.now ?? (() => Date.now());
   const detected = params.detected;
   const sessions = await migrateLegacySessions(detected, now);
@@ -815,39 +924,49 @@ export async function runLegacyStateMigrations(params: {
   const whatsappAuth = await migrateLegacyWhatsAppAuth(detected);
   return {
     changes: [...sessions.changes, ...agentDir.changes, ...whatsappAuth.changes],
-    warnings: [...sessions.warnings, ...agentDir.warnings, ...whatsappAuth.warnings],
+    warnings: [...sessions.warnings, ...agentDir.warnings, ...whatsappAuth.warnings]
   };
 }
 
-export async function autoMigrateLegacyAgentDir(params: {
-  cfg: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-  log?: MigrationLogger;
-  now?: () => number;
-}): Promise<{
-  migrated: boolean;
-  skipped: boolean;
-  changes: string[];
-  warnings: string[];
-}> {
+/**
+ * Auto-migrate legacy agent directory (delegates to full state migration).
+ * @param {{
+ *   cfg: import('../config/config.js').OpenClawConfig,
+ *   env?: NodeJS.ProcessEnv,
+ *   homedir?: () => string,
+ *   log?: MigrationLogger,
+ *   now?: () => number
+ * }} params
+ * @returns {Promise<{
+ *   migrated: boolean,
+ *   skipped: boolean,
+ *   changes: string[],
+ *   warnings: string[]
+ * }>}
+ */
+export async function autoMigrateLegacyAgentDir(params) {
   return await autoMigrateLegacyState(params);
 }
 
-export async function autoMigrateLegacyState(params: {
-  cfg: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-  log?: MigrationLogger;
-  now?: () => number;
-}): Promise<{
-  migrated: boolean;
-  skipped: boolean;
-  changes: string[];
-  warnings: string[];
-}> {
+/**
+ * Auto-migrate all legacy state (sessions, agent dir, WhatsApp auth, state dir).
+ * @param {{
+ *   cfg: import('../config/config.js').OpenClawConfig,
+ *   env?: NodeJS.ProcessEnv,
+ *   homedir?: () => string,
+ *   log?: MigrationLogger,
+ *   now?: () => number
+ * }} params
+ * @returns {Promise<{
+ *   migrated: boolean,
+ *   skipped: boolean,
+ *   changes: string[],
+ *   warnings: string[]
+ * }>}
+ */
+export async function autoMigrateLegacyState(params) {
   if (autoMigrateChecked) {
-    return { migrated: false, skipped: true, changes: [], warnings: [] };
+    return {migrated: false, skipped: true, changes: [], warnings: []};
   }
   autoMigrateChecked = true;
 
@@ -855,28 +974,28 @@ export async function autoMigrateLegacyState(params: {
   const stateDirResult = await autoMigrateLegacyStateDir({
     env,
     homedir: params.homedir,
-    log: params.log,
+    log: params.log
   });
   if (env.OPENCLAW_AGENT_DIR?.trim() || env.PI_CODING_AGENT_DIR?.trim()) {
     return {
       migrated: stateDirResult.migrated,
       skipped: true,
       changes: stateDirResult.changes,
-      warnings: stateDirResult.warnings,
+      warnings: stateDirResult.warnings
     };
   }
 
   const detected = await detectLegacyStateMigrations({
     cfg: params.cfg,
     env,
-    homedir: params.homedir,
+    homedir: params.homedir
   });
   if (!detected.sessions.hasLegacy && !detected.agentDir.hasLegacy) {
     return {
       migrated: stateDirResult.migrated,
       skipped: false,
       changes: stateDirResult.changes,
-      warnings: stateDirResult.warnings,
+      warnings: stateDirResult.warnings
     };
   }
 
@@ -886,13 +1005,13 @@ export async function autoMigrateLegacyState(params: {
   const changes = [...stateDirResult.changes, ...sessions.changes, ...agentDir.changes];
   const warnings = [...stateDirResult.warnings, ...sessions.warnings, ...agentDir.warnings];
 
-  const logger = params.log ?? createSubsystemLogger("state-migrations");
+  const logger = params.log ?? createSubsystemLogger('state-migrations');
   if (changes.length > 0) {
-    logger.info(`Auto-migrated legacy state:\n${changes.map((entry) => `- ${entry}`).join("\n")}`);
+    logger.info(`Auto-migrated legacy state:\n${changes.map((entry) => `- ${entry}`).join('\n')}`);
   }
   if (warnings.length > 0) {
     logger.warn(
-      `Legacy state migration warnings:\n${warnings.map((entry) => `- ${entry}`).join("\n")}`,
+      `Legacy state migration warnings:\n${warnings.map((entry) => `- ${entry}`).join('\n')}`
     );
   }
 
@@ -900,6 +1019,6 @@ export async function autoMigrateLegacyState(params: {
     migrated: changes.length > 0,
     skipped: false,
     changes,
-    warnings,
+    warnings
   };
 }
