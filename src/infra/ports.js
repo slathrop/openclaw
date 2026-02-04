@@ -1,0 +1,125 @@
+/**
+ * Port availability checking and error handling.
+ *
+ * Provides high-level port management: availability detection,
+ * owner diagnostics, and formatted error output for port conflicts.
+ * Re-exports formatting and inspection utilities.
+ */
+import net from 'node:net';
+import {danger, info, shouldLogVerbose, warn} from '../globals.js';
+import {logDebug} from '../logger.js';
+import {defaultRuntime} from '../runtime.js';
+import {formatPortDiagnostics} from './ports-format.js';
+import {inspectPortUsage} from './ports-inspect.js';
+
+class PortInUseError extends Error {
+  /**
+   * @param {number} port
+   * @param {string} [details]
+   */
+  constructor(port, details) {
+    super(`Port ${port} is already in use.`);
+    this.name = 'PortInUseError';
+    this.port = port;
+    this.details = details;
+  }
+}
+
+/**
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isErrno(err) {
+  return Boolean(err && typeof err === 'object' && 'code' in err);
+}
+
+/**
+ * Describes the owner of a port, if detectable.
+ * @param {number} port
+ * @returns {Promise<string | undefined>}
+ */
+export async function describePortOwner(port) {
+  const diagnostics = await inspectPortUsage(port);
+  if (diagnostics.listeners.length === 0) {
+    return undefined;
+  }
+  return formatPortDiagnostics(diagnostics).join('\n');
+}
+
+/**
+ * Ensures a port is available, throwing PortInUseError if not.
+ * @param {number} port
+ * @returns {Promise<void>}
+ */
+export async function ensurePortAvailable(port) {
+  // Detect EADDRINUSE early with a friendly message.
+  try {
+    await new Promise((resolve, reject) => {
+      const tester = net
+        .createServer()
+        .once('error', (err) => reject(err))
+        .once('listening', () => {
+          tester.close(() => resolve());
+        })
+        .listen(port);
+    });
+  } catch (err) {
+    if (isErrno(err) && err.code === 'EADDRINUSE') {
+      const details = await describePortOwner(port);
+      throw new PortInUseError(port, details);
+    }
+    throw err;
+  }
+}
+
+/**
+ * Handles a port error with formatted diagnostics and exits.
+ * @param {unknown} err
+ * @param {number} port
+ * @param {string} context
+ * @param {import('../runtime.js').RuntimeEnv} [runtime]
+ * @returns {Promise<never>}
+ */
+export async function handlePortError(
+  err,
+  port,
+  context,
+  runtime = defaultRuntime
+) {
+  // Uniform messaging for EADDRINUSE with optional owner details.
+  if (err instanceof PortInUseError || (isErrno(err) && err.code === 'EADDRINUSE')) {
+    const details = err instanceof PortInUseError ? err.details : await describePortOwner(port);
+    runtime.error(danger(`${context} failed: port ${port} is already in use.`));
+    if (details) {
+      runtime.error(info('Port listener details:'));
+      runtime.error(details);
+      if (/openclaw|src\/index\.ts|dist\/index\.js/.test(details)) {
+        runtime.error(
+          warn(
+            'It looks like another OpenClaw instance is already running. Stop it or pick a different port.'
+          )
+        );
+      }
+    }
+    runtime.error(
+      info('Resolve by stopping the process using the port or passing --port <free-port>.')
+    );
+    runtime.exit(1);
+  }
+  runtime.error(danger(`${context} failed: ${String(err)}`));
+  if (shouldLogVerbose()) {
+    const stdout = err?.stdout;
+    const stderr = err?.stderr;
+    if (stdout?.trim()) {
+      logDebug(`stdout: ${stdout.trim()}`);
+    }
+    if (stderr?.trim()) {
+      logDebug(`stderr: ${stderr.trim()}`);
+    }
+  }
+  return runtime.exit(1);
+}
+
+export {PortInUseError};
+export {buildPortHints, classifyPortListener, formatPortDiagnostics} from './ports-format.js';
+export {inspectPortUsage} from './ports-inspect.js';

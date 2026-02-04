@@ -1,0 +1,31 @@
+import {describe, expect, it, vi} from 'vitest';
+import {ensureBinary} from './binaries.js';
+
+describe('ensureBinary', () => {
+  it('passes through when binary exists', async () => {
+    const exec = vi.fn().mockResolvedValue({
+      stdout: '',
+      stderr: '',
+    });
+    const runtime = {
+      log: vi.fn(),
+      error: vi.fn(),
+      exit: vi.fn(),
+    };
+    await ensureBinary('node', exec, runtime);
+    expect(exec).toHaveBeenCalledWith('which', ['node']);
+  });
+
+  it('logs and exits when missing', async () => {
+    const exec = vi.fn().mockRejectedValue(new Error('missing'));
+    const error = vi.fn();
+    const exit = vi.fn(() => {
+      throw new Error('exit');
+    });
+    await expect(ensureBinary('ghost', exec, {log: vi.fn(), error, exit})).rejects.toThrow(
+      'exit',
+    );
+    expect(error).toHaveBeenCalledWith('Missing required binary: ghost. Please install it.');
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+});

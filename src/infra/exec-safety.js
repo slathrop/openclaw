@@ -1,0 +1,58 @@
+/**
+ * Executable value safety validation.
+ *
+ * Validates that executable paths and command names are safe to use,
+ * rejecting shell metacharacters, control characters, and suspicious patterns.
+ * SECURITY: Prevents shell injection by rejecting metacharacters (;&|`$<>).
+ * SECURITY: Rejects control characters (\r\n) and quote characters in executables.
+ */
+const SHELL_METACHARS = /[;&|`$<>]/;
+const CONTROL_CHARS = /[\r\n]/;
+const QUOTE_CHARS = /["']/;
+const BARE_NAME_PATTERN = /^[A-Za-z0-9._+-]+$/;
+
+function isLikelyPath(value) {
+  if (value.startsWith('.') || value.startsWith('~')) {
+    return true;
+  }
+  if (value.includes('/') || value.includes('\\')) {
+    return true;
+  }
+  return /^[A-Za-z]:[\\/]/.test(value);
+}
+
+/**
+ * Checks if an executable value is safe to use in a command.
+ * SECURITY: Rejects null bytes, control chars, shell metacharacters, and quotes.
+ * @param {string | null | undefined} value
+ * @returns {boolean}
+ */
+export function isSafeExecutableValue(value) {
+  if (!value) {
+    return false;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (trimmed.includes('\0')) {
+    return false;
+  }
+  if (CONTROL_CHARS.test(trimmed)) {
+    return false;
+  }
+  if (SHELL_METACHARS.test(trimmed)) {
+    return false;
+  }
+  if (QUOTE_CHARS.test(trimmed)) {
+    return false;
+  }
+
+  if (isLikelyPath(trimmed)) {
+    return true;
+  }
+  if (trimmed.startsWith('-')) {
+    return false;
+  }
+  return BARE_NAME_PATTERN.test(trimmed);
+}
