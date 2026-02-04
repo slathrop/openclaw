@@ -1,14 +1,19 @@
-import fs from "node:fs";
-import path from "node:path";
+/**
+ * Determines whether the current module is the main entry point.
+ *
+ * Supports standard Node.js argv detection, PM2 process manager
+ * (via pm_exec_path), and basename fallback for symlinked binaries.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
 
-type IsMainModuleOptions = {
-  currentFile: string;
-  argv?: string[];
-  env?: NodeJS.ProcessEnv;
-  cwd?: string;
-};
-
-function normalizePathCandidate(candidate: string | undefined, cwd: string): string | undefined {
+/**
+ * Normalizes a path candidate by resolving and following realpaths.
+ * @param {string | undefined} candidate
+ * @param {string} cwd
+ * @returns {string | undefined}
+ */
+function normalizePathCandidate(candidate, cwd) {
   if (!candidate) {
     return undefined;
   }
@@ -21,12 +26,22 @@ function normalizePathCandidate(candidate: string | undefined, cwd: string): str
   }
 }
 
+/**
+ * Checks whether the current file is the main module.
+ * @param {{
+ *   currentFile: string,
+ *   argv?: string[],
+ *   env?: NodeJS.ProcessEnv,
+ *   cwd?: string
+ * }} options
+ * @returns {boolean}
+ */
 export function isMainModule({
   currentFile,
   argv = process.argv,
   env = process.env,
-  cwd = process.cwd(),
-}: IsMainModuleOptions): boolean {
+  cwd = process.cwd()
+}) {
   const normalizedCurrent = normalizePathCandidate(currentFile, cwd);
   const normalizedArgv1 = normalizePathCandidate(argv[1], cwd);
 

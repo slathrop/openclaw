@@ -1,25 +1,35 @@
-export type DedupeCache = {
-  check: (key: string | undefined | null, now?: number) => boolean;
-  clear: () => void;
-  size: () => number;
-};
+/**
+ * Deduplication cache with TTL and max-size eviction.
+ *
+ * Provides a time-bounded cache that detects duplicate keys
+ * within a configurable TTL window and evicts oldest entries
+ * when exceeding max size.
+ */
 
-type DedupeCacheOptions = {
-  ttlMs: number;
-  maxSize: number;
-};
+/**
+ * @typedef {{
+ *   check: (key: string | undefined | null, now?: number) => boolean,
+ *   clear: () => void,
+ *   size: () => number
+ * }} DedupeCache
+ */
 
-export function createDedupeCache(options: DedupeCacheOptions): DedupeCache {
+/**
+ * Creates a deduplication cache.
+ * @param {{ ttlMs: number, maxSize: number }} options
+ * @returns {DedupeCache}
+ */
+export function createDedupeCache(options) {
   const ttlMs = Math.max(0, options.ttlMs);
   const maxSize = Math.max(0, Math.floor(options.maxSize));
-  const cache = new Map<string, number>();
+  const cache = new Map();
 
-  const touch = (key: string, now: number) => {
+  const touch = (key, now) => {
     cache.delete(key);
     cache.set(key, now);
   };
 
-  const prune = (now: number) => {
+  const prune = (now) => {
     const cutoff = ttlMs > 0 ? now - ttlMs : undefined;
     if (cutoff !== undefined) {
       for (const [entryKey, entryTs] of cache) {
@@ -58,6 +68,6 @@ export function createDedupeCache(options: DedupeCacheOptions): DedupeCache {
     clear: () => {
       cache.clear();
     },
-    size: () => cache.size,
+    size: () => cache.size
   };
 }
