@@ -93,51 +93,51 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOOL-01 | — | Pending |
-| TOOL-02 | — | Pending |
-| TOOL-03 | — | Pending |
-| TOOL-04 | — | Pending |
-| TOOL-05 | — | Pending |
-| TOOL-06 | — | Pending |
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| CORE-06 | — | Pending |
-| CORE-07 | — | Pending |
-| CORE-08 | — | Pending |
-| CORE-09 | — | Pending |
-| CORE-10 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| EXT-01 | — | Pending |
-| EXT-02 | — | Pending |
-| EXT-03 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
-| QUAL-04 | — | Pending |
-| QUAL-05 | — | Pending |
-| QUAL-06 | — | Pending |
-| QUAL-07 | — | Pending |
-| FEAT-01 | — | Pending |
-| FEAT-02 | — | Pending |
-| FEAT-03 | — | Pending |
-| FEAT-04 | — | Pending |
-| FEAT-05 | — | Pending |
-| FEAT-06 | — | Pending |
+| TOOL-01 | Phase 1 | Pending |
+| TOOL-02 | Phase 1 | Pending |
+| TOOL-03 | Phase 1 | Pending |
+| TOOL-04 | Phase 1 | Pending |
+| TOOL-05 | Phase 1 | Pending |
+| TOOL-06 | Phase 1 | Pending |
+| CORE-01 | Phase 4 | Pending |
+| CORE-02 | Phase 4 | Pending |
+| CORE-03 | Phase 3 | Pending |
+| CORE-04 | Phase 2 | Pending |
+| CORE-05 | Phase 3 | Pending |
+| CORE-06 | Phase 3 | Pending |
+| CORE-07 | Phase 4 | Pending |
+| CORE-08 | Phase 2 | Pending |
+| CORE-09 | Phase 3 | Pending |
+| CORE-10 | Phase 2 | Pending |
+| TEST-01 | Phase 5 | Pending |
+| TEST-02 | Phase 2 | Pending |
+| TEST-03 | Phase 6 | Pending |
+| TEST-04 | Phase 6 | Pending |
+| UI-01 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 6 | Pending |
+| EXT-01 | Phase 5 | Pending |
+| EXT-02 | Phase 5 | Pending |
+| EXT-03 | Phase 6 | Pending |
+| QUAL-01 | Phase 3 | Pending |
+| QUAL-02 | Phase 3 | Pending |
+| QUAL-03 | Phase 4 | Pending |
+| QUAL-04 | Phase 2 | Pending |
+| QUAL-05 | Phase 2 | Pending |
+| QUAL-06 | Phase 2 | Pending |
+| QUAL-07 | Phase 4 | Pending |
+| FEAT-01 | Phase 6 | Pending |
+| FEAT-02 | Phase 6 | Pending |
+| FEAT-03 | Phase 6 | Pending |
+| FEAT-04 | Phase 6 | Pending |
+| FEAT-05 | Phase 6 | Pending |
+| FEAT-06 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 39 total
-- Mapped to phases: 0
-- Unmapped: 39
+- Mapped to phases: 39
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-04*
-*Last updated: 2026-02-04 after initial definition*
+*Last updated: 2026-02-04 after roadmap creation*

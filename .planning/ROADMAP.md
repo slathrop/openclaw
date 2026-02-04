@@ -1,0 +1,138 @@
+# Roadmap: OpenClaw JavaScript Simplification
+
+## Overview
+
+This roadmap converts the OpenClaw codebase from TypeScript to JavaScript in six phases. It starts with build tooling, then converts source code layer-by-layer from shared infrastructure up through CLI/channels/UI, applying code quality improvements during each conversion phase rather than as a separate pass. The final phase verifies full feature parity and test coverage across the entire converted codebase.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
+- [ ] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
+- [ ] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
+- [ ] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
+- [ ] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
+- [ ] **Phase 6: Verification and Parity** - Validate all tests pass, coverage holds, and every feature works identically
+
+## Phase Details
+
+### Phase 1: Build Tooling
+**Goal**: The project builds, lints, and runs tests using a JavaScript-only toolchain
+**Depends on**: Nothing (first phase)
+**Requirements**: TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06
+**Success Criteria** (what must be TRUE):
+  1. Running `pnpm build` succeeds without invoking the TypeScript compiler (no tsc, no tsdown TS compilation)
+  2. Running `pnpm check` applies Google Standard JavaScript Style with no trailing commas in multiline and reports violations
+  3. Running `pnpm test` executes Vitest against JavaScript source files
+  4. Lodash is available as a project dependency and importable via ESM
+  5. All package.json scripts reference JavaScript files and tools only (no TS-specific scripts remain)
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: Remove TypeScript toolchain and configure JS build pipeline
+- [ ] 01-02: Set up ESLint with Google Standard Style, JSDoc validation, and ESM enforcement
+- [ ] 01-03: Update package.json scripts and add lodash dependency
+
+### Phase 2: Foundation Layer
+**Goal**: The shared modules that every other layer depends on are converted to idiomatic JavaScript with established quality patterns
+**Depends on**: Phase 1
+**Requirements**: CORE-08, CORE-10, CORE-04, TEST-02, QUAL-04, QUAL-05, QUAL-06
+**Success Criteria** (what must be TRUE):
+  1. All files in `src/infra/`, `src/utils/`, `src/shared/`, `src/types/`, `src/config/`, `src/routing/` are JavaScript (.js) with no remaining .ts files
+  2. Entry points (`src/index.js`, `src/entry.js`, `src/runtime.js`) load and bootstrap the CLI successfully
+  3. Every converted module has a top-level comment explaining its purpose, and non-obvious functions have JSDoc annotations
+  4. Security-sensitive code (auth tokens, credential handling, TLS) has explicit comments explaining the security concern
+  5. Vitest configuration resolves and runs tests against .js source files
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: Convert shared infrastructure (infra, utils, types) with quality patterns
+- [ ] 02-02: Convert configuration and routing modules
+- [ ] 02-03: Convert entry points and update Vitest configuration
+
+### Phase 3: Core Services
+**Goal**: The gateway server, agent runtime, AI providers, and support modules are converted to idiomatic JavaScript
+**Depends on**: Phase 2
+**Requirements**: CORE-03, CORE-05, CORE-06, CORE-09, QUAL-01, QUAL-02
+**Success Criteria** (what must be TRUE):
+  1. All files in `src/gateway/`, `src/agents/`, `src/providers/` are JavaScript with no remaining .ts files
+  2. All files in `src/logging/`, `src/memory/`, `src/sessions/`, `src/terminal/`, `src/plugins/` are JavaScript with no remaining .ts files
+  3. Nested conditionals and callback pyramids are flattened to early returns and set-and-return patterns throughout converted code
+  4. Functions use arrow syntax and functional patterns (map, filter, reduce) instead of imperative loops where appropriate
+  5. Gateway server starts and accepts WebSocket connections when run from the converted source
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: Convert gateway server and protocol modules
+- [ ] 03-02: Convert agent runtime, model selection, and AI provider clients
+- [ ] 03-03: Convert logging, memory, sessions, terminal, and plugin modules
+
+### Phase 4: CLI and Channels
+**Goal**: The CLI layer, all commands, and all nine messaging channel implementations are converted to idiomatic JavaScript
+**Depends on**: Phase 3
+**Requirements**: CORE-01, CORE-02, CORE-07, QUAL-03, QUAL-07
+**Success Criteria** (what must be TRUE):
+  1. All files in `src/cli/` and `src/commands/` are JavaScript with no remaining .ts files
+  2. All nine channel directories (`src/telegram/`, `src/discord/`, `src/whatsapp/`, `src/slack/`, `src/signal/`, `src/imessage/`, `src/feishu/`, `src/line/`, `src/web/`, `src/channels/`) are JavaScript with no remaining .ts files
+  3. Lodash is used in place of verbose built-in methods where it improves readability (e.g., groupBy, keyBy, pick, omit, debounce)
+  4. Abstractions that add indirection without aiding comprehension are flattened; abstractions that clarify complex logic are preserved with explanatory comments
+  5. Running `openclaw --help` from the converted source displays all commands correctly
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: Convert CLI infrastructure and command implementations
+- [ ] 04-02: Convert channel implementations (Telegram, Discord, WhatsApp, Slack)
+- [ ] 04-03: Convert channel implementations (Signal, iMessage, Feishu, LINE, Web) and shared channel modules
+
+### Phase 5: UI and Extensions
+**Goal**: The web UI and all extension packages are converted to JavaScript, completing source conversion
+**Depends on**: Phase 3 (UI depends on gateway client; extensions depend on plugin system)
+**Requirements**: UI-01, UI-02, EXT-01, EXT-02, TEST-01
+**Success Criteria** (what must be TRUE):
+  1. All files in `ui/src/` are JavaScript with no remaining .ts/.tsx files
+  2. Vite configuration builds the web UI from JavaScript source without TypeScript plugins
+  3. All extension packages in `extensions/` are JavaScript with updated package.json files for JS-only workflow
+  4. All colocated test files (`*.test.ts`) across the entire codebase have been converted to JavaScript (`*.test.js`)
+  5. Zero `.ts` files remain in `src/`, `ui/src/`, or `extensions/` (excluding declaration files if any are deliberately retained)
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: Convert web UI source and Vite configuration
+- [ ] 05-02: Convert extension packages
+- [ ] 05-03: Convert all remaining test files and verify zero .ts files remain
+
+### Phase 6: Verification and Parity
+**Goal**: Every feature works identically to the TypeScript version, all tests pass, and coverage thresholds are maintained
+**Depends on**: Phase 5
+**Requirements**: UI-03, EXT-03, TEST-03, TEST-04, FEAT-01, FEAT-02, FEAT-03, FEAT-04, FEAT-05, FEAT-06
+**Success Criteria** (what must be TRUE):
+  1. All existing tests pass (`pnpm test` exits 0 with no failures)
+  2. Code coverage meets or exceeds 70% thresholds for lines, functions, and statements
+  3. All CLI commands execute correctly (`openclaw gateway run`, `openclaw channels status`, `openclaw agent --message`, `openclaw config`, `openclaw status`, `openclaw doctor`)
+  4. All messaging channels connect and relay messages (Telegram, Discord, WhatsApp, Slack, Signal, iMessage, Feishu, LINE)
+  5. Web UI loads in browser, connects to gateway via WebSocket, and renders chat interface
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: Run full test suite and fix failures, verify coverage thresholds
+- [ ] 06-02: Verify CLI commands, gateway, agent runtime, and configuration
+- [ ] 06-03: Verify all channels, web UI, and extensions function identically
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Build Tooling | 0/3 | Not started | - |
+| 2. Foundation Layer | 0/3 | Not started | - |
+| 3. Core Services | 0/3 | Not started | - |
+| 4. CLI and Channels | 0/3 | Not started | - |
+| 5. UI and Extensions | 0/3 | Not started | - |
+| 6. Verification and Parity | 0/3 | Not started | - |
