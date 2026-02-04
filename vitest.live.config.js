@@ -1,17 +1,17 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    pool: "forks",
+    pool: 'forks',
     maxWorkers: 1,
-    include: ["src/**/*.live.test.ts"],
-    setupFiles: ["test/setup.ts"],
+    include: ['src/**/*.live.test.ts'],
+    setupFiles: ['test/setup.ts'],
     exclude: [
-      "dist/**",
-      "apps/macos/**",
-      "apps/macos/.build/**",
-      "**/vendor/**",
-      "dist/OpenClaw.app/**",
-    ],
-  },
+      'dist/**',
+      'apps/macos/**',
+      'apps/macos/.build/**',
+      '**/vendor/**',
+      'dist/OpenClaw.app/**'
+    ]
+  }
 });
