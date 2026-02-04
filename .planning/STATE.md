@@ -5,35 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** Human-friendly JavaScript that senior engineers will accept and maintain
-**Current focus:** Phase 1 complete -- ready for Phase 2 (Foundation Layer)
+**Current focus:** Phase 2 (Foundation Layer) -- in progress
 
 ## Current Position
 
-Phase: 1 of 6 (Build Tooling) -- COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete, verified (5/5 must-haves)
-Last activity: 2026-02-04 -- Phase 1 verified, all goals achieved
+Phase: 2 of 6 (Foundation Layer)
+Plan: 1 of 10 in current phase
+Status: In progress
+Last activity: 2026-02-04 -- Completed 02-01-PLAN.md (leaf module conversion)
 
-Progress: [===.................] 17%
+Progress: [====................] 21%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
-- Average duration: 4m 43s
-- Total execution time: 0.24 hours
+- Total plans completed: 4
+- Average duration: 5m 49s
+- Total execution time: 0.39 hours
 
 **By Phase:**
 
-| Phase            | Plans | Total   | Avg/Plan |
-| ---------------- | ----- | ------- | -------- |
-| 1. Build Tooling | 3/3   | 14m 09s | 4m 43s   |
+| Phase                 | Plans | Total   | Avg/Plan |
+| --------------------- | ----- | ------- | -------- |
+| 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
+| 2. Foundation Layer   | 1/10  | 9m 09s  | 9m 09s   |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-01 (3m 30s), 01-02 (5m), 01-03 (5m 39s)
-- Trend: stable
+- Last 5 plans: 01-01 (3m 30s), 01-02 (5m), 01-03 (5m 39s), 02-01 (9m 09s)
+- Trend: Phase 2 plans take longer (more files per plan)
 
 _Updated after each plan completion_
 
@@ -57,6 +58,9 @@ Recent decisions affecting current work:
 - 01-03: format/format:fix map to eslint (Stylistic handles formatting)
 - 01-03: Removed vitest top-level key from package.json (vitest.config.js is source of truth)
 - Orchestrator: Added external config to rolldown.config.js (tsdown auto-externalized; rolldown requires explicit)
+- 02-01: vitest include patterns updated to also match *.test.js (required for converted tests)
+- 02-01: == null / != null replaced with === null || === undefined for eqeqeq compliance
+- 02-01: export type converted to JSDoc @typedef; import type lines deleted entirely
 
 ### Pending Todos
 
@@ -69,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-04
-Stopped at: Phase 1 complete and verified, ready for Phase 2
+Last session: 2026-02-04T23:21:38Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
