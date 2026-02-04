@@ -8,7 +8,7 @@ describe('buildNodeShellCommand', () => {
       '/d',
       '/s',
       '/c',
-      'echo hi',
+      'echo hi'
     ]);
   });
 
@@ -18,14 +18,14 @@ describe('buildNodeShellCommand', () => {
       '/d',
       '/s',
       '/c',
-      'echo hi',
+      'echo hi'
     ]);
     expect(buildNodeShellCommand('echo hi', 'Windows 11')).toEqual([
       'cmd.exe',
       '/d',
       '/s',
       '/c',
-      'echo hi',
+      'echo hi'
     ]);
   });
 

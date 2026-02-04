@@ -6,7 +6,7 @@ import {
   ensurePortAvailable,
   formatPortDiagnostics,
   handlePortError,
-  PortInUseError,
+  PortInUseError
 } from './ports.js';
 
 describe('ports helpers', () => {
@@ -22,7 +22,7 @@ describe('ports helpers', () => {
     const runtime = {
       error: vi.fn(),
       log: vi.fn(),
-      exit: vi.fn(),
+      exit: vi.fn()
     };
     await handlePortError({code: 'EADDRINUSE'}, 1234, 'context', runtime).catch(() => {});
     expect(runtime.error).toHaveBeenCalled();
@@ -31,15 +31,15 @@ describe('ports helpers', () => {
 
   it('classifies ssh and gateway listeners', () => {
     expect(
-      classifyPortListener({commandLine: 'ssh -N -L 18789:127.0.0.1:18789 user@host'}, 18789),
+      classifyPortListener({commandLine: 'ssh -N -L 18789:127.0.0.1:18789 user@host'}, 18789)
     ).toBe('ssh');
     expect(
       classifyPortListener(
         {
-          commandLine: 'node /Users/me/Projects/openclaw/dist/entry.js gateway',
+          commandLine: 'node /Users/me/Projects/openclaw/dist/entry.js gateway'
         },
-        18789,
-      ),
+        18789
+      )
     ).toBe('gateway');
   });
 
@@ -48,7 +48,7 @@ describe('ports helpers', () => {
       port: 18789,
       status: 'busy',
       listeners: [{pid: 123, commandLine: 'ssh -N -L 18789:127.0.0.1:18789'}],
-      hints: buildPortHints([{pid: 123, commandLine: 'ssh -N -L 18789:127.0.0.1:18789'}], 18789),
+      hints: buildPortHints([{pid: 123, commandLine: 'ssh -N -L 18789:127.0.0.1:18789'}], 18789)
     };
     const lines = formatPortDiagnostics(diagnostics);
     expect(lines[0]).toContain('Port 18789 is already in use');

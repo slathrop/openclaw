@@ -5,12 +5,12 @@ describe('ensureBinary', () => {
   it('passes through when binary exists', async () => {
     const exec = vi.fn().mockResolvedValue({
       stdout: '',
-      stderr: '',
+      stderr: ''
     });
     const runtime = {
       log: vi.fn(),
       error: vi.fn(),
-      exit: vi.fn(),
+      exit: vi.fn()
     };
     await ensureBinary('node', exec, runtime);
     expect(exec).toHaveBeenCalledWith('which', ['node']);
@@ -23,7 +23,7 @@ describe('ensureBinary', () => {
       throw new Error('exit');
     });
     await expect(ensureBinary('ghost', exec, {log: vi.fn(), error, exit})).rejects.toThrow(
-      'exit',
+      'exit'
     );
     expect(error).toHaveBeenCalledWith('Missing required binary: ghost. Please install it.');
     expect(exit).toHaveBeenCalledWith(1);
