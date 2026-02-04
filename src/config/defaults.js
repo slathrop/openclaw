@@ -1,100 +1,115 @@
-import type { OpenClawConfig } from "./types.js";
-import type { ModelDefinitionConfig } from "./types.models.js";
-import { DEFAULT_CONTEXT_TOKENS } from "../agents/defaults.js";
-import { parseModelRef } from "../agents/model-selection.js";
-import { DEFAULT_AGENT_MAX_CONCURRENT, DEFAULT_SUBAGENT_MAX_CONCURRENT } from "./agent-limits.js";
-import { resolveTalkApiKey } from "./talk.js";
+/**
+ * Config default value application pipeline.
+ *
+ * Applies sensible defaults for models, agents, sessions, messages,
+ * logging, compaction, and context pruning to a validated config.
+ * Each apply* function is pure -- returns a new config with defaults merged.
+ */
+import { DEFAULT_CONTEXT_TOKENS } from '../agents/defaults.js';
+import { parseModelRef } from '../agents/model-selection.js';
+import { DEFAULT_AGENT_MAX_CONCURRENT, DEFAULT_SUBAGENT_MAX_CONCURRENT } from './agent-limits.js';
+import { resolveTalkApiKey } from './talk.js';
 
-type WarnState = { warned: boolean };
+let defaultWarnState = { warned: false };
 
-let defaultWarnState: WarnState = { warned: false };
-
-type AnthropicAuthDefaultsMode = "api_key" | "oauth";
-
-const DEFAULT_MODEL_ALIASES: Readonly<Record<string, string>> = {
+const DEFAULT_MODEL_ALIASES = {
   // Anthropic (pi-ai catalog uses "latest" ids without date suffix)
-  opus: "anthropic/claude-opus-4-5",
-  sonnet: "anthropic/claude-sonnet-4-5",
+  opus: 'anthropic/claude-opus-4-5',
+  sonnet: 'anthropic/claude-sonnet-4-5',
 
   // OpenAI
-  gpt: "openai/gpt-5.2",
-  "gpt-mini": "openai/gpt-5-mini",
+  gpt: 'openai/gpt-5.2',
+  'gpt-mini': 'openai/gpt-5-mini',
 
   // Google Gemini (3.x are preview ids in the catalog)
-  gemini: "google/gemini-3-pro-preview",
-  "gemini-flash": "google/gemini-3-flash-preview",
+  gemini: 'google/gemini-3-pro-preview',
+  'gemini-flash': 'google/gemini-3-flash-preview'
 };
 
-const DEFAULT_MODEL_COST: ModelDefinitionConfig["cost"] = {
+const DEFAULT_MODEL_COST = {
   input: 0,
   output: 0,
   cacheRead: 0,
-  cacheWrite: 0,
+  cacheWrite: 0
 };
-const DEFAULT_MODEL_INPUT: ModelDefinitionConfig["input"] = ["text"];
+const DEFAULT_MODEL_INPUT = ['text'];
 const DEFAULT_MODEL_MAX_TOKENS = 8192;
 
-type ModelDefinitionLike = Partial<ModelDefinitionConfig> &
-  Pick<ModelDefinitionConfig, "id" | "name">;
-
-function isPositiveNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value > 0;
+/**
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isPositiveNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-function resolveModelCost(
-  raw?: Partial<ModelDefinitionConfig["cost"]>,
-): ModelDefinitionConfig["cost"] {
+/**
+ * Fills in missing cost fields with zeros.
+ * @param {Record<string, number>} [raw]
+ * @returns {{ input: number, output: number, cacheRead: number, cacheWrite: number }}
+ */
+function resolveModelCost(raw) {
   return {
-    input: typeof raw?.input === "number" ? raw.input : DEFAULT_MODEL_COST.input,
-    output: typeof raw?.output === "number" ? raw.output : DEFAULT_MODEL_COST.output,
-    cacheRead: typeof raw?.cacheRead === "number" ? raw.cacheRead : DEFAULT_MODEL_COST.cacheRead,
+    input: typeof raw?.input === 'number' ? raw.input : DEFAULT_MODEL_COST.input,
+    output: typeof raw?.output === 'number' ? raw.output : DEFAULT_MODEL_COST.output,
+    cacheRead: typeof raw?.cacheRead === 'number' ? raw.cacheRead : DEFAULT_MODEL_COST.cacheRead,
     cacheWrite:
-      typeof raw?.cacheWrite === "number" ? raw.cacheWrite : DEFAULT_MODEL_COST.cacheWrite,
+      typeof raw?.cacheWrite === 'number' ? raw.cacheWrite : DEFAULT_MODEL_COST.cacheWrite
   };
 }
 
-function resolveAnthropicDefaultAuthMode(cfg: OpenClawConfig): AnthropicAuthDefaultsMode | null {
+/**
+ * Determines the default Anthropic auth mode from config profiles, order, and env.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {"api_key" | "oauth" | null}
+ */
+function resolveAnthropicDefaultAuthMode(cfg) {
   const profiles = cfg.auth?.profiles ?? {};
   const anthropicProfiles = Object.entries(profiles).filter(
-    ([, profile]) => profile?.provider === "anthropic",
+    ([, profile]) => profile?.provider === 'anthropic'
   );
 
   const order = cfg.auth?.order?.anthropic ?? [];
   for (const profileId of order) {
     const entry = profiles[profileId];
-    if (!entry || entry.provider !== "anthropic") {
+    if (!entry || entry.provider !== 'anthropic') {
       continue;
     }
-    if (entry.mode === "api_key") {
-      return "api_key";
+    if (entry.mode === 'api_key') {
+      return 'api_key';
     }
-    if (entry.mode === "oauth" || entry.mode === "token") {
-      return "oauth";
+    if (entry.mode === 'oauth' || entry.mode === 'token') {
+      return 'oauth';
     }
   }
 
-  const hasApiKey = anthropicProfiles.some(([, profile]) => profile?.mode === "api_key");
+  const hasApiKey = anthropicProfiles.some(([, profile]) => profile?.mode === 'api_key');
   const hasOauth = anthropicProfiles.some(
-    ([, profile]) => profile?.mode === "oauth" || profile?.mode === "token",
+    ([, profile]) => profile?.mode === 'oauth' || profile?.mode === 'token'
   );
   if (hasApiKey && !hasOauth) {
-    return "api_key";
+    return 'api_key';
   }
   if (hasOauth && !hasApiKey) {
-    return "oauth";
+    return 'oauth';
   }
 
   if (process.env.ANTHROPIC_OAUTH_TOKEN?.trim()) {
-    return "oauth";
+    return 'oauth';
   }
   if (process.env.ANTHROPIC_API_KEY?.trim()) {
-    return "api_key";
+    return 'api_key';
   }
   return null;
 }
 
-function resolvePrimaryModelRef(raw?: string): string | null {
-  if (!raw || typeof raw !== "string") {
+/**
+ * Resolves a primary model ref, expanding known aliases.
+ * @param {string} [raw]
+ * @returns {string | null}
+ */
+function resolvePrimaryModelRef(raw) {
+  if (!raw || typeof raw !== 'string') {
     return null;
   }
   const trimmed = raw.trim();
@@ -105,12 +120,12 @@ function resolvePrimaryModelRef(raw?: string): string | null {
   return DEFAULT_MODEL_ALIASES[aliasKey] ?? trimmed;
 }
 
-export type SessionDefaultsOptions = {
-  warn?: (message: string) => void;
-  warnState?: WarnState;
-};
-
-export function applyMessageDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies default ackReactionScope to messages if not set.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyMessageDefaults(cfg) {
   const messages = cfg.messages;
   const hasAckScope = messages?.ackReactionScope !== undefined;
   if (hasAckScope) {
@@ -118,17 +133,23 @@ export function applyMessageDefaults(cfg: OpenClawConfig): OpenClawConfig {
   }
 
   const nextMessages = messages ? { ...messages } : {};
-  nextMessages.ackReactionScope = "group-mentions";
+  nextMessages.ackReactionScope = 'group-mentions';
   return {
     ...cfg,
-    messages: nextMessages,
+    messages: nextMessages
   };
 }
 
+/**
+ * Normalizes session.mainKey to "main" and warns if overridden.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @param {{ warn?: (message: string) => void, warnState?: { warned: boolean } }} [options]
+ * @returns {import("./types.js").OpenClawConfig}
+ */
 export function applySessionDefaults(
-  cfg: OpenClawConfig,
-  options: SessionDefaultsOptions = {},
-): OpenClawConfig {
+  cfg,
+  options = {}
+) {
   const session = cfg.session;
   if (!session || session.mainKey === undefined) {
     return cfg;
@@ -138,12 +159,12 @@ export function applySessionDefaults(
   const warn = options.warn ?? console.warn;
   const warnState = options.warnState ?? defaultWarnState;
 
-  const next: OpenClawConfig = {
+  const next = {
     ...cfg,
-    session: { ...session, mainKey: "main" },
+    session: { ...session, mainKey: 'main' }
   };
 
-  if (trimmed && trimmed !== "main" && !warnState.warned) {
+  if (trimmed && trimmed !== 'main' && !warnState.warned) {
     warnState.warned = true;
     warn('session.mainKey is ignored; main session is always "main".');
   }
@@ -151,7 +172,12 @@ export function applySessionDefaults(
   return next;
 }
 
-export function applyTalkApiKey(config: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies talk API key from environment fallback if not set in config.
+ * @param {import("./types.js").OpenClawConfig} config
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyTalkApiKey(config) {
   const resolved = resolveTalkApiKey();
   if (!resolved) {
     return config;
@@ -164,12 +190,18 @@ export function applyTalkApiKey(config: OpenClawConfig): OpenClawConfig {
     ...config,
     talk: {
       ...config.talk,
-      apiKey: resolved,
-    },
+      apiKey: resolved
+    }
   };
 }
 
-export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Fills in model provider defaults (reasoning, input, cost, contextWindow, maxTokens)
+ * and adds default aliases for known model IDs.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyModelDefaults(cfg) {
   let mutated = false;
   let nextCfg = cfg;
 
@@ -183,10 +215,10 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
       }
       let providerMutated = false;
       const nextModels = models.map((model) => {
-        const raw = model as ModelDefinitionLike;
+        const raw = model;
         let modelMutated = false;
 
-        const reasoning = typeof raw.reasoning === "boolean" ? raw.reasoning : false;
+        const reasoning = typeof raw.reasoning === 'boolean' ? raw.reasoning : false;
         if (raw.reasoning !== reasoning) {
           modelMutated = true;
         }
@@ -230,8 +262,8 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
           input,
           cost,
           contextWindow,
-          maxTokens,
-        } as ModelDefinitionConfig;
+          maxTokens
+        };
       });
 
       if (!providerMutated) {
@@ -246,8 +278,8 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
         ...nextCfg,
         models: {
           ...nextCfg.models,
-          providers: nextProviders,
-        },
+          providers: nextProviders
+        }
       };
     }
   }
@@ -261,8 +293,8 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
     return mutated ? nextCfg : cfg;
   }
 
-  const nextModels: Record<string, { alias?: string }> = {
-    ...existingModels,
+  const nextModels = {
+    ...existingModels
   };
 
   for (const [alias, target] of Object.entries(DEFAULT_MODEL_ALIASES)) {
@@ -285,18 +317,23 @@ export function applyModelDefaults(cfg: OpenClawConfig): OpenClawConfig {
     ...nextCfg,
     agents: {
       ...nextCfg.agents,
-      defaults: { ...existingAgent, models: nextModels },
-    },
+      defaults: { ...existingAgent, models: nextModels }
+    }
   };
 }
 
-export function applyAgentDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies default maxConcurrent values for agents and subagents.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyAgentDefaults(cfg) {
   const agents = cfg.agents;
   const defaults = agents?.defaults;
   const hasMax =
-    typeof defaults?.maxConcurrent === "number" && Number.isFinite(defaults.maxConcurrent);
+    typeof defaults?.maxConcurrent === 'number' && Number.isFinite(defaults.maxConcurrent);
   const hasSubMax =
-    typeof defaults?.subagents?.maxConcurrent === "number" &&
+    typeof defaults?.subagents?.maxConcurrent === 'number' &&
     Number.isFinite(defaults.subagents.maxConcurrent);
   if (hasMax && hasSubMax) {
     return cfg;
@@ -325,13 +362,18 @@ export function applyAgentDefaults(cfg: OpenClawConfig): OpenClawConfig {
       ...agents,
       defaults: {
         ...nextDefaults,
-        subagents: nextSubagents,
-      },
-    },
+        subagents: nextSubagents
+      }
+    }
   };
 }
 
-export function applyLoggingDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies default logging.redactSensitive if logging is configured but redact is missing.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyLoggingDefaults(cfg) {
   const logging = cfg.logging;
   if (!logging) {
     return cfg;
@@ -343,12 +385,18 @@ export function applyLoggingDefaults(cfg: OpenClawConfig): OpenClawConfig {
     ...cfg,
     logging: {
       ...logging,
-      redactSensitive: "tools",
-    },
+      redactSensitive: 'tools'
+    }
   };
 }
 
-export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies context pruning and heartbeat defaults based on Anthropic auth mode.
+ * Also sets cache retention for Anthropic models when using API key auth.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyContextPruningDefaults(cfg) {
   const defaults = cfg.agents?.defaults;
   if (!defaults) {
     return cfg;
@@ -367,8 +415,8 @@ export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig
   if (defaults.contextPruning?.mode === undefined) {
     nextDefaults.contextPruning = {
       ...contextPruning,
-      mode: "cache-ttl",
-      ttl: defaults.contextPruning?.ttl ?? "1h",
+      mode: 'cache-ttl',
+      ttl: defaults.contextPruning?.ttl ?? '1h'
     };
     mutated = true;
   }
@@ -376,44 +424,44 @@ export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig
   if (defaults.heartbeat?.every === undefined) {
     nextDefaults.heartbeat = {
       ...heartbeat,
-      every: authMode === "oauth" ? "1h" : "30m",
+      every: authMode === 'oauth' ? '1h' : '30m'
     };
     mutated = true;
   }
 
-  if (authMode === "api_key") {
+  if (authMode === 'api_key') {
     const nextModels = defaults.models ? { ...defaults.models } : {};
     let modelsMutated = false;
 
     for (const [key, entry] of Object.entries(nextModels)) {
-      const parsed = parseModelRef(key, "anthropic");
-      if (!parsed || parsed.provider !== "anthropic") {
+      const parsed = parseModelRef(key, 'anthropic');
+      if (!parsed || parsed.provider !== 'anthropic') {
         continue;
       }
       const current = entry ?? {};
-      const params = (current as { params?: Record<string, unknown> }).params ?? {};
-      if (typeof params.cacheRetention === "string") {
+      const params = current.params ?? {};
+      if (typeof params.cacheRetention === 'string') {
         continue;
       }
       nextModels[key] = {
-        ...(current as Record<string, unknown>),
-        params: { ...params, cacheRetention: "short" },
+        ...current,
+        params: { ...params, cacheRetention: 'short' }
       };
       modelsMutated = true;
     }
 
     const primary = resolvePrimaryModelRef(defaults.model?.primary ?? undefined);
     if (primary) {
-      const parsedPrimary = parseModelRef(primary, "anthropic");
-      if (parsedPrimary?.provider === "anthropic") {
+      const parsedPrimary = parseModelRef(primary, 'anthropic');
+      if (parsedPrimary?.provider === 'anthropic') {
         const key = `${parsedPrimary.provider}/${parsedPrimary.model}`;
         const entry = nextModels[key];
         const current = entry ?? {};
-        const params = (current as { params?: Record<string, unknown> }).params ?? {};
-        if (typeof params.cacheRetention !== "string") {
+        const params = current.params ?? {};
+        if (typeof params.cacheRetention !== 'string') {
           nextModels[key] = {
-            ...(current as Record<string, unknown>),
-            params: { ...params, cacheRetention: "short" },
+            ...current,
+            params: { ...params, cacheRetention: 'short' }
           };
           modelsMutated = true;
         }
@@ -434,12 +482,17 @@ export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig
     ...cfg,
     agents: {
       ...cfg.agents,
-      defaults: nextDefaults,
-    },
+      defaults: nextDefaults
+    }
   };
 }
 
-export function applyCompactionDefaults(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Applies default compaction mode ("safeguard") when not explicitly set.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function applyCompactionDefaults(cfg) {
   const defaults = cfg.agents?.defaults;
   if (!defaults) {
     return cfg;
@@ -457,13 +510,16 @@ export function applyCompactionDefaults(cfg: OpenClawConfig): OpenClawConfig {
         ...defaults,
         compaction: {
           ...compaction,
-          mode: "safeguard",
-        },
-      },
-    },
+          mode: 'safeguard'
+        }
+      }
+    }
   };
 }
 
+/**
+ * Resets the session defaults warning state (for tests).
+ */
 export function resetSessionDefaultsWarningForTests() {
   defaultWarnState = { warned: false };
 }

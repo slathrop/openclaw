@@ -1,49 +1,67 @@
-import path from "node:path";
-import type { OpenClawConfig, ConfigValidationIssue } from "./types.js";
-import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import { CHANNEL_IDS, normalizeChatChannelId } from "../channels/registry.js";
+/**
+ * Config validation: Zod schema + business logic checks.
+ *
+ * validateConfigObject() runs the Zod schema, checks for legacy issues,
+ * duplicate agent dirs, and identity avatar constraints.
+ * validateConfigObjectWithPlugins() extends this with plugin manifest
+ * validation, channel ID checks, and heartbeat target verification.
+ */
+import path from 'node:path';
+import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from '../agents/agent-scope.js';
+import { CHANNEL_IDS, normalizeChatChannelId } from '../channels/registry.js';
 import {
   normalizePluginsConfig,
   resolveEnableState,
-  resolveMemorySlotDecision,
-} from "../plugins/config-state.js";
-import { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
-import { validateJsonSchemaValue } from "../plugins/schema-validator.js";
-import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from "./agent-dirs.js";
-import { applyAgentDefaults, applyModelDefaults, applySessionDefaults } from "./defaults.js";
-import { findLegacyConfigIssues } from "./legacy.js";
-import { OpenClawSchema } from "./zod-schema.js";
+  resolveMemorySlotDecision
+} from '../plugins/config-state.js';
+import { loadPluginManifestRegistry } from '../plugins/manifest-registry.js';
+import { validateJsonSchemaValue } from '../plugins/schema-validator.js';
+import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from './agent-dirs.js';
+import { applyAgentDefaults, applyModelDefaults, applySessionDefaults } from './defaults.js';
+import { findLegacyConfigIssues } from './legacy.js';
+import { OpenClawSchema } from './zod-schema.js';
 
 const AVATAR_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 const WINDOWS_ABS_RE = /^[a-zA-Z]:[\\/]/;
 
-function isWorkspaceAvatarPath(value: string, workspaceDir: string): boolean {
+/**
+ * Checks if an avatar path stays within the agent workspace.
+ * @param {string} value
+ * @param {string} workspaceDir
+ * @returns {boolean}
+ */
+function isWorkspaceAvatarPath(value, workspaceDir) {
   const workspaceRoot = path.resolve(workspaceDir);
   const resolved = path.resolve(workspaceRoot, value);
   const relative = path.relative(workspaceRoot, resolved);
-  if (relative === "") {
+  if (relative === '') {
     return true;
   }
-  if (relative.startsWith("..")) {
+  if (relative.startsWith('..')) {
     return false;
   }
   return !path.isAbsolute(relative);
 }
 
-function validateIdentityAvatar(config: OpenClawConfig): ConfigValidationIssue[] {
+/**
+ * Validates identity.avatar for all agents in the config.
+ * @param {import("./types.js").OpenClawConfig} config
+ * @returns {import("./types.js").ConfigValidationIssue[]}
+ */
+function validateIdentityAvatar(config) {
   const agents = config.agents?.list;
   if (!Array.isArray(agents) || agents.length === 0) {
     return [];
   }
-  const issues: ConfigValidationIssue[] = [];
+  const issues = [];
   for (const [index, entry] of agents.entries()) {
-    if (!entry || typeof entry !== "object") {
+    if (!entry || typeof entry !== 'object') {
       continue;
     }
     const avatarRaw = entry.identity?.avatar;
-    if (typeof avatarRaw !== "string") {
+    if (typeof avatarRaw !== 'string') {
       continue;
     }
     const avatar = avatarRaw.trim();
@@ -53,10 +71,10 @@ function validateIdentityAvatar(config: OpenClawConfig): ConfigValidationIssue[]
     if (AVATAR_DATA_RE.test(avatar) || AVATAR_HTTP_RE.test(avatar)) {
       continue;
     }
-    if (avatar.startsWith("~")) {
+    if (avatar.startsWith('~')) {
       issues.push({
         path: `agents.list.${index}.identity.avatar`,
-        message: "identity.avatar must be a workspace-relative path, http(s) URL, or data URI.",
+        message: 'identity.avatar must be a workspace-relative path, http(s) URL, or data URI.'
       });
       continue;
     }
@@ -64,35 +82,38 @@ function validateIdentityAvatar(config: OpenClawConfig): ConfigValidationIssue[]
     if (hasScheme && !WINDOWS_ABS_RE.test(avatar)) {
       issues.push({
         path: `agents.list.${index}.identity.avatar`,
-        message: "identity.avatar must be a workspace-relative path, http(s) URL, or data URI.",
+        message: 'identity.avatar must be a workspace-relative path, http(s) URL, or data URI.'
       });
       continue;
     }
     const workspaceDir = resolveAgentWorkspaceDir(
       config,
-      entry.id ?? resolveDefaultAgentId(config),
+      entry.id ?? resolveDefaultAgentId(config)
     );
     if (!isWorkspaceAvatarPath(avatar, workspaceDir)) {
       issues.push({
         path: `agents.list.${index}.identity.avatar`,
-        message: "identity.avatar must stay within the agent workspace.",
+        message: 'identity.avatar must stay within the agent workspace.'
       });
     }
   }
   return issues;
 }
 
-export function validateConfigObject(
-  raw: unknown,
-): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
+/**
+ * Validates a raw config object against the Zod schema plus business logic.
+ * @param {unknown} raw
+ * @returns {{ ok: true, config: import("./types.js").OpenClawConfig } | { ok: false, issues: import("./types.js").ConfigValidationIssue[] }}
+ */
+export function validateConfigObject(raw) {
   const legacyIssues = findLegacyConfigIssues(raw);
   if (legacyIssues.length > 0) {
     return {
       ok: false,
       issues: legacyIssues.map((iss) => ({
         path: iss.path,
-        message: iss.message,
-      })),
+        message: iss.message
+      }))
     };
   }
   const validated = OpenClawSchema.safeParse(raw);
@@ -100,80 +121,79 @@ export function validateConfigObject(
     return {
       ok: false,
       issues: validated.error.issues.map((iss) => ({
-        path: iss.path.join("."),
-        message: iss.message,
-      })),
+        path: iss.path.join('.'),
+        message: iss.message
+      }))
     };
   }
-  const duplicates = findDuplicateAgentDirs(validated.data as OpenClawConfig);
+  const duplicates = findDuplicateAgentDirs(validated.data);
   if (duplicates.length > 0) {
     return {
       ok: false,
       issues: [
         {
-          path: "agents.list",
-          message: formatDuplicateAgentDirError(duplicates),
-        },
-      ],
+          path: 'agents.list',
+          message: formatDuplicateAgentDirError(duplicates)
+        }
+      ]
     };
   }
-  const avatarIssues = validateIdentityAvatar(validated.data as OpenClawConfig);
+  const avatarIssues = validateIdentityAvatar(validated.data);
   if (avatarIssues.length > 0) {
     return { ok: false, issues: avatarIssues };
   }
   return {
     ok: true,
     config: applyModelDefaults(
-      applyAgentDefaults(applySessionDefaults(validated.data as OpenClawConfig)),
-    ),
+      applyAgentDefaults(applySessionDefaults(validated.data))
+    )
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+/**
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-export function validateConfigObjectWithPlugins(raw: unknown):
-  | {
-      ok: true;
-      config: OpenClawConfig;
-      warnings: ConfigValidationIssue[];
-    }
-  | {
-      ok: false;
-      issues: ConfigValidationIssue[];
-      warnings: ConfigValidationIssue[];
-    } {
+/**
+ * Validates config with full plugin manifest resolution and channel verification.
+ * @param {unknown} raw
+ * @returns {{ ok: true, config: import("./types.js").OpenClawConfig, warnings: import("./types.js").ConfigValidationIssue[] } | { ok: false, issues: import("./types.js").ConfigValidationIssue[], warnings: import("./types.js").ConfigValidationIssue[] }}
+ */
+export function validateConfigObjectWithPlugins(raw) {
   const base = validateConfigObject(raw);
   if (!base.ok) {
     return { ok: false, issues: base.issues, warnings: [] };
   }
 
   const config = base.config;
-  const issues: ConfigValidationIssue[] = [];
-  const warnings: ConfigValidationIssue[] = [];
+  const issues = [];
+  const warnings = [];
   const pluginsConfig = config.plugins;
   const normalizedPlugins = normalizePluginsConfig(pluginsConfig);
 
   const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
   const registry = loadPluginManifestRegistry({
     config,
-    workspaceDir: workspaceDir ?? undefined,
+    workspaceDir: workspaceDir ?? undefined
   });
 
   const knownIds = new Set(registry.plugins.map((record) => record.id));
 
   for (const diag of registry.diagnostics) {
-    let path = diag.pluginId ? `plugins.entries.${diag.pluginId}` : "plugins";
-    if (!diag.pluginId && diag.message.includes("plugin path not found")) {
-      path = "plugins.load.paths";
+    let diagPath = diag.pluginId ? `plugins.entries.${diag.pluginId}` : 'plugins';
+    if (!diag.pluginId && diag.message.includes('plugin path not found')) {
+      diagPath = 'plugins.load.paths';
     }
-    const pluginLabel = diag.pluginId ? `plugin ${diag.pluginId}` : "plugin";
+    const pluginLabel = diag.pluginId ? `plugin ${diag.pluginId}` : 'plugin';
     const message = `${pluginLabel}: ${diag.message}`;
-    if (diag.level === "error") {
-      issues.push({ path, message });
+    if (diag.level === 'error') {
+      issues.push({ path: diagPath, message });
     } else {
-      warnings.push({ path, message });
+      warnings.push({ path: diagPath, message });
     }
   }
 
@@ -183,7 +203,7 @@ export function validateConfigObjectWithPlugins(raw: unknown):
       if (!knownIds.has(pluginId)) {
         issues.push({
           path: `plugins.entries.${pluginId}`,
-          message: `plugin not found: ${pluginId}`,
+          message: `plugin not found: ${pluginId}`
         });
       }
     }
@@ -191,39 +211,39 @@ export function validateConfigObjectWithPlugins(raw: unknown):
 
   const allow = pluginsConfig?.allow ?? [];
   for (const pluginId of allow) {
-    if (typeof pluginId !== "string" || !pluginId.trim()) {
+    if (typeof pluginId !== 'string' || !pluginId.trim()) {
       continue;
     }
     if (!knownIds.has(pluginId)) {
       issues.push({
-        path: "plugins.allow",
-        message: `plugin not found: ${pluginId}`,
+        path: 'plugins.allow',
+        message: `plugin not found: ${pluginId}`
       });
     }
   }
 
   const deny = pluginsConfig?.deny ?? [];
   for (const pluginId of deny) {
-    if (typeof pluginId !== "string" || !pluginId.trim()) {
+    if (typeof pluginId !== 'string' || !pluginId.trim()) {
       continue;
     }
     if (!knownIds.has(pluginId)) {
       issues.push({
-        path: "plugins.deny",
-        message: `plugin not found: ${pluginId}`,
+        path: 'plugins.deny',
+        message: `plugin not found: ${pluginId}`
       });
     }
   }
 
   const memorySlot = normalizedPlugins.slots.memory;
-  if (typeof memorySlot === "string" && memorySlot.trim() && !knownIds.has(memorySlot)) {
+  if (typeof memorySlot === 'string' && memorySlot.trim() && !knownIds.has(memorySlot)) {
     issues.push({
-      path: "plugins.slots.memory",
-      message: `plugin not found: ${memorySlot}`,
+      path: 'plugins.slots.memory',
+      message: `plugin not found: ${memorySlot}`
     });
   }
 
-  const allowedChannels = new Set<string>(["defaults", ...CHANNEL_IDS]);
+  const allowedChannels = new Set(['defaults', ...CHANNEL_IDS]);
   for (const record of registry.plugins) {
     for (const channelId of record.channels) {
       allowedChannels.add(channelId);
@@ -239,13 +259,13 @@ export function validateConfigObjectWithPlugins(raw: unknown):
       if (!allowedChannels.has(trimmed)) {
         issues.push({
           path: `channels.${trimmed}`,
-          message: `unknown channel id: ${trimmed}`,
+          message: `unknown channel id: ${trimmed}`
         });
       }
     }
   }
 
-  const heartbeatChannelIds = new Set<string>();
+  const heartbeatChannelIds = new Set();
   for (const channelId of CHANNEL_IDS) {
     heartbeatChannelIds.add(channelId.toLowerCase());
   }
@@ -258,17 +278,17 @@ export function validateConfigObjectWithPlugins(raw: unknown):
     }
   }
 
-  const validateHeartbeatTarget = (target: string | undefined, path: string) => {
-    if (typeof target !== "string") {
+  const validateHeartbeatTarget = (target, hbPath) => {
+    if (typeof target !== 'string') {
       return;
     }
     const trimmed = target.trim();
     if (!trimmed) {
-      issues.push({ path, message: "heartbeat target must not be empty" });
+      issues.push({ path: hbPath, message: 'heartbeat target must not be empty' });
       return;
     }
     const normalized = trimmed.toLowerCase();
-    if (normalized === "last" || normalized === "none") {
+    if (normalized === 'last' || normalized === 'none') {
       return;
     }
     if (normalizeChatChannelId(trimmed)) {
@@ -277,12 +297,12 @@ export function validateConfigObjectWithPlugins(raw: unknown):
     if (heartbeatChannelIds.has(normalized)) {
       return;
     }
-    issues.push({ path, message: `unknown heartbeat target: ${target}` });
+    issues.push({ path: hbPath, message: `unknown heartbeat target: ${target}` });
   };
 
   validateHeartbeatTarget(
     config.agents?.defaults?.heartbeat?.target,
-    "agents.defaults.heartbeat.target",
+    'agents.defaults.heartbeat.target'
   );
   if (Array.isArray(config.agents?.list)) {
     for (const [index, entry] of config.agents.list.entries()) {
@@ -290,8 +310,8 @@ export function validateConfigObjectWithPlugins(raw: unknown):
     }
   }
 
-  let selectedMemoryPluginId: string | null = null;
-  const seenPlugins = new Set<string>();
+  let selectedMemoryPluginId = null;
+  const seenPlugins = new Set();
   for (const record of registry.plugins) {
     const pluginId = record.id;
     if (seenPlugins.has(pluginId)) {
@@ -310,13 +330,13 @@ export function validateConfigObjectWithPlugins(raw: unknown):
         id: pluginId,
         kind: record.kind,
         slot: memorySlot,
-        selectedId: selectedMemoryPluginId,
+        selectedId: selectedMemoryPluginId
       });
       if (!memoryDecision.enabled) {
         enabled = false;
         reason = memoryDecision.reason;
       }
-      if (memoryDecision.selected && record.kind === "memory") {
+      if (memoryDecision.selected && record.kind === 'memory') {
         selectedMemoryPluginId = pluginId;
       }
     }
@@ -327,20 +347,20 @@ export function validateConfigObjectWithPlugins(raw: unknown):
         const res = validateJsonSchemaValue({
           schema: record.configSchema,
           cacheKey: record.schemaCacheKey ?? record.manifestPath ?? pluginId,
-          value: entry?.config ?? {},
+          value: entry?.config ?? {}
         });
         if (!res.ok) {
           for (const error of res.errors) {
             issues.push({
               path: `plugins.entries.${pluginId}.config`,
-              message: `invalid config: ${error}`,
+              message: `invalid config: ${error}`
             });
           }
         }
       } else {
         issues.push({
           path: `plugins.entries.${pluginId}`,
-          message: `plugin schema missing for ${pluginId}`,
+          message: `plugin schema missing for ${pluginId}`
         });
       }
     }
@@ -348,7 +368,7 @@ export function validateConfigObjectWithPlugins(raw: unknown):
     if (!enabled && entryHasConfig) {
       warnings.push({
         path: `plugins.entries.${pluginId}`,
-        message: `plugin disabled (${reason ?? "disabled"}) but config is present`,
+        message: `plugin disabled (${reason ?? 'disabled'}) but config is present`
       });
     }
   }

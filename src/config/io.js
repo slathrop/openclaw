@@ -1,17 +1,25 @@
-import JSON5 from "json5";
-import crypto from "node:crypto";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import type { OpenClawConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
+/**
+ * Config I/O pipeline: load, parse, validate, and write OpenClaw config.
+ *
+ * Load pipeline: YAML/JSON5 read -> $include resolution -> env substitution
+ * -> Zod validation -> defaults application -> path normalization -> overrides.
+ *
+ * Provides createConfigIO() factory for dependency injection and convenience
+ * wrappers (loadConfig, readConfigFileSnapshot, writeConfigFile) for direct use.
+ */
+import JSON5 from 'json5';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   loadShellEnvFallback,
   resolveShellEnvFallbackTimeoutMs,
   shouldDeferShellEnvFallback,
-  shouldEnableShellEnvFallback,
-} from "../infra/shell-env.js";
-import { VERSION } from "../version.js";
-import { DuplicateAgentDirError, findDuplicateAgentDirs } from "./agent-dirs.js";
+  shouldEnableShellEnvFallback
+} from '../infra/shell-env.js';
+import { VERSION } from '../version.js';
+import { DuplicateAgentDirError, findDuplicateAgentDirs } from './agent-dirs.js';
 import {
   applyCompactionDefaults,
   applyContextPruningDefaults,
@@ -20,77 +28,92 @@ import {
   applyMessageDefaults,
   applyModelDefaults,
   applySessionDefaults,
-  applyTalkApiKey,
-} from "./defaults.js";
-import { MissingEnvVarError, resolveConfigEnvVars } from "./env-substitution.js";
-import { collectConfigEnvVars } from "./env-vars.js";
-import { ConfigIncludeError, resolveConfigIncludes } from "./includes.js";
-import { findLegacyConfigIssues } from "./legacy.js";
-import { normalizeConfigPaths } from "./normalize-paths.js";
-import { resolveConfigPath, resolveDefaultConfigCandidates, resolveStateDir } from "./paths.js";
-import { applyConfigOverrides } from "./runtime-overrides.js";
-import { validateConfigObjectWithPlugins } from "./validation.js";
-import { compareOpenClawVersions } from "./version.js";
+  applyTalkApiKey
+} from './defaults.js';
+import { MissingEnvVarError, resolveConfigEnvVars } from './env-substitution.js';
+import { collectConfigEnvVars } from './env-vars.js';
+import { ConfigIncludeError, resolveConfigIncludes } from './includes.js';
+import { findLegacyConfigIssues } from './legacy.js';
+import { normalizeConfigPaths } from './normalize-paths.js';
+import { resolveConfigPath, resolveDefaultConfigCandidates, resolveStateDir } from './paths.js';
+import { applyConfigOverrides } from './runtime-overrides.js';
+import { validateConfigObjectWithPlugins } from './validation.js';
+import { compareOpenClawVersions } from './version.js';
 
 // Re-export for backwards compatibility
-export { CircularIncludeError, ConfigIncludeError } from "./includes.js";
-export { MissingEnvVarError } from "./env-substitution.js";
+export { CircularIncludeError, ConfigIncludeError } from './includes.js';
+export { MissingEnvVarError } from './env-substitution.js';
 
+// SECURITY: These env vars may contain API keys and tokens.
+// They are loaded from shell env as a fallback when no config file exists.
 const SHELL_ENV_EXPECTED_KEYS = [
-  "OPENAI_API_KEY",
-  "ANTHROPIC_API_KEY",
-  "ANTHROPIC_OAUTH_TOKEN",
-  "GEMINI_API_KEY",
-  "ZAI_API_KEY",
-  "OPENROUTER_API_KEY",
-  "AI_GATEWAY_API_KEY",
-  "MINIMAX_API_KEY",
-  "SYNTHETIC_API_KEY",
-  "ELEVENLABS_API_KEY",
-  "TELEGRAM_BOT_TOKEN",
-  "DISCORD_BOT_TOKEN",
-  "SLACK_BOT_TOKEN",
-  "SLACK_APP_TOKEN",
-  "OPENCLAW_GATEWAY_TOKEN",
-  "OPENCLAW_GATEWAY_PASSWORD",
+  'OPENAI_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'ANTHROPIC_OAUTH_TOKEN',
+  'GEMINI_API_KEY',
+  'ZAI_API_KEY',
+  'OPENROUTER_API_KEY',
+  'AI_GATEWAY_API_KEY',
+  'MINIMAX_API_KEY',
+  'SYNTHETIC_API_KEY',
+  'ELEVENLABS_API_KEY',
+  'TELEGRAM_BOT_TOKEN',
+  'DISCORD_BOT_TOKEN',
+  'SLACK_BOT_TOKEN',
+  'SLACK_APP_TOKEN',
+  'OPENCLAW_GATEWAY_TOKEN',
+  'OPENCLAW_GATEWAY_PASSWORD'
 ];
 
 const CONFIG_BACKUP_COUNT = 5;
-const loggedInvalidConfigs = new Set<string>();
+const loggedInvalidConfigs = new Set();
 
-export type ParseConfigJson5Result = { ok: true; parsed: unknown } | { ok: false; error: string };
-
-function hashConfigRaw(raw: string | null): string {
+/**
+ * @param {string | null} raw
+ * @returns {string}
+ */
+function hashConfigRaw(raw) {
   return crypto
-    .createHash("sha256")
-    .update(raw ?? "")
-    .digest("hex");
+    .createHash('sha256')
+    .update(raw ?? '')
+    .digest('hex');
 }
 
-export function resolveConfigSnapshotHash(snapshot: {
-  hash?: string;
-  raw?: string | null;
-}): string | null {
-  if (typeof snapshot.hash === "string") {
+/**
+ * Resolves a config snapshot hash from an explicit hash or raw content.
+ * @param {{ hash?: string, raw?: string | null }} snapshot
+ * @returns {string | null}
+ */
+export function resolveConfigSnapshotHash(snapshot) {
+  if (typeof snapshot.hash === 'string') {
     const trimmed = snapshot.hash.trim();
     if (trimmed) {
       return trimmed;
     }
   }
-  if (typeof snapshot.raw !== "string") {
+  if (typeof snapshot.raw !== 'string') {
     return null;
   }
   return hashConfigRaw(snapshot.raw);
 }
 
-function coerceConfig(value: unknown): OpenClawConfig {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+/**
+ * @param {unknown} value
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+function coerceConfig(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
   }
-  return value as OpenClawConfig;
+  return value;
 }
 
-async function rotateConfigBackups(configPath: string, ioFs: typeof fs.promises): Promise<void> {
+/**
+ * Rotates config backup files (.bak, .bak.1, .bak.2, etc.).
+ * @param {string} configPath
+ * @param {typeof fs.promises} ioFs
+ */
+async function rotateConfigBackups(configPath, ioFs) {
   if (CONFIG_BACKUP_COUNT <= 1) {
     return;
   }
@@ -109,43 +132,49 @@ async function rotateConfigBackups(configPath: string, ioFs: typeof fs.promises)
   });
 }
 
-export type ConfigIoDeps = {
-  fs?: typeof fs;
-  json5?: typeof JSON5;
-  env?: NodeJS.ProcessEnv;
-  homedir?: () => string;
-  configPath?: string;
-  logger?: Pick<typeof console, "error" | "warn">;
-};
-
-function warnOnConfigMiskeys(raw: unknown, logger: Pick<typeof console, "warn">): void {
-  if (!raw || typeof raw !== "object") {
+/**
+ * Warns on common config miskeys (e.g. gateway.token vs gateway.auth.token).
+ * @param {unknown} raw
+ * @param {Pick<typeof console, "warn">} logger
+ */
+function warnOnConfigMiskeys(raw, logger) {
+  if (!raw || typeof raw !== 'object') {
     return;
   }
-  const gateway = (raw as Record<string, unknown>).gateway;
-  if (!gateway || typeof gateway !== "object") {
+  const gateway = raw.gateway;
+  if (!gateway || typeof gateway !== 'object') {
     return;
   }
-  if ("token" in (gateway as Record<string, unknown>)) {
+  if ('token' in gateway) {
     logger.warn(
-      'Config uses "gateway.token". This key is ignored; use "gateway.auth.token" instead.',
+      'Config uses "gateway.token". This key is ignored; use "gateway.auth.token" instead.'
     );
   }
 }
 
-function stampConfigVersion(cfg: OpenClawConfig): OpenClawConfig {
+/**
+ * Stamps meta.lastTouchedVersion and meta.lastTouchedAt on a config object.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+function stampConfigVersion(cfg) {
   const now = new Date().toISOString();
   return {
     ...cfg,
     meta: {
       ...cfg.meta,
       lastTouchedVersion: VERSION,
-      lastTouchedAt: now,
-    },
+      lastTouchedAt: now
+    }
   };
 }
 
-function warnIfConfigFromFuture(cfg: OpenClawConfig, logger: Pick<typeof console, "warn">): void {
+/**
+ * Warns if the config was last written by a newer version of OpenClaw.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @param {Pick<typeof console, "warn">} logger
+ */
+function warnIfConfigFromFuture(cfg, logger) {
   const touched = cfg.meta?.lastTouchedVersion;
   if (!touched) {
     return;
@@ -156,12 +185,17 @@ function warnIfConfigFromFuture(cfg: OpenClawConfig, logger: Pick<typeof console
   }
   if (cmp < 0) {
     logger.warn(
-      `Config was last written by a newer OpenClaw (${touched}); current version is ${VERSION}.`,
+      `Config was last written by a newer OpenClaw (${touched}); current version is ${VERSION}.`
     );
   }
 }
 
-function applyConfigEnv(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): void {
+/**
+ * Applies config.env entries to process.env (only if not already set).
+ * @param {import("./types.js").OpenClawConfig} cfg
+ * @param {NodeJS.ProcessEnv} env
+ */
+function applyConfigEnv(cfg, env) {
   const entries = collectConfigEnvVars(cfg);
   for (const [key, value] of Object.entries(entries)) {
     if (env[key]?.trim()) {
@@ -171,28 +205,42 @@ function applyConfigEnv(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): void {
   }
 }
 
-function resolveConfigPathForDeps(deps: Required<ConfigIoDeps>): string {
+/**
+ * @param {Required<{configPath: string, env: NodeJS.ProcessEnv, homedir: () => string}>} deps
+ * @returns {string}
+ */
+function resolveConfigPathForDeps(deps) {
   if (deps.configPath) {
     return deps.configPath;
   }
   return resolveConfigPath(deps.env, resolveStateDir(deps.env, deps.homedir));
 }
 
-function normalizeDeps(overrides: ConfigIoDeps = {}): Required<ConfigIoDeps> {
+/**
+ * @param {object} [overrides]
+ * @returns {object}
+ */
+function normalizeDeps(overrides = {}) {
   return {
     fs: overrides.fs ?? fs,
     json5: overrides.json5 ?? JSON5,
     env: overrides.env ?? process.env,
     homedir: overrides.homedir ?? os.homedir,
-    configPath: overrides.configPath ?? "",
-    logger: overrides.logger ?? console,
+    configPath: overrides.configPath ?? '',
+    logger: overrides.logger ?? console
   };
 }
 
+/**
+ * Parses a JSON5 string, returning a result object.
+ * @param {string} raw
+ * @param {{ parse: (value: string) => unknown }} [json5]
+ * @returns {{ ok: true, parsed: unknown } | { ok: false, error: string }}
+ */
 export function parseConfigJson5(
-  raw: string,
-  json5: { parse: (value: string) => unknown } = JSON5,
-): ParseConfigJson5Result {
+  raw,
+  json5 = JSON5
+) {
   try {
     return { ok: true, parsed: json5.parse(raw) };
   } catch (err) {
@@ -200,7 +248,12 @@ export function parseConfigJson5(
   }
 }
 
-export function createConfigIO(overrides: ConfigIoDeps = {}) {
+/**
+ * Creates a config I/O instance with optional dependency overrides.
+ * @param {object} [overrides] - Optional DI overrides for fs, json5, env, homedir, configPath, logger.
+ * @returns {{ configPath: string, loadConfig: () => import("./types.js").OpenClawConfig, readConfigFileSnapshot: () => Promise<import("./types.js").ConfigFileSnapshot>, writeConfigFile: (cfg: import("./types.js").OpenClawConfig) => Promise<void> }}
+ */
+export function createConfigIO(overrides = {}) {
   const deps = normalizeDeps(overrides);
   const requestedConfigPath = resolveConfigPathForDeps(deps);
   const candidatePaths = deps.configPath
@@ -209,7 +262,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
   const configPath =
     candidatePaths.find((candidate) => deps.fs.existsSync(candidate)) ?? requestedConfigPath;
 
-  function loadConfig(): OpenClawConfig {
+  function loadConfig() {
     try {
       if (!deps.fs.existsSync(configPath)) {
         if (shouldEnableShellEnvFallback(deps.env) && !shouldDeferShellEnvFallback(deps.env)) {
@@ -218,23 +271,23 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
             env: deps.env,
             expectedKeys: SHELL_ENV_EXPECTED_KEYS,
             logger: deps.logger,
-            timeoutMs: resolveShellEnvFallbackTimeoutMs(deps.env),
+            timeoutMs: resolveShellEnvFallbackTimeoutMs(deps.env)
           });
         }
         return {};
       }
-      const raw = deps.fs.readFileSync(configPath, "utf-8");
+      const raw = deps.fs.readFileSync(configPath, 'utf-8');
       const parsed = deps.json5.parse(raw);
 
       // Resolve $include directives before validation
       const resolved = resolveConfigIncludes(parsed, configPath, {
-        readFile: (p) => deps.fs.readFileSync(p, "utf-8"),
-        parseJson: (raw) => deps.json5.parse(raw),
+        readFile: (p) => deps.fs.readFileSync(p, 'utf-8'),
+        parseJson: (raw) => deps.json5.parse(raw)
       });
 
       // Apply config.env to process.env BEFORE substitution so ${VAR} can reference config-defined vars
-      if (resolved && typeof resolved === "object" && "env" in resolved) {
-        applyConfigEnv(resolved as OpenClawConfig, deps.env);
+      if (resolved && typeof resolved === 'object' && 'env' in resolved) {
+        applyConfigEnv(resolved, deps.env);
       }
 
       // Substitute ${VAR} env var references
@@ -242,12 +295,12 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 
       const resolvedConfig = substituted;
       warnOnConfigMiskeys(resolvedConfig, deps.logger);
-      if (typeof resolvedConfig !== "object" || resolvedConfig === null) {
+      if (typeof resolvedConfig !== 'object' || resolvedConfig === null) {
         return {};
       }
-      const preValidationDuplicates = findDuplicateAgentDirs(resolvedConfig as OpenClawConfig, {
+      const preValidationDuplicates = findDuplicateAgentDirs(resolvedConfig, {
         env: deps.env,
-        homedir: deps.homedir,
+        homedir: deps.homedir
       });
       if (preValidationDuplicates.length > 0) {
         throw new DuplicateAgentDirError(preValidationDuplicates);
@@ -255,21 +308,21 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
       const validated = validateConfigObjectWithPlugins(resolvedConfig);
       if (!validated.ok) {
         const details = validated.issues
-          .map((iss) => `- ${iss.path || "<root>"}: ${iss.message}`)
-          .join("\n");
+          .map((iss) => `- ${iss.path || '<root>'}: ${iss.message}`)
+          .join('\n');
         if (!loggedInvalidConfigs.has(configPath)) {
           loggedInvalidConfigs.add(configPath);
           deps.logger.error(`Invalid config at ${configPath}:\\n${details}`);
         }
-        const error = new Error("Invalid config");
-        (error as { code?: string; details?: string }).code = "INVALID_CONFIG";
-        (error as { code?: string; details?: string }).details = details;
+        const error = new Error('Invalid config');
+        error.code = 'INVALID_CONFIG';
+        error.details = details;
         throw error;
       }
       if (validated.warnings.length > 0) {
         const details = validated.warnings
-          .map((iss) => `- ${iss.path || "<root>"}: ${iss.message}`)
-          .join("\n");
+          .map((iss) => `- ${iss.path || '<root>'}: ${iss.message}`)
+          .join('\n');
         deps.logger.warn(`Config warnings:\\n${details}`);
       }
       warnIfConfigFromFuture(validated.config, deps.logger);
@@ -277,16 +330,16 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         applyCompactionDefaults(
           applyContextPruningDefaults(
             applyAgentDefaults(
-              applySessionDefaults(applyLoggingDefaults(applyMessageDefaults(validated.config))),
-            ),
-          ),
-        ),
+              applySessionDefaults(applyLoggingDefaults(applyMessageDefaults(validated.config)))
+            )
+          )
+        )
       );
       normalizeConfigPaths(cfg);
 
       const duplicates = findDuplicateAgentDirs(cfg, {
         env: deps.env,
-        homedir: deps.homedir,
+        homedir: deps.homedir
       });
       if (duplicates.length > 0) {
         throw new DuplicateAgentDirError(duplicates);
@@ -301,7 +354,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           env: deps.env,
           expectedKeys: SHELL_ENV_EXPECTED_KEYS,
           logger: deps.logger,
-          timeoutMs: cfg.env?.shellEnv?.timeoutMs ?? resolveShellEnvFallbackTimeoutMs(deps.env),
+          timeoutMs: cfg.env?.shellEnv?.timeoutMs ?? resolveShellEnvFallbackTimeoutMs(deps.env)
         });
       }
 
@@ -311,8 +364,8 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         deps.logger.error(err.message);
         throw err;
       }
-      const error = err as { code?: string };
-      if (error?.code === "INVALID_CONFIG") {
+      const error = err;
+      if (error?.code === 'INVALID_CONFIG') {
         return {};
       }
       deps.logger.error(`Failed to read config at ${configPath}`, err);
@@ -320,7 +373,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
     }
   }
 
-  async function readConfigFileSnapshot(): Promise<ConfigFileSnapshot> {
+  async function readConfigFileSnapshot() {
     const exists = deps.fs.existsSync(configPath);
     if (!exists) {
       const hash = hashConfigRaw(null);
@@ -328,12 +381,12 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         applyModelDefaults(
           applyCompactionDefaults(
             applyContextPruningDefaults(
-              applyAgentDefaults(applySessionDefaults(applyMessageDefaults({}))),
-            ),
-          ),
-        ),
+              applyAgentDefaults(applySessionDefaults(applyMessageDefaults({})))
+            )
+          )
+        )
       );
-      const legacyIssues: LegacyConfigIssue[] = [];
+      const legacyIssues = [];
       return {
         path: configPath,
         exists: false,
@@ -344,12 +397,12 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         hash,
         issues: [],
         warnings: [],
-        legacyIssues,
+        legacyIssues
       };
     }
 
     try {
-      const raw = deps.fs.readFileSync(configPath, "utf-8");
+      const raw = deps.fs.readFileSync(configPath, 'utf-8');
       const hash = hashConfigRaw(raw);
       const parsedRes = parseConfigJson5(raw, deps.json5);
       if (!parsedRes.ok) {
@@ -361,18 +414,18 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           valid: false,
           config: {},
           hash,
-          issues: [{ path: "", message: `JSON5 parse failed: ${parsedRes.error}` }],
+          issues: [{ path: '', message: `JSON5 parse failed: ${parsedRes.error}` }],
           warnings: [],
-          legacyIssues: [],
+          legacyIssues: []
         };
       }
 
       // Resolve $include directives
-      let resolved: unknown;
+      let resolved;
       try {
         resolved = resolveConfigIncludes(parsedRes.parsed, configPath, {
-          readFile: (p) => deps.fs.readFileSync(p, "utf-8"),
-          parseJson: (raw) => deps.json5.parse(raw),
+          readFile: (p) => deps.fs.readFileSync(p, 'utf-8'),
+          parseJson: (raw) => deps.json5.parse(raw)
         });
       } catch (err) {
         const message =
@@ -387,19 +440,19 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           valid: false,
           config: coerceConfig(parsedRes.parsed),
           hash,
-          issues: [{ path: "", message }],
+          issues: [{ path: '', message }],
           warnings: [],
-          legacyIssues: [],
+          legacyIssues: []
         };
       }
 
       // Apply config.env to process.env BEFORE substitution so ${VAR} can reference config-defined vars
-      if (resolved && typeof resolved === "object" && "env" in resolved) {
-        applyConfigEnv(resolved as OpenClawConfig, deps.env);
+      if (resolved && typeof resolved === 'object' && 'env' in resolved) {
+        applyConfigEnv(resolved, deps.env);
       }
 
       // Substitute ${VAR} env var references
-      let substituted: unknown;
+      let substituted;
       try {
         substituted = resolveConfigEnvVars(resolved, deps.env);
       } catch (err) {
@@ -415,9 +468,9 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           valid: false,
           config: coerceConfig(resolved),
           hash,
-          issues: [{ path: "", message }],
+          issues: [{ path: '', message }],
           warnings: [],
-          legacyIssues: [],
+          legacyIssues: []
         };
       }
 
@@ -436,7 +489,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           hash,
           issues: validated.issues,
           warnings: validated.warnings,
-          legacyIssues,
+          legacyIssues
         };
       }
 
@@ -451,15 +504,15 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
           applyTalkApiKey(
             applyModelDefaults(
               applyAgentDefaults(
-                applySessionDefaults(applyLoggingDefaults(applyMessageDefaults(validated.config))),
-              ),
-            ),
-          ),
+                applySessionDefaults(applyLoggingDefaults(applyMessageDefaults(validated.config)))
+              )
+            )
+          )
         ),
         hash,
         issues: [],
         warnings: validated.warnings,
-        legacyIssues,
+        legacyIssues
       };
     } catch (err) {
       return {
@@ -470,41 +523,41 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         valid: false,
         config: {},
         hash: hashConfigRaw(null),
-        issues: [{ path: "", message: `read failed: ${String(err)}` }],
+        issues: [{ path: '', message: `read failed: ${String(err)}` }],
         warnings: [],
-        legacyIssues: [],
+        legacyIssues: []
       };
     }
   }
 
-  async function writeConfigFile(cfg: OpenClawConfig) {
+  async function writeConfigFile(cfg) {
     clearConfigCache();
     const validated = validateConfigObjectWithPlugins(cfg);
     if (!validated.ok) {
       const issue = validated.issues[0];
-      const pathLabel = issue?.path ? issue.path : "<root>";
-      throw new Error(`Config validation failed: ${pathLabel}: ${issue?.message ?? "invalid"}`);
+      const pathLabel = issue?.path ? issue.path : '<root>';
+      throw new Error(`Config validation failed: ${pathLabel}: ${issue?.message ?? 'invalid'}`);
     }
     if (validated.warnings.length > 0) {
       const details = validated.warnings
         .map((warning) => `- ${warning.path}: ${warning.message}`)
-        .join("\n");
+        .join('\n');
       deps.logger.warn(`Config warnings:\n${details}`);
     }
     const dir = path.dirname(configPath);
     await deps.fs.promises.mkdir(dir, { recursive: true, mode: 0o700 });
     const json = JSON.stringify(applyModelDefaults(stampConfigVersion(cfg)), null, 2)
       .trimEnd()
-      .concat("\n");
+      .concat('\n');
 
     const tmp = path.join(
       dir,
-      `${path.basename(configPath)}.${process.pid}.${crypto.randomUUID()}.tmp`,
+      `${path.basename(configPath)}.${process.pid}.${crypto.randomUUID()}.tmp`
     );
 
     await deps.fs.promises.writeFile(tmp, json, {
-      encoding: "utf-8",
-      mode: 0o600,
+      encoding: 'utf-8',
+      mode: 0o600
     });
 
     if (deps.fs.existsSync(configPath)) {
@@ -517,9 +570,9 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
     try {
       await deps.fs.promises.rename(tmp, configPath);
     } catch (err) {
-      const code = (err as { code?: string }).code;
+      const code = err?.code;
       // Windows doesn't reliably support atomic replace via rename when dest exists.
-      if (code === "EPERM" || code === "EEXIST") {
+      if (code === 'EPERM' || code === 'EEXIST') {
         await deps.fs.promises.copyFile(tmp, configPath);
         await deps.fs.promises.chmod(configPath, 0o600).catch(() => {
           // best-effort
@@ -540,7 +593,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
     configPath,
     loadConfig,
     readConfigFileSnapshot,
-    writeConfigFile,
+    writeConfigFile
   };
 }
 
@@ -548,15 +601,15 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 // module scope. `OPENCLAW_CONFIG_PATH` (and friends) are expected to work even
 // when set after the module has been imported (tests, one-off scripts, etc.).
 const DEFAULT_CONFIG_CACHE_MS = 200;
-let configCache: {
-  configPath: string;
-  expiresAt: number;
-  config: OpenClawConfig;
-} | null = null;
+let configCache = null;
 
-function resolveConfigCacheMs(env: NodeJS.ProcessEnv): number {
+/**
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {number}
+ */
+function resolveConfigCacheMs(env) {
   const raw = env.OPENCLAW_CONFIG_CACHE_MS?.trim();
-  if (raw === "" || raw === "0") {
+  if (raw === '' || raw === '0') {
     return 0;
   }
   if (!raw) {
@@ -569,18 +622,26 @@ function resolveConfigCacheMs(env: NodeJS.ProcessEnv): number {
   return Math.max(0, parsed);
 }
 
-function shouldUseConfigCache(env: NodeJS.ProcessEnv): boolean {
+/**
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {boolean}
+ */
+function shouldUseConfigCache(env) {
   if (env.OPENCLAW_DISABLE_CONFIG_CACHE?.trim()) {
     return false;
   }
   return resolveConfigCacheMs(env) > 0;
 }
 
-function clearConfigCache(): void {
+function clearConfigCache() {
   configCache = null;
 }
 
-export function loadConfig(): OpenClawConfig {
+/**
+ * Loads the config using default paths and caching.
+ * @returns {import("./types.js").OpenClawConfig}
+ */
+export function loadConfig() {
   const io = createConfigIO();
   const configPath = io.configPath;
   const now = Date.now();
@@ -597,18 +658,26 @@ export function loadConfig(): OpenClawConfig {
       configCache = {
         configPath,
         expiresAt: now + cacheMs,
-        config,
+        config
       };
     }
   }
   return config;
 }
 
-export async function readConfigFileSnapshot(): Promise<ConfigFileSnapshot> {
+/**
+ * Reads a config file snapshot with full metadata.
+ * @returns {Promise<import("./types.js").ConfigFileSnapshot>}
+ */
+export async function readConfigFileSnapshot() {
   return await createConfigIO().readConfigFileSnapshot();
 }
 
-export async function writeConfigFile(cfg: OpenClawConfig): Promise<void> {
+/**
+ * Writes a validated config to the default config path.
+ * @param {import("./types.js").OpenClawConfig} cfg
+ */
+export async function writeConfigFile(cfg) {
   clearConfigCache();
   await createConfigIO().writeConfigFile(cfg);
 }

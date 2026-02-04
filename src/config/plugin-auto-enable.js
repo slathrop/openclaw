@@ -1,54 +1,50 @@
-import type { OpenClawConfig } from "./config.js";
-import { normalizeProviderId } from "../agents/model-selection.js";
+/**
+ * Plugin auto-enable: detects configured channels/providers and enables matching plugins.
+ *
+ * Scans channel config for tokens/credentials, checks model provider references,
+ * and auto-enables the corresponding plugins. Respects explicit disable, deny lists,
+ * and preferOver channel prioritization (e.g. BlueBubbles over iMessage).
+ */
+import { normalizeProviderId } from '../agents/model-selection.js';
 import {
   getChannelPluginCatalogEntry,
-  listChannelPluginCatalogEntries,
-} from "../channels/plugins/catalog.js";
+  listChannelPluginCatalogEntries
+} from '../channels/plugins/catalog.js';
 import {
   getChatChannelMeta,
   listChatChannels,
-  normalizeChatChannelId,
-} from "../channels/registry.js";
-import { hasAnyWhatsAppAuth } from "../web/accounts.js";
-
-type PluginEnableChange = {
-  pluginId: string;
-  reason: string;
-};
-
-export type PluginAutoEnableResult = {
-  config: OpenClawConfig;
-  changes: string[];
-};
+  normalizeChatChannelId
+} from '../channels/registry.js';
+import { hasAnyWhatsAppAuth } from '../web/accounts.js';
 
 const CHANNEL_PLUGIN_IDS = Array.from(
   new Set([
     ...listChatChannels().map((meta) => meta.id),
-    ...listChannelPluginCatalogEntries().map((entry) => entry.id),
-  ]),
+    ...listChannelPluginCatalogEntries().map((entry) => entry.id)
+  ])
 );
 
-const PROVIDER_PLUGIN_IDS: Array<{ pluginId: string; providerId: string }> = [
-  { pluginId: "google-antigravity-auth", providerId: "google-antigravity" },
-  { pluginId: "google-gemini-cli-auth", providerId: "google-gemini-cli" },
-  { pluginId: "qwen-portal-auth", providerId: "qwen-portal" },
-  { pluginId: "copilot-proxy", providerId: "copilot-proxy" },
-  { pluginId: "minimax-portal-auth", providerId: "minimax-portal" },
+const PROVIDER_PLUGIN_IDS = [
+  { pluginId: 'google-antigravity-auth', providerId: 'google-antigravity' },
+  { pluginId: 'google-gemini-cli-auth', providerId: 'google-gemini-cli' },
+  { pluginId: 'qwen-portal-auth', providerId: 'qwen-portal' },
+  { pluginId: 'copilot-proxy', providerId: 'copilot-proxy' },
+  { pluginId: 'minimax-portal-auth', providerId: 'minimax-portal' }
 ];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+function isRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function hasNonEmptyString(value: unknown): boolean {
-  return typeof value === "string" && value.trim().length > 0;
+function hasNonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
-function recordHasKeys(value: unknown): boolean {
+function recordHasKeys(value) {
   return isRecord(value) && Object.keys(value).length > 0;
 }
 
-function accountsHaveKeys(value: unknown, keys: string[]): boolean {
+function accountsHaveKeys(value, keys) {
   if (!isRecord(value)) {
     return false;
   }
@@ -65,50 +61,47 @@ function accountsHaveKeys(value: unknown, keys: string[]): boolean {
   return false;
 }
 
-function resolveChannelConfig(
-  cfg: OpenClawConfig,
-  channelId: string,
-): Record<string, unknown> | null {
-  const channels = cfg.channels as Record<string, unknown> | undefined;
+function resolveChannelConfig(cfg, channelId) {
+  const channels = cfg.channels;
   const entry = channels?.[channelId];
   return isRecord(entry) ? entry : null;
 }
 
-function isTelegramConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function isTelegramConfigured(cfg, env) {
   if (hasNonEmptyString(env.TELEGRAM_BOT_TOKEN)) {
     return true;
   }
-  const entry = resolveChannelConfig(cfg, "telegram");
+  const entry = resolveChannelConfig(cfg, 'telegram');
   if (!entry) {
     return false;
   }
   if (hasNonEmptyString(entry.botToken) || hasNonEmptyString(entry.tokenFile)) {
     return true;
   }
-  if (accountsHaveKeys(entry.accounts, ["botToken", "tokenFile"])) {
+  if (accountsHaveKeys(entry.accounts, ['botToken', 'tokenFile'])) {
     return true;
   }
   return recordHasKeys(entry);
 }
 
-function isDiscordConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function isDiscordConfigured(cfg, env) {
   if (hasNonEmptyString(env.DISCORD_BOT_TOKEN)) {
     return true;
   }
-  const entry = resolveChannelConfig(cfg, "discord");
+  const entry = resolveChannelConfig(cfg, 'discord');
   if (!entry) {
     return false;
   }
   if (hasNonEmptyString(entry.token)) {
     return true;
   }
-  if (accountsHaveKeys(entry.accounts, ["token"])) {
+  if (accountsHaveKeys(entry.accounts, ['token'])) {
     return true;
   }
   return recordHasKeys(entry);
 }
 
-function isSlackConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function isSlackConfigured(cfg, env) {
   if (
     hasNonEmptyString(env.SLACK_BOT_TOKEN) ||
     hasNonEmptyString(env.SLACK_APP_TOKEN) ||
@@ -116,7 +109,7 @@ function isSlackConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean
   ) {
     return true;
   }
-  const entry = resolveChannelConfig(cfg, "slack");
+  const entry = resolveChannelConfig(cfg, 'slack');
   if (!entry) {
     return false;
   }
@@ -127,14 +120,14 @@ function isSlackConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean
   ) {
     return true;
   }
-  if (accountsHaveKeys(entry.accounts, ["botToken", "appToken", "userToken"])) {
+  if (accountsHaveKeys(entry.accounts, ['botToken', 'appToken', 'userToken'])) {
     return true;
   }
   return recordHasKeys(entry);
 }
 
-function isSignalConfigured(cfg: OpenClawConfig): boolean {
-  const entry = resolveChannelConfig(cfg, "signal");
+function isSignalConfigured(cfg) {
+  const entry = resolveChannelConfig(cfg, 'signal');
   if (!entry) {
     return false;
   }
@@ -142,19 +135,19 @@ function isSignalConfigured(cfg: OpenClawConfig): boolean {
     hasNonEmptyString(entry.account) ||
     hasNonEmptyString(entry.httpUrl) ||
     hasNonEmptyString(entry.httpHost) ||
-    typeof entry.httpPort === "number" ||
+    typeof entry.httpPort === 'number' ||
     hasNonEmptyString(entry.cliPath)
   ) {
     return true;
   }
-  if (accountsHaveKeys(entry.accounts, ["account", "httpUrl", "httpHost", "cliPath"])) {
+  if (accountsHaveKeys(entry.accounts, ['account', 'httpUrl', 'httpHost', 'cliPath'])) {
     return true;
   }
   return recordHasKeys(entry);
 }
 
-function isIMessageConfigured(cfg: OpenClawConfig): boolean {
-  const entry = resolveChannelConfig(cfg, "imessage");
+function isIMessageConfigured(cfg) {
+  const entry = resolveChannelConfig(cfg, 'imessage');
   if (!entry) {
     return false;
   }
@@ -164,58 +157,65 @@ function isIMessageConfigured(cfg: OpenClawConfig): boolean {
   return recordHasKeys(entry);
 }
 
-function isWhatsAppConfigured(cfg: OpenClawConfig): boolean {
+function isWhatsAppConfigured(cfg) {
   if (hasAnyWhatsAppAuth(cfg)) {
     return true;
   }
-  const entry = resolveChannelConfig(cfg, "whatsapp");
+  const entry = resolveChannelConfig(cfg, 'whatsapp');
   if (!entry) {
     return false;
   }
   return recordHasKeys(entry);
 }
 
-function isGenericChannelConfigured(cfg: OpenClawConfig, channelId: string): boolean {
+function isGenericChannelConfigured(cfg, channelId) {
   const entry = resolveChannelConfig(cfg, channelId);
   return recordHasKeys(entry);
 }
 
+/**
+ * Checks whether a specific channel has any configuration present.
+ * @param {import("./config.js").OpenClawConfig} cfg
+ * @param {string} channelId
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function isChannelConfigured(
-  cfg: OpenClawConfig,
-  channelId: string,
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
+  cfg,
+  channelId,
+  env = process.env
+) {
   switch (channelId) {
-    case "whatsapp":
+    case 'whatsapp':
       return isWhatsAppConfigured(cfg);
-    case "telegram":
+    case 'telegram':
       return isTelegramConfigured(cfg, env);
-    case "discord":
+    case 'discord':
       return isDiscordConfigured(cfg, env);
-    case "slack":
+    case 'slack':
       return isSlackConfigured(cfg, env);
-    case "signal":
+    case 'signal':
       return isSignalConfigured(cfg);
-    case "imessage":
+    case 'imessage':
       return isIMessageConfigured(cfg);
     default:
       return isGenericChannelConfigured(cfg, channelId);
   }
 }
 
-function collectModelRefs(cfg: OpenClawConfig): string[] {
-  const refs: string[] = [];
-  const pushModelRef = (value: unknown) => {
-    if (typeof value === "string" && value.trim()) {
+function collectModelRefs(cfg) {
+  const refs = [];
+  const pushModelRef = (value) => {
+    if (typeof value === 'string' && value.trim()) {
       refs.push(value.trim());
     }
   };
-  const collectFromAgent = (agent: Record<string, unknown> | null | undefined) => {
+  const collectFromAgent = (agent) => {
     if (!agent) {
       return;
     }
     const model = agent.model;
-    if (typeof model === "string") {
+    if (typeof model === 'string') {
       pushModelRef(model);
     } else if (isRecord(model)) {
       pushModelRef(model.primary);
@@ -234,7 +234,7 @@ function collectModelRefs(cfg: OpenClawConfig): string[] {
     }
   };
 
-  const defaults = cfg.agents?.defaults as Record<string, unknown> | undefined;
+  const defaults = cfg.agents?.defaults;
   collectFromAgent(defaults);
 
   const list = cfg.agents?.list;
@@ -248,25 +248,25 @@ function collectModelRefs(cfg: OpenClawConfig): string[] {
   return refs;
 }
 
-function extractProviderFromModelRef(value: string): string | null {
+function extractProviderFromModelRef(value) {
   const trimmed = value.trim();
-  const slash = trimmed.indexOf("/");
+  const slash = trimmed.indexOf('/');
   if (slash <= 0) {
     return null;
   }
   return normalizeProviderId(trimmed.slice(0, slash));
 }
 
-function isProviderConfigured(cfg: OpenClawConfig, providerId: string): boolean {
+function isProviderConfigured(cfg, providerId) {
   const normalized = normalizeProviderId(providerId);
 
   const profiles = cfg.auth?.profiles;
-  if (profiles && typeof profiles === "object") {
+  if (profiles && typeof profiles === 'object') {
     for (const profile of Object.values(profiles)) {
       if (!isRecord(profile)) {
         continue;
       }
-      const provider = normalizeProviderId(String(profile.provider ?? ""));
+      const provider = normalizeProviderId(String(profile.provider ?? ''));
       if (provider === normalized) {
         return true;
       }
@@ -274,7 +274,7 @@ function isProviderConfigured(cfg: OpenClawConfig, providerId: string): boolean 
   }
 
   const providerConfig = cfg.models?.providers;
-  if (providerConfig && typeof providerConfig === "object") {
+  if (providerConfig && typeof providerConfig === 'object') {
     for (const key of Object.keys(providerConfig)) {
       if (normalizeProviderId(key) === normalized) {
         return true;
@@ -293,16 +293,13 @@ function isProviderConfigured(cfg: OpenClawConfig, providerId: string): boolean 
   return false;
 }
 
-function resolveConfiguredPlugins(
-  cfg: OpenClawConfig,
-  env: NodeJS.ProcessEnv,
-): PluginEnableChange[] {
-  const changes: PluginEnableChange[] = [];
+function resolveConfiguredPlugins(cfg, env) {
+  const changes = [];
   const channelIds = new Set(CHANNEL_PLUGIN_IDS);
-  const configuredChannels = cfg.channels as Record<string, unknown> | undefined;
-  if (configuredChannels && typeof configuredChannels === "object") {
+  const configuredChannels = cfg.channels;
+  if (configuredChannels && typeof configuredChannels === 'object') {
     for (const key of Object.keys(configuredChannels)) {
-      if (key === "defaults") {
+      if (key === 'defaults') {
         continue;
       }
       channelIds.add(key);
@@ -315,7 +312,7 @@ function resolveConfiguredPlugins(
     if (isChannelConfigured(cfg, channelId, env)) {
       changes.push({
         pluginId: channelId,
-        reason: `${channelId} configured`,
+        reason: `${channelId} configured`
       });
     }
   }
@@ -323,24 +320,24 @@ function resolveConfiguredPlugins(
     if (isProviderConfigured(cfg, mapping.providerId)) {
       changes.push({
         pluginId: mapping.pluginId,
-        reason: `${mapping.providerId} auth configured`,
+        reason: `${mapping.providerId} auth configured`
       });
     }
   }
   return changes;
 }
 
-function isPluginExplicitlyDisabled(cfg: OpenClawConfig, pluginId: string): boolean {
+function isPluginExplicitlyDisabled(cfg, pluginId) {
   const entry = cfg.plugins?.entries?.[pluginId];
   return entry?.enabled === false;
 }
 
-function isPluginDenied(cfg: OpenClawConfig, pluginId: string): boolean {
+function isPluginDenied(cfg, pluginId) {
   const deny = cfg.plugins?.deny;
   return Array.isArray(deny) && deny.includes(pluginId);
 }
 
-function resolvePreferredOverIds(pluginId: string): string[] {
+function resolvePreferredOverIds(pluginId) {
   const normalized = normalizeChatChannelId(pluginId);
   if (normalized) {
     return getChatChannelMeta(normalized).preferOver ?? [];
@@ -349,11 +346,7 @@ function resolvePreferredOverIds(pluginId: string): string[] {
   return catalogEntry?.meta.preferOver ?? [];
 }
 
-function shouldSkipPreferredPluginAutoEnable(
-  cfg: OpenClawConfig,
-  entry: PluginEnableChange,
-  configured: PluginEnableChange[],
-): boolean {
+function shouldSkipPreferredPluginAutoEnable(cfg, entry, configured) {
   for (const other of configured) {
     if (other.pluginId === entry.pluginId) {
       continue;
@@ -372,7 +365,7 @@ function shouldSkipPreferredPluginAutoEnable(
   return false;
 }
 
-function ensureAllowlisted(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+function ensureAllowlisted(cfg, pluginId) {
   const allow = cfg.plugins?.allow;
   if (!Array.isArray(allow) || allow.includes(pluginId)) {
     return cfg;
@@ -381,43 +374,45 @@ function ensureAllowlisted(cfg: OpenClawConfig, pluginId: string): OpenClawConfi
     ...cfg,
     plugins: {
       ...cfg.plugins,
-      allow: [...allow, pluginId],
-    },
+      allow: [...allow, pluginId]
+    }
   };
 }
 
-function enablePluginEntry(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+function enablePluginEntry(cfg, pluginId) {
   const entries = {
     ...cfg.plugins?.entries,
     [pluginId]: {
-      ...(cfg.plugins?.entries?.[pluginId] as Record<string, unknown> | undefined),
-      enabled: true,
-    },
+      ...cfg.plugins?.entries?.[pluginId],
+      enabled: true
+    }
   };
   return {
     ...cfg,
     plugins: {
       ...cfg.plugins,
       entries,
-      ...(cfg.plugins?.enabled === false ? { enabled: true } : {}),
-    },
+      ...(cfg.plugins?.enabled === false ? { enabled: true } : {})
+    }
   };
 }
 
-function formatAutoEnableChange(entry: PluginEnableChange): string {
+function formatAutoEnableChange(entry) {
   let reason = entry.reason.trim();
   const channelId = normalizeChatChannelId(entry.pluginId);
   if (channelId) {
     const label = getChatChannelMeta(channelId).label;
-    reason = reason.replace(new RegExp(`^${channelId}\\b`, "i"), label);
+    reason = reason.replace(new RegExp(`^${channelId}\\b`, 'i'), label);
   }
   return `${reason}, not enabled yet.`;
 }
 
-export function applyPluginAutoEnable(params: {
-  config: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-}): PluginAutoEnableResult {
+/**
+ * Auto-enables plugins whose channels or providers are configured.
+ * @param {{ config: import("./config.js").OpenClawConfig, env?: NodeJS.ProcessEnv }} params
+ * @returns {{ config: import("./config.js").OpenClawConfig, changes: string[] }}
+ */
+export function applyPluginAutoEnable(params) {
   const env = params.env ?? process.env;
   const configured = resolveConfiguredPlugins(params.config, env);
   if (configured.length === 0) {
@@ -425,7 +420,7 @@ export function applyPluginAutoEnable(params: {
   }
 
   let next = params.config;
-  const changes: string[] = [];
+  const changes = [];
 
   if (next.plugins?.enabled === false) {
     return { config: next, changes };
