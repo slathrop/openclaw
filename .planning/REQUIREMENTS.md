@@ -9,12 +9,12 @@ Requirements for the complete TypeScript to JavaScript conversion with full feat
 
 ### Build Tooling
 
-- [ ] **TOOL-01**: Remove TypeScript compilation toolchain (tsconfig, tsdown, TS dependencies)
-- [ ] **TOOL-02**: Set up ESLint with Google Standard JavaScript Style (no trailing commas in multiline)
-- [ ] **TOOL-03**: Configure JSDoc validation support in linter/editor tooling
-- [ ] **TOOL-04**: Add lodash as a project dependency
-- [ ] **TOOL-05**: Ensure all JavaScript uses ESM (import/export, no CommonJS require)
-- [ ] **TOOL-06**: Update package.json scripts for JS-only workflow (dev, build, test, lint)
+- [x] **TOOL-01**: Remove TypeScript compilation toolchain (tsconfig, tsdown, TS dependencies)
+- [x] **TOOL-02**: Set up ESLint with Google Standard JavaScript Style (no trailing commas in multiline)
+- [x] **TOOL-03**: Configure JSDoc validation support in linter/editor tooling
+- [x] **TOOL-04**: Add lodash as a project dependency
+- [x] **TOOL-05**: Ensure all JavaScript uses ESM (import/export, no CommonJS require)
+- [x] **TOOL-06**: Update package.json scripts for JS-only workflow (dev, build, test, lint)
 
 ### Core Source Conversion
 
@@ -93,12 +93,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOOL-01 | Phase 1 | Pending |
-| TOOL-02 | Phase 1 | Pending |
-| TOOL-03 | Phase 1 | Pending |
-| TOOL-04 | Phase 1 | Pending |
-| TOOL-05 | Phase 1 | Pending |
-| TOOL-06 | Phase 1 | Pending |
+| TOOL-01 | Phase 1 | Complete |
+| TOOL-02 | Phase 1 | Complete |
+| TOOL-03 | Phase 1 | Complete |
+| TOOL-04 | Phase 1 | Complete |
+| TOOL-05 | Phase 1 | Complete |
+| TOOL-06 | Phase 1 | Complete |
 | CORE-01 | Phase 4 | Pending |
 | CORE-02 | Phase 4 | Pending |
 | CORE-03 | Phase 3 | Pending |
@@ -140,4 +140,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-04*
-*Last updated: 2026-02-04 after roadmap creation*
+*Last updated: 2026-02-04 after Phase 1 completion*

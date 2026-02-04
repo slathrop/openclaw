@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 
 Phase: 1 of 6 (Build Tooling) -- COMPLETE
 Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-04 -- Completed 01-03-PLAN.md
+Status: Phase complete, verified (5/5 must-haves)
+Last activity: 2026-02-04 -- Phase 1 verified, all goals achieved
 
 Progress: [===.................] 17%
 
@@ -56,10 +56,11 @@ Recent decisions affecting current work:
 - 01-03: Simplified check to just lint (ESLint handles both linting and formatting)
 - 01-03: format/format:fix map to eslint (Stylistic handles formatting)
 - 01-03: Removed vitest top-level key from package.json (vitest.config.js is source of truth)
+- Orchestrator: Added external config to rolldown.config.js (tsdown auto-externalized; rolldown requires explicit)
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
@@ -68,6 +69,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-04T22:14:39Z
-Stopped at: Completed 01-03-PLAN.md (Phase 1 complete)
+Last session: 2026-02-04
+Stopped at: Phase 1 complete and verified, ready for Phase 2
 Resume file: None
