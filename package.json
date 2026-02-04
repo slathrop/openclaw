@@ -152,9 +152,14 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@lit-labs/signals": "^0.2.0",
     "@lit/context": "^1.1.6",
+    "@stylistic/eslint-plugin": "^5.7.1",
     "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^9.39.2",
+    "eslint-plugin-jsdoc": "^62.5.1",
+    "globals": "^17.3.0",
     "lit": "^3.3.2",
     "ollama": "^0.6.3",
     "rolldown": "1.0.0-rc.2",
