@@ -1,37 +1,51 @@
-import { spawnSync } from "node:child_process";
-import os from "node:os";
+/**
+ * System presence tracking and device registration.
+ *
+ * Tracks connected gateway nodes and devices with TTL-based expiry,
+ * LRU eviction, and structured presence updates. Provides self-presence
+ * initialization from local system info.
+ */
+import {spawnSync} from 'node:child_process';
+import os from 'node:os';
 
-export type SystemPresence = {
-  host?: string;
-  ip?: string;
-  version?: string;
-  platform?: string;
-  deviceFamily?: string;
-  modelIdentifier?: string;
-  lastInputSeconds?: number;
-  mode?: string;
-  reason?: string;
-  deviceId?: string;
-  roles?: string[];
-  scopes?: string[];
-  instanceId?: string;
-  text: string;
-  ts: number;
-};
+/**
+ * @typedef {object} SystemPresence
+ * @property {string} [host]
+ * @property {string} [ip]
+ * @property {string} [version]
+ * @property {string} [platform]
+ * @property {string} [deviceFamily]
+ * @property {string} [modelIdentifier]
+ * @property {number} [lastInputSeconds]
+ * @property {string} [mode]
+ * @property {string} [reason]
+ * @property {string} [deviceId]
+ * @property {string[]} [roles]
+ * @property {string[]} [scopes]
+ * @property {string} [instanceId]
+ * @property {string} text
+ * @property {number} ts
+ */
 
-export type SystemPresenceUpdate = {
-  key: string;
-  previous?: SystemPresence;
-  next: SystemPresence;
-  changes: Partial<SystemPresence>;
-  changedKeys: (keyof SystemPresence)[];
-};
+/**
+ * @typedef {object} SystemPresenceUpdate
+ * @property {string} key
+ * @property {SystemPresence} [previous]
+ * @property {SystemPresence} next
+ * @property {Partial<SystemPresence>} changes
+ * @property {Array<keyof SystemPresence>} changedKeys
+ */
 
-const entries = new Map<string, SystemPresence>();
+/** @type {Map<string, SystemPresence>} */
+const entries = new Map();
 const TTL_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_ENTRIES = 200;
 
-function normalizePresenceKey(key: string | undefined): string | undefined {
+/**
+ * @param {string | undefined} key
+ * @returns {string | undefined}
+ */
+function normalizePresenceKey(key) {
   if (!key) {
     return undefined;
   }
@@ -42,19 +56,22 @@ function normalizePresenceKey(key: string | undefined): string | undefined {
   return trimmed.toLowerCase();
 }
 
-function resolvePrimaryIPv4(): string | undefined {
+/**
+ * @returns {string | undefined}
+ */
+function resolvePrimaryIPv4() {
   const nets = os.networkInterfaces();
-  const prefer = ["en0", "eth0"];
-  const pick = (names: string[]) => {
+  const prefer = ['en0', 'eth0'];
+  const pick = (names) => {
     for (const name of names) {
       const list = nets[name];
-      const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
+      const entry = list?.find((n) => n.family === 'IPv4' && !n.internal);
       if (entry?.address) {
         return entry.address;
       }
     }
     for (const list of Object.values(nets)) {
-      const entry = list?.find((n) => n.family === "IPv4" && !n.internal);
+      const entry = list?.find((n) => n.family === 'IPv4' && !n.internal);
       if (entry?.address) {
         return entry.address;
       }
@@ -67,61 +84,62 @@ function resolvePrimaryIPv4(): string | undefined {
 function initSelfPresence() {
   const host = os.hostname();
   const ip = resolvePrimaryIPv4() ?? undefined;
-  const version = process.env.OPENCLAW_VERSION ?? process.env.npm_package_version ?? "unknown";
+  const version = process.env.OPENCLAW_VERSION ?? process.env.npm_package_version ?? 'unknown';
   const modelIdentifier = (() => {
     const p = os.platform();
-    if (p === "darwin") {
-      const res = spawnSync("sysctl", ["-n", "hw.model"], {
-        encoding: "utf-8",
+    if (p === 'darwin') {
+      const res = spawnSync('sysctl', ['-n', 'hw.model'], {
+        encoding: 'utf-8'
       });
-      const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
+      const out = typeof res.stdout === 'string' ? res.stdout.trim() : '';
       return out.length > 0 ? out : undefined;
     }
     return os.arch();
   })();
   const macOSVersion = () => {
-    const res = spawnSync("sw_vers", ["-productVersion"], {
-      encoding: "utf-8",
+    const res = spawnSync('sw_vers', ['-productVersion'], {
+      encoding: 'utf-8'
     });
-    const out = typeof res.stdout === "string" ? res.stdout.trim() : "";
+    const out = typeof res.stdout === 'string' ? res.stdout.trim() : '';
     return out.length > 0 ? out : os.release();
   };
   const platform = (() => {
     const p = os.platform();
     const rel = os.release();
-    if (p === "darwin") {
+    if (p === 'darwin') {
       return `macos ${macOSVersion()}`;
     }
-    if (p === "win32") {
+    if (p === 'win32') {
       return `windows ${rel}`;
     }
     return `${p} ${rel}`;
   })();
   const deviceFamily = (() => {
     const p = os.platform();
-    if (p === "darwin") {
-      return "Mac";
+    if (p === 'darwin') {
+      return 'Mac';
     }
-    if (p === "win32") {
-      return "Windows";
+    if (p === 'win32') {
+      return 'Windows';
     }
-    if (p === "linux") {
-      return "Linux";
+    if (p === 'linux') {
+      return 'Linux';
     }
     return p;
   })();
-  const text = `Gateway: ${host}${ip ? ` (${ip})` : ""} · app ${version} · mode gateway · reason self`;
-  const selfEntry: SystemPresence = {
+  const text = `Gateway: ${host}${ip ? ` (${ip})` : ''} \u00B7 app ${version} \u00B7 mode gateway \u00B7 reason self`;
+  /** @type {SystemPresence} */
+  const selfEntry = {
     host,
     ip,
     version,
     platform,
     deviceFamily,
     modelIdentifier,
-    mode: "gateway",
-    reason: "self",
+    mode: 'gateway',
+    reason: 'self',
     text,
-    ts: Date.now(),
+    ts: Date.now()
   };
   const key = host.toLowerCase();
   entries.set(key, selfEntry);
@@ -141,7 +159,7 @@ function touchSelfPresence() {
   const key = host.toLowerCase();
   const existing = entries.get(key);
   if (existing) {
-    entries.set(key, { ...existing, ts: Date.now() });
+    entries.set(key, {...existing, ts: Date.now()});
   } else {
     initSelfPresence();
   }
@@ -149,13 +167,17 @@ function touchSelfPresence() {
 
 initSelfPresence();
 
-function parsePresence(text: string): SystemPresence {
+/**
+ * @param {string} text
+ * @returns {SystemPresence}
+ */
+function parsePresence(text) {
   const trimmed = text.trim();
   const pattern =
-    /Node:\s*([^ (]+)\s*\(([^)]+)\)\s*·\s*app\s*([^·]+?)\s*·\s*last input\s*([0-9]+)s ago\s*·\s*mode\s*([^·]+?)\s*·\s*reason\s*(.+)$/i;
+    /Node:\s*([^ (]+)\s*\(([^)]+)\)\s*\u00B7\s*app\s*([^\u00B7]+?)\s*\u00B7\s*last input\s*([0-9]+)s ago\s*\u00B7\s*mode\s*([^\u00B7]+?)\s*\u00B7\s*reason\s*(.+)$/i;
   const match = trimmed.match(pattern);
   if (!match) {
-    return { text: trimmed, ts: Date.now() };
+    return {text: trimmed, ts: Date.now()};
   }
   const [, host, ip, version, lastInputStr, mode, reasonRaw] = match;
   const lastInputSeconds = Number.parseInt(lastInputStr, 10);
@@ -168,30 +190,16 @@ function parsePresence(text: string): SystemPresence {
     mode: mode.trim(),
     reason,
     text: trimmed,
-    ts: Date.now(),
+    ts: Date.now()
   };
 }
 
-type SystemPresencePayload = {
-  text: string;
-  deviceId?: string;
-  instanceId?: string;
-  host?: string;
-  ip?: string;
-  version?: string;
-  platform?: string;
-  deviceFamily?: string;
-  modelIdentifier?: string;
-  lastInputSeconds?: number;
-  mode?: string;
-  reason?: string;
-  roles?: string[];
-  scopes?: string[];
-  tags?: string[];
-};
-
-function mergeStringList(...values: Array<string[] | undefined>): string[] | undefined {
-  const out = new Set<string>();
+/**
+ * @param {...(string[] | undefined)} values
+ * @returns {string[] | undefined}
+ */
+function mergeStringList(...values) {
+  const out = new Set();
   for (const list of values) {
     if (!Array.isArray(list)) {
       continue;
@@ -206,7 +214,27 @@ function mergeStringList(...values: Array<string[] | undefined>): string[] | und
   return out.size > 0 ? [...out] : undefined;
 }
 
-export function updateSystemPresence(payload: SystemPresencePayload): SystemPresenceUpdate {
+/**
+ * Updates system presence from a presence payload.
+ * @param {object} payload
+ * @param {string} payload.text
+ * @param {string} [payload.deviceId]
+ * @param {string} [payload.instanceId]
+ * @param {string} [payload.host]
+ * @param {string} [payload.ip]
+ * @param {string} [payload.version]
+ * @param {string} [payload.platform]
+ * @param {string} [payload.deviceFamily]
+ * @param {string} [payload.modelIdentifier]
+ * @param {number} [payload.lastInputSeconds]
+ * @param {string} [payload.mode]
+ * @param {string} [payload.reason]
+ * @param {string[]} [payload.roles]
+ * @param {string[]} [payload.scopes]
+ * @param {string[]} [payload.tags]
+ * @returns {SystemPresenceUpdate}
+ */
+export function updateSystemPresence(payload) {
   ensureSelfPresence();
   const parsed = parsePresence(payload.text);
   const key =
@@ -218,8 +246,9 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
     parsed.text.slice(0, 64) ||
     os.hostname().toLowerCase();
   const hadExisting = entries.has(key);
-  const existing = entries.get(key) ?? ({} as SystemPresence);
-  const merged: SystemPresence = {
+  const existing = entries.get(key) ?? /** @type {SystemPresence} */ ({});
+  /** @type {SystemPresence} */
+  const merged = {
     ...existing,
     ...parsed,
     host: payload.host ?? parsed.host ?? existing.host,
@@ -237,13 +266,14 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
     scopes: mergeStringList(existing.scopes, payload.scopes),
     instanceId: payload.instanceId ?? parsed.instanceId ?? existing.instanceId,
     text: payload.text || parsed.text || existing.text,
-    ts: Date.now(),
+    ts: Date.now()
   };
   entries.set(key, merged);
-  const trackKeys = ["host", "ip", "version", "mode", "reason"] as const;
-  type TrackKey = (typeof trackKeys)[number];
-  const changes: Partial<Pick<SystemPresence, TrackKey>> = {};
-  const changedKeys: TrackKey[] = [];
+  const trackKeys = ['host', 'ip', 'version', 'mode', 'reason'];
+  /** @type {Partial<SystemPresence>} */
+  const changes = {};
+  /** @type {string[]} */
+  const changedKeys = [];
   for (const k of trackKeys) {
     const prev = existing[k];
     const next = merged[k];
@@ -257,17 +287,23 @@ export function updateSystemPresence(payload: SystemPresencePayload): SystemPres
     previous: hadExisting ? existing : undefined,
     next: merged,
     changes,
-    changedKeys,
-  } satisfies SystemPresenceUpdate;
+    changedKeys
+  };
 }
 
-export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
+/**
+ * Upserts a presence entry by key.
+ * @param {string} key
+ * @param {Partial<SystemPresence>} presence
+ */
+export function upsertPresence(key, presence) {
   ensureSelfPresence();
   const normalizedKey = normalizePresenceKey(key) ?? os.hostname().toLowerCase();
-  const existing = entries.get(normalizedKey) ?? ({} as SystemPresence);
+  const existing = entries.get(normalizedKey) ?? /** @type {SystemPresence} */ ({});
   const roles = mergeStringList(existing.roles, presence.roles);
   const scopes = mergeStringList(existing.scopes, presence.scopes);
-  const merged: SystemPresence = {
+  /** @type {SystemPresence} */
+  const merged = {
     ...existing,
     ...presence,
     roles,
@@ -276,14 +312,18 @@ export function upsertPresence(key: string, presence: Partial<SystemPresence>) {
     text:
       presence.text ||
       existing.text ||
-      `Node: ${presence.host ?? existing.host ?? "unknown"} · mode ${
-        presence.mode ?? existing.mode ?? "unknown"
-      }`,
+      `Node: ${presence.host ?? existing.host ?? 'unknown'} \u00B7 mode ${
+        presence.mode ?? existing.mode ?? 'unknown'
+      }`
   };
   entries.set(normalizedKey, merged);
 }
 
-export function listSystemPresence(): SystemPresence[] {
+/**
+ * Lists all active system presence entries, pruning expired ones.
+ * @returns {SystemPresence[]}
+ */
+export function listSystemPresence() {
   ensureSelfPresence();
   // prune expired
   const now = Date.now();
