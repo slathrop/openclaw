@@ -70,6 +70,10 @@ Recent decisions affecting current work:
 - 02-07: Used {[key: string]: T} instead of Object.<string, T> for ESLint jsdoc/check-types compliance
 - 02-07: Zod schema files needed only 3 TS annotation removals (already runtime JavaScript)
 - 02-07: Task 2 absorbed into wave 2 peer commit due to multi-agent interleaving
+- 02-06: esbuild transformSync used for bulk TS-to-JS (regex insufficient for complex type annotations)
+- 02-06: Unused type-only imports removed (e.g., tls module imported only for TlsOptions type)
+- 02-06: Empty catch blocks annotated with explanatory comments (no-empty compliance)
+- 02-06: SECURITY: annotations added to all 17 security-critical source files in net/tls/outbound
 
 ### Pending Todos
 
@@ -83,5 +87,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-04T23:42:00Z
-Stopped at: Completed 02-07-PLAN.md
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
