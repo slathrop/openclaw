@@ -20,7 +20,7 @@ export default defineConfig({
     hookTimeout: isWindows ? 180_000 : 120_000,
     pool: 'forks',
     maxWorkers: isCI ? ciWorkers : localWorkers,
-    include: ['src/**/*.test.ts', 'extensions/**/*.test.ts', 'test/format-error.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.js', 'extensions/**/*.test.ts', 'test/format-error.test.ts'],
     setupFiles: ['test/setup.ts'],
     exclude: [
       'dist/**',
@@ -30,7 +30,9 @@ export default defineConfig({
       '**/vendor/**',
       'dist/OpenClaw.app/**',
       '**/*.live.test.ts',
-      '**/*.e2e.test.ts'
+      '**/*.e2e.test.ts',
+      '**/*.live.test.js',
+      '**/*.e2e.test.js'
     ],
     coverage: {
       provider: 'v8',
@@ -41,9 +43,10 @@ export default defineConfig({
         branches: 55,
         statements: 70
       },
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.ts', 'src/**/*.js'],
       exclude: [
         'src/**/*.test.ts',
+        'src/**/*.test.js',
         // Entrypoints and wiring (covered by CI smoke + manual/e2e flows).
         'src/entry.ts',
         'src/index.ts',

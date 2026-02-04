@@ -1,6 +1,19 @@
-export function splitShellArgs(raw: string): string[] | null {
-  const tokens: string[] = [];
-  let buf = "";
+/**
+ * Shell argument splitting utility.
+ *
+ * Splits a raw command string into an array of arguments, respecting
+ * single and double quotes and backslash escapes. Returns null if
+ * the input has unclosed quotes or a trailing escape.
+ */
+
+/**
+ * Splits a raw shell command string into individual arguments.
+ * @param {string} raw
+ * @returns {string[] | null} Array of tokens, or null if quoting is invalid.
+ */
+export function splitShellArgs(raw) {
+  const tokens = [];
+  let buf = '';
   let inSingle = false;
   let inDouble = false;
   let escaped = false;
@@ -8,7 +21,7 @@ export function splitShellArgs(raw: string): string[] | null {
   const pushToken = () => {
     if (buf.length > 0) {
       tokens.push(buf);
-      buf = "";
+      buf = '';
     }
   };
 
@@ -19,12 +32,12 @@ export function splitShellArgs(raw: string): string[] | null {
       escaped = false;
       continue;
     }
-    if (!inSingle && !inDouble && ch === "\\") {
+    if (!inSingle && !inDouble && ch === '\\') {
       escaped = true;
       continue;
     }
     if (inSingle) {
-      if (ch === "'") {
+      if (ch === '\'') {
         inSingle = false;
       } else {
         buf += ch;
@@ -39,7 +52,7 @@ export function splitShellArgs(raw: string): string[] | null {
       }
       continue;
     }
-    if (ch === "'") {
+    if (ch === '\'') {
       inSingle = true;
       continue;
     }

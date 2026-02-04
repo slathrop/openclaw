@@ -1,22 +1,34 @@
-export type ReasoningTagMode = "strict" | "preserve";
-export type ReasoningTagTrim = "none" | "start" | "both";
+/**
+ * Reasoning tag extraction and stripping utilities.
+ *
+ * Strips <think>, <thinking>, <thought>, <antthinking>, and <final> tags
+ * from model output while preserving tags inside code blocks.
+ */
+
+/**
+ * @typedef {'strict' | 'preserve'} ReasoningTagMode
+ */
+
+/**
+ * @typedef {'none' | 'start' | 'both'} ReasoningTagTrim
+ */
 
 const QUICK_TAG_RE = /<\s*\/?\s*(?:think(?:ing)?|thought|antthinking|final)\b/i;
 const FINAL_TAG_RE = /<\s*\/?\s*final\b[^<>]*>/gi;
 const THINKING_TAG_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>/gi;
 
-interface CodeRegion {
-  start: number;
-  end: number;
-}
-
-function findCodeRegions(text: string): CodeRegion[] {
-  const regions: CodeRegion[] = [];
+/**
+ * Finds code regions (fenced and inline) in the given text.
+ * @param {string} text
+ * @returns {Array<{start: number, end: number}>}
+ */
+function findCodeRegions(text) {
+  const regions = [];
 
   const fencedRe = /(^|\n)(```|~~~)[^\n]*\n[\s\S]*?(?:\n\2(?:\n|$)|$)/g;
   for (const match of text.matchAll(fencedRe)) {
     const start = (match.index ?? 0) + match[1].length;
-    regions.push({ start, end: start + match[0].length - match[1].length });
+    regions.push({start, end: start + match[0].length - match[1].length});
   }
 
   const inlineRe = /`+[^`]+`+/g;
@@ -25,7 +37,7 @@ function findCodeRegions(text: string): CodeRegion[] {
     const end = start + match[0].length;
     const insideFenced = regions.some((r) => start >= r.start && end <= r.end);
     if (!insideFenced) {
-      regions.push({ start, end });
+      regions.push({start, end});
     }
   }
 
@@ -33,27 +45,41 @@ function findCodeRegions(text: string): CodeRegion[] {
   return regions;
 }
 
-function isInsideCode(pos: number, regions: CodeRegion[]): boolean {
+/**
+ * Returns true if the given position falls inside a code region.
+ * @param {number} pos
+ * @param {Array<{start: number, end: number}>} regions
+ * @returns {boolean}
+ */
+function isInsideCode(pos, regions) {
   return regions.some((r) => pos >= r.start && pos < r.end);
 }
 
-function applyTrim(value: string, mode: ReasoningTagTrim): string {
-  if (mode === "none") {
+/**
+ * Applies whitespace trimming based on the specified mode.
+ * @param {string} value
+ * @param {ReasoningTagTrim} mode
+ * @returns {string}
+ */
+function applyTrim(value, mode) {
+  if (mode === 'none') {
     return value;
   }
-  if (mode === "start") {
+  if (mode === 'start') {
     return value.trimStart();
   }
   return value.trim();
 }
 
-export function stripReasoningTagsFromText(
-  text: string,
-  options?: {
-    mode?: ReasoningTagMode;
-    trim?: ReasoningTagTrim;
-  },
-): string {
+/**
+ * Strips reasoning tags from text while preserving tags inside code blocks.
+ * @param {string} text
+ * @param {object} [options]
+ * @param {ReasoningTagMode} [options.mode]
+ * @param {ReasoningTagTrim} [options.trim]
+ * @returns {string}
+ */
+export function stripReasoningTagsFromText(text, options) {
   if (!text) {
     return text;
   }
@@ -61,20 +87,20 @@ export function stripReasoningTagsFromText(
     return text;
   }
 
-  const mode = options?.mode ?? "strict";
-  const trimMode = options?.trim ?? "both";
+  const mode = options?.mode ?? 'strict';
+  const trimMode = options?.trim ?? 'both';
 
   let cleaned = text;
   if (FINAL_TAG_RE.test(cleaned)) {
     FINAL_TAG_RE.lastIndex = 0;
-    const finalMatches: Array<{ start: number; length: number; inCode: boolean }> = [];
+    const finalMatches = [];
     const preCodeRegions = findCodeRegions(cleaned);
     for (const match of cleaned.matchAll(FINAL_TAG_RE)) {
       const start = match.index ?? 0;
       finalMatches.push({
         start,
         length: match[0].length,
-        inCode: isInsideCode(start, preCodeRegions),
+        inCode: isInsideCode(start, preCodeRegions)
       });
     }
 
@@ -91,13 +117,13 @@ export function stripReasoningTagsFromText(
   const codeRegions = findCodeRegions(cleaned);
 
   THINKING_TAG_RE.lastIndex = 0;
-  let result = "";
+  let result = '';
   let lastIndex = 0;
   let inThinking = false;
 
   for (const match of cleaned.matchAll(THINKING_TAG_RE)) {
     const idx = match.index ?? 0;
-    const isClose = match[1] === "/";
+    const isClose = match[1] === '/';
 
     if (isInsideCode(idx, codeRegions)) {
       continue;
@@ -115,7 +141,7 @@ export function stripReasoningTagsFromText(
     lastIndex = idx + match[0].length;
   }
 
-  if (!inThinking || mode === "preserve") {
+  if (!inThinking || mode === 'preserve') {
     result += cleaned.slice(lastIndex);
   }
 
