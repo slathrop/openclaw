@@ -1,10 +1,12 @@
-import type {
-  ProviderUsageSnapshot,
-  UsageProviderId,
-  UsageSummary,
-} from "./provider-usage.types.js";
-import { resolveFetch } from "./fetch.js";
-import { type ProviderAuth, resolveProviderAuths } from "./provider-usage.auth.js";
+/**
+ * Provider usage summary loader.
+ *
+ * Orchestrates fetching usage data from all configured providers
+ * concurrently with timeout protection.
+ */
+
+import {resolveFetch} from './fetch.js';
+import {resolveProviderAuths} from './provider-usage.auth.js';
 import {
   fetchAntigravityUsage,
   fetchClaudeUsage,
@@ -12,74 +14,68 @@ import {
   fetchCopilotUsage,
   fetchGeminiUsage,
   fetchMinimaxUsage,
-  fetchZaiUsage,
-} from "./provider-usage.fetch.js";
+  fetchZaiUsage
+} from './provider-usage.fetch.js';
 import {
   DEFAULT_TIMEOUT_MS,
   ignoredErrors,
   PROVIDER_LABELS,
   usageProviders,
-  withTimeout,
-} from "./provider-usage.shared.js";
+  withTimeout
+} from './provider-usage.shared.js';
 
-type UsageSummaryOptions = {
-  now?: number;
-  timeoutMs?: number;
-  providers?: UsageProviderId[];
-  auth?: ProviderAuth[];
-  agentDir?: string;
-  fetch?: typeof fetch;
-};
-
-export async function loadProviderUsageSummary(
-  opts: UsageSummaryOptions = {},
-): Promise<UsageSummary> {
+/**
+ * Loads a usage summary for all configured providers.
+ * @param {{ now?: number, timeoutMs?: number, providers?: import('./provider-usage.types.js').UsageProviderId[], auth?: import('./provider-usage.auth.js').ProviderAuth[], agentDir?: string, fetch?: typeof fetch }} [opts]
+ * @returns {Promise<import('./provider-usage.types.js').UsageSummary>}
+ */
+export async function loadProviderUsageSummary(opts = {}) {
   const now = opts.now ?? Date.now();
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const fetchFn = resolveFetch(opts.fetch);
   if (!fetchFn) {
-    throw new Error("fetch is not available");
+    throw new Error('fetch is not available');
   }
 
   const auths = await resolveProviderAuths({
     providers: opts.providers ?? usageProviders,
     auth: opts.auth,
-    agentDir: opts.agentDir,
+    agentDir: opts.agentDir
   });
   if (auths.length === 0) {
-    return { updatedAt: now, providers: [] };
+    return {updatedAt: now, providers: []};
   }
 
   const tasks = auths.map((auth) =>
     withTimeout(
-      (async (): Promise<ProviderUsageSnapshot> => {
+      (async () => {
         switch (auth.provider) {
-          case "anthropic":
+          case 'anthropic':
             return await fetchClaudeUsage(auth.token, timeoutMs, fetchFn);
-          case "github-copilot":
+          case 'github-copilot':
             return await fetchCopilotUsage(auth.token, timeoutMs, fetchFn);
-          case "google-antigravity":
+          case 'google-antigravity':
             return await fetchAntigravityUsage(auth.token, timeoutMs, fetchFn);
-          case "google-gemini-cli":
+          case 'google-gemini-cli':
             return await fetchGeminiUsage(auth.token, timeoutMs, fetchFn, auth.provider);
-          case "openai-codex":
+          case 'openai-codex':
             return await fetchCodexUsage(auth.token, auth.accountId, timeoutMs, fetchFn);
-          case "minimax":
+          case 'minimax':
             return await fetchMinimaxUsage(auth.token, timeoutMs, fetchFn);
-          case "xiaomi":
+          case 'xiaomi':
             return {
-              provider: "xiaomi",
+              provider: 'xiaomi',
               displayName: PROVIDER_LABELS.xiaomi,
-              windows: [],
+              windows: []
             };
-          case "zai":
+          case 'zai':
             return await fetchZaiUsage(auth.token, timeoutMs, fetchFn);
           default:
             return {
               provider: auth.provider,
               displayName: PROVIDER_LABELS[auth.provider],
               windows: [],
-              error: "Unsupported provider",
+              error: 'Unsupported provider'
             };
         }
       })(),
@@ -88,9 +84,9 @@ export async function loadProviderUsageSummary(
         provider: auth.provider,
         displayName: PROVIDER_LABELS[auth.provider],
         windows: [],
-        error: "Timeout",
-      },
-    ),
+        error: 'Timeout'
+      }
+    )
   );
 
   const snapshots = await Promise.all(tasks);
@@ -104,5 +100,5 @@ export async function loadProviderUsageSummary(
     return !ignoredErrors.has(entry.error);
   });
 
-  return { updatedAt: now, providers };
+  return {updatedAt: now, providers};
 }
