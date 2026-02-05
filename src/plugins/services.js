@@ -1,0 +1,56 @@
+/** @module plugins/services - Plugin service lifecycle management. */
+import { STATE_DIR } from '../config/paths.js';
+import { createSubsystemLogger } from '../logging/subsystem.js';
+const log = createSubsystemLogger('plugins');
+async function startPluginServices(params) {
+  const running = [];
+  for (const entry of params.registry.services) {
+    const service = entry.service;
+    try {
+      await service.start({
+        config: params.config,
+        workspaceDir: params.workspaceDir,
+        stateDir: STATE_DIR,
+        logger: {
+          info: (msg) => log.info(msg),
+          warn: (msg) => log.warn(msg),
+          error: (msg) => log.error(msg),
+          debug: (msg) => log.debug(msg)
+        }
+      });
+      running.push({
+        id: service.id,
+        stop: service.stop ? () => service.stop?.({
+          config: params.config,
+          workspaceDir: params.workspaceDir,
+          stateDir: STATE_DIR,
+          logger: {
+            info: (msg) => log.info(msg),
+            warn: (msg) => log.warn(msg),
+            error: (msg) => log.error(msg),
+            debug: (msg) => log.debug(msg)
+          }
+        }) : void 0
+      });
+    } catch (err) {
+      log.error(`plugin service failed (${service.id}): ${String(err)}`);
+    }
+  }
+  return {
+    stop: async () => {
+      for (const entry of running.toReversed()) {
+        if (!entry.stop) {
+          continue;
+        }
+        try {
+          await entry.stop();
+        } catch (err) {
+          log.warn(`plugin service stop failed (${entry.id}): ${String(err)}`);
+        }
+      }
+    }
+  };
+}
+export {
+  startPluginServices
+};
