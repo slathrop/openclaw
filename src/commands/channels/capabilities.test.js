@@ -1,0 +1,114 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+process.env.NO_COLOR = '1';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getChannelPlugin, listChannelPlugins } from '../../channels/plugins/index.js';
+import { fetchSlackScopes } from '../../slack/scopes.js';
+import { channelsCapabilitiesCommand } from './capabilities.js';
+const logs = [];
+const errors = [];
+vi.mock('./shared.js', () => ({
+  requireValidConfig: vi.fn(async () => ({ channels: {} })),
+  formatChannelAccountLabel: vi.fn(
+    ({ channel, accountId }) => `${channel}:${accountId}`
+  )
+}));
+vi.mock('../../channels/plugins/index.js', () => ({
+  listChannelPlugins: vi.fn(),
+  getChannelPlugin: vi.fn()
+}));
+vi.mock('../../slack/scopes.js', () => ({
+  fetchSlackScopes: vi.fn()
+}));
+const runtime = {
+  log: /* @__PURE__ */ __name((value) => logs.push(value), 'log'),
+  error: /* @__PURE__ */ __name((value) => errors.push(value), 'error'),
+  exit: /* @__PURE__ */ __name((code) => {
+    throw new Error(`exit:${code}`);
+  }, 'exit')
+};
+function resetOutput() {
+  logs.length = 0;
+  errors.length = 0;
+}
+__name(resetOutput, 'resetOutput');
+function buildPlugin(params) {
+  const capabilities = params.capabilities ?? { chatTypes: ['direct'] };
+  return {
+    id: params.id,
+    meta: {
+      id: params.id,
+      label: params.id,
+      selectionLabel: params.id,
+      docsPath: '/channels/test',
+      blurb: 'test'
+    },
+    capabilities,
+    config: {
+      listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
+      resolveAccount: /* @__PURE__ */ __name(() => params.account ?? { accountId: 'default' }, 'resolveAccount'),
+      defaultAccountId: /* @__PURE__ */ __name(() => 'default', 'defaultAccountId'),
+      isConfigured: /* @__PURE__ */ __name(() => true, 'isConfigured'),
+      isEnabled: /* @__PURE__ */ __name(() => true, 'isEnabled')
+    },
+    status: params.probe ? {
+      probeAccount: /* @__PURE__ */ __name(async () => params.probe, 'probeAccount')
+    } : void 0,
+    actions: {
+      listActions: /* @__PURE__ */ __name(() => ['poll'], 'listActions')
+    }
+  };
+}
+__name(buildPlugin, 'buildPlugin');
+describe('channelsCapabilitiesCommand', () => {
+  beforeEach(() => {
+    resetOutput();
+    vi.clearAllMocks();
+  });
+  it('prints Slack bot + user scopes when user token is configured', async () => {
+    const plugin = buildPlugin({
+      id: 'slack',
+      account: {
+        accountId: 'default',
+        botToken: 'xoxb-bot',
+        config: { userToken: 'xoxp-user' }
+      },
+      probe: { ok: true, bot: { name: 'openclaw' }, team: { name: 'team' } }
+    });
+    vi.mocked(listChannelPlugins).mockReturnValue([plugin]);
+    vi.mocked(getChannelPlugin).mockReturnValue(plugin);
+    vi.mocked(fetchSlackScopes).mockImplementation(async (token) => {
+      if (token === 'xoxp-user') {
+        return { ok: true, scopes: ['users:read'], source: 'auth.scopes' };
+      }
+      return { ok: true, scopes: ['chat:write'], source: 'auth.scopes' };
+    });
+    await channelsCapabilitiesCommand({ channel: 'slack' }, runtime);
+    const output = logs.join('\n');
+    expect(output).toContain('Bot scopes');
+    expect(output).toContain('User scopes');
+    expect(output).toContain('chat:write');
+    expect(output).toContain('users:read');
+    expect(fetchSlackScopes).toHaveBeenCalledWith('xoxb-bot', expect.any(Number));
+    expect(fetchSlackScopes).toHaveBeenCalledWith('xoxp-user', expect.any(Number));
+  });
+  it('prints Teams Graph permission hints when present', async () => {
+    const plugin = buildPlugin({
+      id: 'msteams',
+      probe: {
+        ok: true,
+        appId: 'app-id',
+        graph: {
+          ok: true,
+          roles: ['ChannelMessage.Read.All', 'Files.Read.All']
+        }
+      }
+    });
+    vi.mocked(listChannelPlugins).mockReturnValue([plugin]);
+    vi.mocked(getChannelPlugin).mockReturnValue(plugin);
+    await channelsCapabilitiesCommand({ channel: 'msteams' }, runtime);
+    const output = logs.join('\n');
+    expect(output).toContain('ChannelMessage.Read.All (channel history)');
+    expect(output).toContain('Files.Read.All (files (OneDrive))');
+  });
+});

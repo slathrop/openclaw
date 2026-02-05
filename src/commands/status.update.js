@@ -1,0 +1,126 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { formatCliCommand } from '../cli/command-format.js';
+import { resolveOpenClawPackageRoot } from '../infra/openclaw-root.js';
+import {
+  checkUpdateStatus,
+  compareSemverStrings
+} from '../infra/update-check.js';
+import { VERSION } from '../version.js';
+async function getUpdateCheckResult(params) {
+  const root = await resolveOpenClawPackageRoot({
+    moduleUrl: import.meta.url,
+    argv1: process.argv[1],
+    cwd: process.cwd()
+  });
+  return await checkUpdateStatus({
+    root,
+    timeoutMs: params.timeoutMs,
+    fetchGit: params.fetchGit,
+    includeRegistry: params.includeRegistry
+  });
+}
+__name(getUpdateCheckResult, 'getUpdateCheckResult');
+function resolveUpdateAvailability(update) {
+  const latestVersion = update.registry?.latestVersion ?? null;
+  const registryCmp = latestVersion ? compareSemverStrings(VERSION, latestVersion) : null;
+  const hasRegistryUpdate = registryCmp !== null && registryCmp !== undefined && registryCmp < 0;
+  const gitBehind = update.installKind === 'git' && typeof update.git?.behind === 'number' ? update.git.behind : null;
+  const hasGitUpdate = gitBehind !== null && gitBehind !== undefined && gitBehind > 0;
+  return {
+    available: hasGitUpdate || hasRegistryUpdate,
+    hasGitUpdate,
+    hasRegistryUpdate,
+    latestVersion: hasRegistryUpdate ? latestVersion : null,
+    gitBehind
+  };
+}
+__name(resolveUpdateAvailability, 'resolveUpdateAvailability');
+function formatUpdateAvailableHint(update) {
+  const availability = resolveUpdateAvailability(update);
+  if (!availability.available) {
+    return null;
+  }
+  const details = [];
+  if (availability.hasGitUpdate && availability.gitBehind !== null && availability.gitBehind !== undefined) {
+    details.push(`git behind ${availability.gitBehind}`);
+  }
+  if (availability.hasRegistryUpdate && availability.latestVersion) {
+    details.push(`npm ${availability.latestVersion}`);
+  }
+  const suffix = details.length > 0 ? ` (${details.join(' \xB7 ')})` : '';
+  return `Update available${suffix}. Run: ${formatCliCommand('openclaw update')}`;
+}
+__name(formatUpdateAvailableHint, 'formatUpdateAvailableHint');
+function formatUpdateOneLiner(update) {
+  const parts = [];
+  if (update.installKind === 'git' && update.git) {
+    const branch = update.git.branch ? `git ${update.git.branch}` : 'git';
+    parts.push(branch);
+    if (update.git.upstream) {
+      parts.push(`\u2194 ${update.git.upstream}`);
+    }
+    if (update.git.dirty === true) {
+      parts.push('dirty');
+    }
+    if (update.git.behind !== null && update.git.behind !== undefined && update.git.ahead !== null && update.git.ahead !== undefined) {
+      if (update.git.behind === 0 && update.git.ahead === 0) {
+        parts.push('up to date');
+      } else if (update.git.behind > 0 && update.git.ahead === 0) {
+        parts.push(`behind ${update.git.behind}`);
+      } else if (update.git.behind === 0 && update.git.ahead > 0) {
+        parts.push(`ahead ${update.git.ahead}`);
+      } else if (update.git.behind > 0 && update.git.ahead > 0) {
+        parts.push(`diverged (ahead ${update.git.ahead}, behind ${update.git.behind})`);
+      }
+    }
+    if (update.git.fetchOk === false) {
+      parts.push('fetch failed');
+    }
+    if (update.registry?.latestVersion) {
+      const cmp = compareSemverStrings(VERSION, update.registry.latestVersion);
+      if (cmp === 0) {
+        parts.push(`npm latest ${update.registry.latestVersion}`);
+      } else if (cmp !== null && cmp !== undefined && cmp < 0) {
+        parts.push(`npm update ${update.registry.latestVersion}`);
+      } else {
+        parts.push(`npm latest ${update.registry.latestVersion} (local newer)`);
+      }
+    } else if (update.registry?.error) {
+      parts.push('npm latest unknown');
+    }
+  } else {
+    parts.push(update.packageManager !== 'unknown' ? update.packageManager : 'pkg');
+    if (update.registry?.latestVersion) {
+      const cmp = compareSemverStrings(VERSION, update.registry.latestVersion);
+      if (cmp === 0) {
+        parts.push(`npm latest ${update.registry.latestVersion}`);
+      } else if (cmp !== null && cmp !== undefined && cmp < 0) {
+        parts.push(`npm update ${update.registry.latestVersion}`);
+      } else {
+        parts.push(`npm latest ${update.registry.latestVersion} (local newer)`);
+      }
+    } else if (update.registry?.error) {
+      parts.push('npm latest unknown');
+    }
+  }
+  if (update.deps) {
+    if (update.deps.status === 'ok') {
+      parts.push('deps ok');
+    }
+    if (update.deps.status === 'missing') {
+      parts.push('deps missing');
+    }
+    if (update.deps.status === 'stale') {
+      parts.push('deps stale');
+    }
+  }
+  return `Update: ${parts.join(' \xB7 ')}`;
+}
+__name(formatUpdateOneLiner, 'formatUpdateOneLiner');
+export {
+  formatUpdateAvailableHint,
+  formatUpdateOneLiner,
+  getUpdateCheckResult,
+  resolveUpdateAvailability
+};

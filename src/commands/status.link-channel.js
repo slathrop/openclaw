@@ -1,0 +1,40 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { resolveChannelDefaultAccountId } from '../channels/plugins/helpers.js';
+import { listChannelPlugins } from '../channels/plugins/index.js';
+async function resolveLinkChannelContext(cfg) {
+  for (const plugin of listChannelPlugins()) {
+    const accountIds = plugin.config.listAccountIds(cfg);
+    const defaultAccountId = resolveChannelDefaultAccountId({
+      plugin,
+      cfg,
+      accountIds
+    });
+    const account = plugin.config.resolveAccount(cfg, defaultAccountId);
+    const enabled = plugin.config.isEnabled ? plugin.config.isEnabled(account, cfg) : true;
+    const configured = plugin.config.isConfigured ? await plugin.config.isConfigured(account, cfg) : true;
+    const snapshot = plugin.config.describeAccount ? plugin.config.describeAccount(account, cfg) : {
+      accountId: defaultAccountId,
+      enabled,
+      configured
+    };
+    const summary = plugin.status?.buildChannelSummary ? await plugin.status.buildChannelSummary({
+      account,
+      cfg,
+      defaultAccountId,
+      snapshot
+    }) : void 0;
+    const summaryRecord = summary;
+    const linked = summaryRecord && typeof summaryRecord.linked === 'boolean' ? summaryRecord.linked : null;
+    if (linked === null) {
+      continue;
+    }
+    const authAgeMs = summaryRecord && typeof summaryRecord.authAgeMs === 'number' ? summaryRecord.authAgeMs : null;
+    return { linked, authAgeMs, account, accountId: defaultAccountId, plugin };
+  }
+  return null;
+}
+__name(resolveLinkChannelContext, 'resolveLinkChannelContext');
+export {
+  resolveLinkChannelContext
+};

@@ -1,0 +1,389 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+let originalIsTTY;
+let originalStateDir;
+let originalUpdateInProgress;
+let tempStateDir;
+function setStdinTty(value) {
+  try {
+    Object.defineProperty(process.stdin, 'isTTY', {
+      value,
+      configurable: true
+    });
+  } catch {
+    // Intentionally ignored
+  }
+}
+__name(setStdinTty, 'setStdinTty');
+beforeEach(() => {
+  confirm.mockReset().mockResolvedValue(true);
+  select.mockReset().mockResolvedValue('node');
+  note.mockClear();
+  readConfigFileSnapshot.mockReset();
+  writeConfigFile.mockReset().mockResolvedValue(void 0);
+  resolveOpenClawPackageRoot.mockReset().mockResolvedValue(null);
+  runGatewayUpdate.mockReset().mockResolvedValue({
+    status: 'skipped',
+    mode: 'unknown',
+    steps: [],
+    durationMs: 0
+  });
+  legacyReadConfigFileSnapshot.mockReset().mockResolvedValue({
+    path: '/tmp/openclaw.json',
+    exists: false,
+    raw: null,
+    parsed: {},
+    valid: true,
+    config: {},
+    issues: [],
+    legacyIssues: []
+  });
+  createConfigIO.mockReset().mockImplementation(() => ({
+    readConfigFileSnapshot: legacyReadConfigFileSnapshot
+  }));
+  runExec.mockReset().mockResolvedValue({ stdout: '', stderr: '' });
+  runCommandWithTimeout.mockReset().mockResolvedValue({
+    stdout: '',
+    stderr: '',
+    code: 0,
+    signal: null,
+    killed: false
+  });
+  ensureAuthProfileStore.mockReset().mockReturnValue({ version: 1, profiles: {} });
+  migrateLegacyConfig.mockReset().mockImplementation((raw) => ({
+    config: raw,
+    changes: ['Moved routing.allowFrom \u2192 channels.whatsapp.allowFrom.']
+  }));
+  findLegacyGatewayServices.mockReset().mockResolvedValue([]);
+  uninstallLegacyGatewayServices.mockReset().mockResolvedValue([]);
+  findExtraGatewayServices.mockReset().mockResolvedValue([]);
+  renderGatewayServiceCleanupHints.mockReset().mockReturnValue(['cleanup']);
+  resolveGatewayProgramArguments.mockReset().mockResolvedValue({
+    programArguments: ['node', 'cli', 'gateway', '--port', '18789']
+  });
+  serviceInstall.mockReset().mockResolvedValue(void 0);
+  serviceIsLoaded.mockReset().mockResolvedValue(false);
+  serviceStop.mockReset().mockResolvedValue(void 0);
+  serviceRestart.mockReset().mockResolvedValue(void 0);
+  serviceUninstall.mockReset().mockResolvedValue(void 0);
+  callGateway.mockReset().mockRejectedValue(new Error('gateway closed'));
+  originalIsTTY = process.stdin.isTTY;
+  setStdinTty(true);
+  originalStateDir = process.env.OPENCLAW_STATE_DIR;
+  originalUpdateInProgress = process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+  process.env.OPENCLAW_UPDATE_IN_PROGRESS = '1';
+  tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openclaw-doctor-state-'));
+  process.env.OPENCLAW_STATE_DIR = tempStateDir;
+  fs.mkdirSync(path.join(tempStateDir, 'agents', 'main', 'sessions'), {
+    recursive: true
+  });
+  fs.mkdirSync(path.join(tempStateDir, 'credentials'), { recursive: true });
+});
+afterEach(() => {
+  setStdinTty(originalIsTTY);
+  if (originalStateDir === void 0) {
+    delete process.env.OPENCLAW_STATE_DIR;
+  } else {
+    process.env.OPENCLAW_STATE_DIR = originalStateDir;
+  }
+  if (originalUpdateInProgress === void 0) {
+    delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+  } else {
+    process.env.OPENCLAW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
+  }
+  if (tempStateDir) {
+    fs.rmSync(tempStateDir, { recursive: true, force: true });
+    tempStateDir = void 0;
+  }
+});
+const readConfigFileSnapshot = vi.fn();
+const confirm = vi.fn().mockResolvedValue(true);
+const select = vi.fn().mockResolvedValue('node');
+const note = vi.fn();
+const writeConfigFile = vi.fn().mockResolvedValue(void 0);
+const resolveOpenClawPackageRoot = vi.fn().mockResolvedValue(null);
+const runGatewayUpdate = vi.fn().mockResolvedValue({
+  status: 'skipped',
+  mode: 'unknown',
+  steps: [],
+  durationMs: 0
+});
+const migrateLegacyConfig = vi.fn((raw) => ({
+  config: raw,
+  changes: ['Moved routing.allowFrom \u2192 channels.whatsapp.allowFrom.']
+}));
+const runExec = vi.fn().mockResolvedValue({ stdout: '', stderr: '' });
+const runCommandWithTimeout = vi.fn().mockResolvedValue({
+  stdout: '',
+  stderr: '',
+  code: 0,
+  signal: null,
+  killed: false
+});
+const ensureAuthProfileStore = vi.fn().mockReturnValue({ version: 1, profiles: {} });
+const legacyReadConfigFileSnapshot = vi.fn().mockResolvedValue({
+  path: '/tmp/openclaw.json',
+  exists: false,
+  raw: null,
+  parsed: {},
+  valid: true,
+  config: {},
+  issues: [],
+  legacyIssues: []
+});
+const createConfigIO = vi.fn(() => ({
+  readConfigFileSnapshot: legacyReadConfigFileSnapshot
+}));
+const findLegacyGatewayServices = vi.fn().mockResolvedValue([]);
+const uninstallLegacyGatewayServices = vi.fn().mockResolvedValue([]);
+const findExtraGatewayServices = vi.fn().mockResolvedValue([]);
+const renderGatewayServiceCleanupHints = vi.fn().mockReturnValue(['cleanup']);
+const resolveGatewayProgramArguments = vi.fn().mockResolvedValue({
+  programArguments: ['node', 'cli', 'gateway', '--port', '18789']
+});
+const serviceInstall = vi.fn().mockResolvedValue(void 0);
+const serviceIsLoaded = vi.fn().mockResolvedValue(false);
+const serviceStop = vi.fn().mockResolvedValue(void 0);
+const serviceRestart = vi.fn().mockResolvedValue(void 0);
+const serviceUninstall = vi.fn().mockResolvedValue(void 0);
+const callGateway = vi.fn().mockRejectedValue(new Error('gateway closed'));
+vi.mock('@clack/prompts', () => ({
+  confirm,
+  intro: vi.fn(),
+  note,
+  outro: vi.fn(),
+  select
+}));
+vi.mock('../agents/skills-status.js', () => ({
+  buildWorkspaceSkillStatus: /* @__PURE__ */ __name(() => ({ skills: [] }), 'buildWorkspaceSkillStatus')
+}));
+vi.mock('../plugins/loader.js', () => ({
+  loadOpenClawPlugins: /* @__PURE__ */ __name(() => ({ plugins: [], diagnostics: [] }), 'loadOpenClawPlugins')
+}));
+vi.mock('../config/config.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    CONFIG_PATH: '/tmp/openclaw.json',
+    createConfigIO,
+    readConfigFileSnapshot,
+    writeConfigFile,
+    migrateLegacyConfig
+  };
+});
+vi.mock('../daemon/legacy.js', () => ({
+  findLegacyGatewayServices,
+  uninstallLegacyGatewayServices
+}));
+vi.mock('../daemon/inspect.js', () => ({
+  findExtraGatewayServices,
+  renderGatewayServiceCleanupHints
+}));
+vi.mock('../daemon/program-args.js', () => ({
+  resolveGatewayProgramArguments
+}));
+vi.mock('../gateway/call.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    callGateway
+  };
+});
+vi.mock('../process/exec.js', () => ({
+  runExec,
+  runCommandWithTimeout
+}));
+vi.mock('../infra/openclaw-root.js', () => ({
+  resolveOpenClawPackageRoot
+}));
+vi.mock('../infra/update-runner.js', () => ({
+  runGatewayUpdate
+}));
+vi.mock('../agents/auth-profiles.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    ensureAuthProfileStore
+  };
+});
+vi.mock('../daemon/service.js', () => ({
+  resolveGatewayService: /* @__PURE__ */ __name(() => ({
+    label: 'LaunchAgent',
+    loadedText: 'loaded',
+    notLoadedText: 'not loaded',
+    install: serviceInstall,
+    uninstall: serviceUninstall,
+    stop: serviceStop,
+    restart: serviceRestart,
+    isLoaded: serviceIsLoaded,
+    readCommand: vi.fn(),
+    readRuntime: vi.fn().mockResolvedValue({ status: 'running' })
+  }), 'resolveGatewayService')
+}));
+vi.mock('../pairing/pairing-store.js', () => ({
+  readChannelAllowFromStore: vi.fn().mockResolvedValue([]),
+  upsertChannelPairingRequest: vi.fn().mockResolvedValue({ code: '000000', created: false })
+}));
+vi.mock('../telegram/token.js', () => ({
+  resolveTelegramToken: vi.fn(() => ({ token: '', source: 'none' }))
+}));
+vi.mock('../runtime.js', () => ({
+  defaultRuntime: {
+    log: /* @__PURE__ */ __name(() => {
+    }, 'log'),
+    error: /* @__PURE__ */ __name(() => {
+    }, 'error'),
+    exit: /* @__PURE__ */ __name(() => {
+      throw new Error('exit');
+    }, 'exit')
+  }
+}));
+vi.mock('../utils.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    resolveUserPath: /* @__PURE__ */ __name((value) => value, 'resolveUserPath'),
+    sleep: vi.fn()
+  };
+});
+vi.mock('./health.js', () => ({
+  healthCommand: vi.fn().mockResolvedValue(void 0)
+}));
+vi.mock('./onboard-helpers.js', () => ({
+  applyWizardMetadata: /* @__PURE__ */ __name((cfg) => cfg, 'applyWizardMetadata'),
+  DEFAULT_WORKSPACE: '/tmp',
+  guardCancel: /* @__PURE__ */ __name((value) => value, 'guardCancel'),
+  printWizardHeader: vi.fn(),
+  randomToken: vi.fn(() => 'test-gateway-token')
+}));
+vi.mock('./doctor-state-migrations.js', () => ({
+  autoMigrateLegacyStateDir: vi.fn().mockResolvedValue({
+    migrated: false,
+    skipped: false,
+    changes: [],
+    warnings: []
+  }),
+  detectLegacyStateMigrations: vi.fn().mockResolvedValue({
+    targetAgentId: 'main',
+    targetMainKey: 'main',
+    targetScope: void 0,
+    stateDir: '/tmp/state',
+    oauthDir: '/tmp/oauth',
+    sessions: {
+      legacyDir: '/tmp/state/sessions',
+      legacyStorePath: '/tmp/state/sessions/sessions.json',
+      targetDir: '/tmp/state/agents/main/sessions',
+      targetStorePath: '/tmp/state/agents/main/sessions/sessions.json',
+      hasLegacy: false,
+      legacyKeys: []
+    },
+    agentDir: {
+      legacyDir: '/tmp/state/agent',
+      targetDir: '/tmp/state/agents/main/agent',
+      hasLegacy: false
+    },
+    whatsappAuth: {
+      legacyDir: '/tmp/oauth',
+      targetDir: '/tmp/oauth/whatsapp/default',
+      hasLegacy: false
+    },
+    preview: []
+  }),
+  runLegacyStateMigrations: vi.fn().mockResolvedValue({
+    changes: [],
+    warnings: []
+  })
+}));
+describe('doctor command', () => {
+  it('warns when per-agent sandbox docker/browser/prune overrides are ignored under shared scope', async () => {
+    readConfigFileSnapshot.mockResolvedValue({
+      path: '/tmp/openclaw.json',
+      exists: true,
+      raw: '{}',
+      parsed: {},
+      valid: true,
+      config: {
+        agents: {
+          defaults: {
+            sandbox: {
+              mode: 'all',
+              scope: 'shared'
+            }
+          },
+          list: [
+            {
+              id: 'work',
+              workspace: '~/openclaw-work',
+              sandbox: {
+                mode: 'all',
+                scope: 'shared',
+                docker: {
+                  setupCommand: 'echo work'
+                }
+              }
+            }
+          ]
+        }
+      },
+      issues: [],
+      legacyIssues: []
+    });
+    note.mockClear();
+    const { doctorCommand } = await import('./doctor.js');
+    const runtime = {
+      log: vi.fn(),
+      error: vi.fn(),
+      exit: vi.fn()
+    };
+    await doctorCommand(runtime, { nonInteractive: true });
+    expect(
+      note.mock.calls.some(([message, title]) => {
+        if (title !== 'Sandbox' || typeof message !== 'string') {
+          return false;
+        }
+        const normalized = message.replace(/\s+/g, ' ').trim();
+        return normalized.includes('agents.list (id "work") sandbox docker') && normalized.includes('scope resolves to "shared"');
+      })
+    ).toBe(true);
+  }, 3e4);
+  it('does not warn when only the active workspace is present', async () => {
+    readConfigFileSnapshot.mockResolvedValue({
+      path: '/tmp/openclaw.json',
+      exists: true,
+      raw: '{}',
+      parsed: {},
+      valid: true,
+      config: {
+        agents: { defaults: { workspace: '/Users/steipete/openclaw' } }
+      },
+      issues: [],
+      legacyIssues: []
+    });
+    note.mockClear();
+    const homedirSpy = vi.spyOn(os, 'homedir').mockReturnValue('/Users/steipete');
+    const realExists = fs.existsSync;
+    const legacyPath = path.join('/Users/steipete', 'openclaw');
+    const legacyAgentsPath = path.join(legacyPath, 'AGENTS.md');
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockImplementation((value) => {
+      if (value === '/Users/steipete/openclaw' || value === legacyPath || value === legacyAgentsPath) {
+        return true;
+      }
+      return realExists(value);
+    });
+    const { doctorCommand } = await import('./doctor.js');
+    const runtime = {
+      log: vi.fn(),
+      error: vi.fn(),
+      exit: vi.fn()
+    };
+    await doctorCommand(runtime, { nonInteractive: true });
+    // eslint-disable-next-line no-unused-vars
+    expect(note.mock.calls.some(([_, title]) => title === 'Extra workspace')).toBe(false);
+    homedirSpy.mockRestore();
+    existsSpy.mockRestore();
+  });
+});
