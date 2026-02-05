@@ -1,0 +1,20 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { Command } from 'commander';
+import { registerProgramCommands } from './command-registry.js';
+import { createProgramContext } from './context.js';
+import { configureProgramHelp } from './help.js';
+import { registerPreActionHooks } from './preaction.js';
+function buildProgram() {
+  const program = new Command();
+  const ctx = createProgramContext();
+  const argv = process.argv;
+  configureProgramHelp(program, ctx);
+  registerPreActionHooks(program, ctx.programVersion);
+  registerProgramCommands(program, ctx, argv);
+  return program;
+}
+__name(buildProgram, 'buildProgram');
+export {
+  buildProgram
+};

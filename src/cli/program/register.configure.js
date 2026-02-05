@@ -1,0 +1,45 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import {
+  CONFIGURE_WIZARD_SECTIONS,
+  configureCommand,
+  configureCommandWithSections
+} from '../../commands/configure.js';
+import { defaultRuntime } from '../../runtime.js';
+import { formatDocsLink } from '../../terminal/links.js';
+import { theme } from '../../terminal/theme.js';
+import { runCommandWithRuntime } from '../cli-utils.js';
+function registerConfigureCommand(program) {
+  program.command('configure').description('Interactive prompt to set up credentials, devices, and agent defaults').addHelpText(
+    'after',
+    () => `
+${theme.muted('Docs:')} ${formatDocsLink('/cli/configure', 'docs.openclaw.ai/cli/configure')}
+`
+  ).option(
+    '--section <section>',
+    `Configuration sections (repeatable). Options: ${CONFIGURE_WIZARD_SECTIONS.join(', ')}`,
+    (value, previous) => [...previous, value],
+    []
+  ).action(async (opts) => {
+    await runCommandWithRuntime(defaultRuntime, async () => {
+      const sections = Array.isArray(opts.section) ? opts.section.map((value) => typeof value === 'string' ? value.trim() : '').filter(Boolean) : [];
+      if (sections.length === 0) {
+        await configureCommand(defaultRuntime);
+        return;
+      }
+      const invalid = sections.filter((s) => !CONFIGURE_WIZARD_SECTIONS.includes(s));
+      if (invalid.length > 0) {
+        defaultRuntime.error(
+          `Invalid --section: ${invalid.join(', ')}. Expected one of: ${CONFIGURE_WIZARD_SECTIONS.join(', ')}.`
+        );
+        defaultRuntime.exit(1);
+        return;
+      }
+      await configureCommandWithSections(sections, defaultRuntime);
+    });
+  });
+}
+__name(registerConfigureCommand, 'registerConfigureCommand');
+export {
+  registerConfigureCommand
+};
