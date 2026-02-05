@@ -12,7 +12,7 @@ const ciWorkers = isWindows ? 2 : 3;
 export default defineConfig({
   resolve: {
     alias: {
-      'openclaw/plugin-sdk': path.join(repoRoot, 'src', 'plugin-sdk', 'index.ts')
+      'openclaw/plugin-sdk': path.join(repoRoot, 'src', 'plugin-sdk', 'index.js')
     }
   },
   test: {
@@ -20,8 +20,8 @@ export default defineConfig({
     hookTimeout: isWindows ? 180_000 : 120_000,
     pool: 'forks',
     maxWorkers: isCI ? ciWorkers : localWorkers,
-    include: ['src/**/*.test.ts', 'src/**/*.test.js', 'extensions/**/*.test.ts', 'test/format-error.test.ts'],
-    setupFiles: ['test/setup.ts'],
+    include: ['src/**/*.test.js', 'extensions/**/*.test.js'],
+    setupFiles: ['test/setup.js'],
     exclude: [
       'dist/**',
       'apps/macos/**',
@@ -29,8 +29,6 @@ export default defineConfig({
       '**/node_modules/**',
       '**/vendor/**',
       'dist/OpenClaw.app/**',
-      '**/*.live.test.ts',
-      '**/*.e2e.test.ts',
       '**/*.live.test.js',
       '**/*.e2e.test.js'
     ],
@@ -43,14 +41,13 @@ export default defineConfig({
         branches: 55,
         statements: 70
       },
-      include: ['src/**/*.ts', 'src/**/*.js'],
+      include: ['src/**/*.js'],
       exclude: [
-        'src/**/*.test.ts',
         'src/**/*.test.js',
         // Entrypoints and wiring (covered by CI smoke + manual/e2e flows).
-        'src/entry.{ts,js}',
-        'src/index.{ts,js}',
-        'src/runtime.{ts,js}',
+        'src/entry.js',
+        'src/index.js',
+        'src/runtime.js',
         'src/cli/**',
         'src/commands/**',
         'src/daemon/**',
@@ -58,30 +55,30 @@ export default defineConfig({
         'src/macos/**',
 
         // Some agent integrations are intentionally validated via manual/e2e runs.
-        'src/agents/model-scan.ts',
-        'src/agents/pi-embedded-runner.ts',
-        'src/agents/sandbox-paths.ts',
-        'src/agents/sandbox.ts',
-        'src/agents/skills-install.ts',
-        'src/agents/pi-tool-definition-adapter.ts',
-        'src/agents/tools/discord-actions*.ts',
-        'src/agents/tools/slack-actions.ts',
+        'src/agents/model-scan.js',
+        'src/agents/pi-embedded-runner.js',
+        'src/agents/sandbox-paths.js',
+        'src/agents/sandbox.js',
+        'src/agents/skills-install.js',
+        'src/agents/pi-tool-definition-adapter.js',
+        'src/agents/tools/discord-actions*.js',
+        'src/agents/tools/slack-actions.js',
 
         // Gateway server integration surfaces are intentionally validated via manual/e2e runs.
-        'src/gateway/control-ui.ts',
-        'src/gateway/server-bridge.ts',
-        'src/gateway/server-channels.ts',
-        'src/gateway/server-methods/config.ts',
-        'src/gateway/server-methods/send.ts',
-        'src/gateway/server-methods/skills.ts',
-        'src/gateway/server-methods/talk.ts',
-        'src/gateway/server-methods/web.ts',
-        'src/gateway/server-methods/wizard.ts',
+        'src/gateway/control-ui.js',
+        'src/gateway/server-bridge.js',
+        'src/gateway/server-channels.js',
+        'src/gateway/server-methods/config.js',
+        'src/gateway/server-methods/send.js',
+        'src/gateway/server-methods/skills.js',
+        'src/gateway/server-methods/talk.js',
+        'src/gateway/server-methods/web.js',
+        'src/gateway/server-methods/wizard.js',
 
         // Process bridges are hard to unit-test in isolation.
-        'src/gateway/call.ts',
-        'src/process/tau-rpc.ts',
-        'src/process/exec.ts',
+        'src/gateway/call.js',
+        'src/process/tau-rpc.js',
+        'src/process/exec.js',
         // Interactive UIs/flows are intentionally validated via manual/e2e runs.
         'src/tui/**',
         'src/wizard/**',
@@ -92,15 +89,15 @@ export default defineConfig({
         'src/slack/**',
         'src/browser/**',
         'src/channels/web/**',
-        'src/telegram/index.ts',
-        'src/telegram/proxy.ts',
-        'src/telegram/webhook-set.ts',
+        'src/telegram/index.js',
+        'src/telegram/proxy.js',
+        'src/telegram/webhook-set.js',
         'src/telegram/**',
         'src/webchat/**',
-        'src/gateway/server.ts',
-        'src/gateway/client.ts',
+        'src/gateway/server.js',
+        'src/gateway/client.js',
         'src/gateway/protocol/**',
-        'src/infra/tailscale.ts'
+        'src/infra/tailscale.js'
       ]
     }
   }

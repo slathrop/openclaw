@@ -4,8 +4,8 @@ export default defineConfig({
   test: {
     pool: 'forks',
     maxWorkers: 1,
-    include: ['src/**/*.live.test.ts', 'src/**/*.live.test.js'],
-    setupFiles: ['test/setup.ts'],
+    include: ['src/**/*.live.test.js'],
+    setupFiles: ['test/setup.js'],
     exclude: [
       'dist/**',
       'apps/macos/**',

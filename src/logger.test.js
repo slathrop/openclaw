@@ -81,6 +81,7 @@ function cleanup(file) {
   try {
     fs.rmSync(file, { force: true });
   } catch {
+    // Intentionally ignored - best effort cleanup
   }
 }
 function localDateString(date) {

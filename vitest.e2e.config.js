@@ -9,8 +9,8 @@ export default defineConfig({
   test: {
     pool: 'forks',
     maxWorkers: e2eWorkers,
-    include: ['test/**/*.e2e.test.ts', 'test/**/*.e2e.test.js', 'src/**/*.e2e.test.ts', 'src/**/*.e2e.test.js'],
-    setupFiles: ['test/setup.ts'],
+    include: ['test/**/*.e2e.test.js', 'src/**/*.e2e.test.js'],
+    setupFiles: ['test/setup.js'],
     exclude: [
       'dist/**',
       'apps/macos/**',
