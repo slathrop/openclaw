@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 4 of 6 (CLI and Channels)
-Plan: 2 of 3 in current phase (04-01 and 04-02 done)
-Status: In progress
-Last activity: 2026-02-05 -- Completed 04-01-PLAN.md (CLI and commands conversion)
+Plan: 3 of 3 in current phase (all done)
+Status: Phase complete
+Last activity: 2026-02-05 -- Completed 04-03-PLAN.md (channel layer conversion: 275 files)
 
-Progress: [===================>] 83% (25/30 total plans)
+Progress: [=====================>] 87% (26/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: ~14m
-- Total execution time: ~5.8 hours
+- Total execution time: ~6.2 hours
 
 **By Phase:**
 
@@ -31,12 +31,12 @@ Progress: [===================>] 83% (25/30 total plans)
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
 | 3. Core Services      | 8/8   | ~107m   | ~13m     |
-| 4. CLI and Channels   | 2/3   | ~53m    | ~27m     |
+| 4. CLI and Channels   | 3/3   | ~79m    | ~26m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 04-01 (~35m), 04-02 (~18m), 03-07 (~13m), 03-08 (~11m), 03-04 (~15m)
-- Trend: CLI/commands conversion took ~35m due to __name hoisting issue requiring 3 fix attempts
+- Last 5 plans: 04-03 (~26m), 04-01 (~35m), 04-02 (~18m), 03-07 (~13m), 03-08 (~11m)
+- Trend: Channel layer conversion steady at ~26m for 275 files
 
 _Updated after each plan completion_
 
@@ -138,6 +138,10 @@ Recent decisions affecting current work:
 - 04-01: Lodash-es not introduced in src/commands/ (no patterns found that would benefit)
 - 04-01: onboarding/types.js is a runtime barrel re-export, not type-only (preserved as-is)
 - 04-01: gateway.sigterm.test.js had hardcoded .ts paths in path.resolve() calls
+- 04-03: Named function declarations for constructor mocks (oxfmt converts anonymous function expressions to arrows, breaking `new`)
+- 04-03: onboarding-types.js, web/auto-reply/types.js, web/inbound/types.js needed manual JSDoc conversion (empty from esbuild)
+- 04-03: CHANNEL_MESSAGE_ACTION_NAMES runtime re-export preserved in types.js barrel (from message-action-names.js)
+- 04-03: qr-image.test.js hardcoded .ts path updated to .js
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 04-01-PLAN.md (CLI and commands conversion: 397 files)
+Stopped at: Completed 04-03-PLAN.md (channel layer conversion: 275 files)
 Resume file: None
-Next action: Execute 04-03 (remaining channels: signal, imessage, web, channels, routing)
+Next action: Phase 4 complete. Verify phase, then execute Phase 5 (Remaining Modules)
