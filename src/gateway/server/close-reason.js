@@ -1,0 +1,16 @@
+/** @module gateway/server/close-reason -- WebSocket close reason codes and descriptions. */
+import { Buffer } from 'node:buffer';
+const CLOSE_REASON_MAX_BYTES = 120;
+function truncateCloseReason(reason, maxBytes = CLOSE_REASON_MAX_BYTES) {
+  if (!reason) {
+    return 'invalid handshake';
+  }
+  const buf = Buffer.from(reason);
+  if (buf.length <= maxBytes) {
+    return reason;
+  }
+  return buf.subarray(0, maxBytes).toString();
+}
+export {
+  truncateCloseReason
+};

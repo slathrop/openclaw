@@ -1,0 +1,12 @@
+/** @module gateway/server-lanes -- Lane-based routing for concurrent agent sessions. */
+import { resolveAgentMaxConcurrent, resolveSubagentMaxConcurrent } from '../config/agent-limits.js';
+import { setCommandLaneConcurrency } from '../process/command-queue.js';
+import { CommandLane } from '../process/lanes.js';
+function applyGatewayLaneConcurrency(cfg) {
+  setCommandLaneConcurrency(CommandLane.Cron, cfg.cron?.maxConcurrentRuns ?? 1);
+  setCommandLaneConcurrency(CommandLane.Main, resolveAgentMaxConcurrent(cfg));
+  setCommandLaneConcurrency(CommandLane.Subagent, resolveSubagentMaxConcurrent(cfg));
+}
+export {
+  applyGatewayLaneConcurrency
+};
