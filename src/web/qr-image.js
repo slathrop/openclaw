@@ -1,0 +1,99 @@
+import { deflateSync } from 'node:zlib';
+import QRCodeModule from 'qrcode-terminal/vendor/QRCode/index.js';
+import QRErrorCorrectLevelModule from 'qrcode-terminal/vendor/QRCode/QRErrorCorrectLevel.js';
+const QRCode = QRCodeModule;
+const QRErrorCorrectLevel = QRErrorCorrectLevelModule;
+function createQrMatrix(input) {
+  const qr = new QRCode(-1, QRErrorCorrectLevel.L);
+  qr.addData(input);
+  qr.make();
+  return qr;
+}
+function fillPixel(buf, x, y, width, r, g, b, a = 255) {
+  const idx = (y * width + x) * 4;
+  buf[idx] = r;
+  buf[idx + 1] = g;
+  buf[idx + 2] = b;
+  buf[idx + 3] = a;
+}
+function crcTable() {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i += 1) {
+    let c = i;
+    for (let k = 0; k < 8; k += 1) {
+      c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+}
+const CRC_TABLE = crcTable();
+function crc32(buf) {
+  let crc = 4294967295;
+  for (let i = 0; i < buf.length; i += 1) {
+    crc = CRC_TABLE[(crc ^ buf[i]) & 255] ^ crc >>> 8;
+  }
+  return (crc ^ 4294967295) >>> 0;
+}
+function pngChunk(type, data) {
+  const typeBuf = Buffer.from(type, 'ascii');
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length, 0);
+  const crc = crc32(Buffer.concat([typeBuf, data]));
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc, 0);
+  return Buffer.concat([len, typeBuf, data, crcBuf]);
+}
+function encodePngRgba(buffer, width, height) {
+  const stride = width * 4;
+  const raw = Buffer.alloc((stride + 1) * height);
+  for (let row = 0; row < height; row += 1) {
+    const rawOffset = row * (stride + 1);
+    raw[rawOffset] = 0;
+    buffer.copy(raw, rawOffset + 1, row * stride, row * stride + stride);
+  }
+  const compressed = deflateSync(raw);
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+  return Buffer.concat([
+    signature,
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', compressed),
+    pngChunk('IEND', Buffer.alloc(0))
+  ]);
+}
+async function renderQrPngBase64(input, opts = {}) {
+  const { scale = 6, marginModules = 4 } = opts;
+  const qr = createQrMatrix(input);
+  const modules = qr.getModuleCount();
+  const size = (modules + marginModules * 2) * scale;
+  const buf = Buffer.alloc(size * size * 4, 255);
+  for (let row = 0; row < modules; row += 1) {
+    for (let col = 0; col < modules; col += 1) {
+      if (!qr.isDark(row, col)) {
+        continue;
+      }
+      const startX = (col + marginModules) * scale;
+      const startY = (row + marginModules) * scale;
+      for (let y = 0; y < scale; y += 1) {
+        const pixelY = startY + y;
+        for (let x = 0; x < scale; x += 1) {
+          const pixelX = startX + x;
+          fillPixel(buf, pixelX, pixelY, size, 0, 0, 0, 255);
+        }
+      }
+    }
+  }
+  const png = encodePngRgba(buf, size, size);
+  return png.toString('base64');
+}
+export {
+  renderQrPngBase64
+};
