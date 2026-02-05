@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const confirm = vi.fn();
 const select = vi.fn();
 const spinner = vi.fn(() => ({ start: vi.fn(), stop: vi.fn() }));
-const isCancel = /* @__PURE__ */ __name((value) => value === 'cancel', 'isCancel');
+const isCancel = (value) => value === 'cancel';
 vi.mock('@clack/prompts', () => ({
   confirm,
   select,
@@ -71,18 +69,18 @@ describe('update-cli', () => {
     config: {},
     issues: []
   };
-  const setTty = /* @__PURE__ */ __name((value) => {
+  const setTty = (value) => {
     Object.defineProperty(process.stdin, 'isTTY', {
       value,
       configurable: true
     });
-  }, 'setTty');
-  const setStdoutTty = /* @__PURE__ */ __name((value) => {
+  };
+  const setStdoutTty = (value) => {
     Object.defineProperty(process.stdout, 'isTTY', {
       value,
       configurable: true
     });
-  }, 'setStdoutTty');
+  };
   beforeEach(async () => {
     vi.clearAllMocks();
     const { resolveOpenClawPackageRoot } = await import('../infra/openclaw-root.js');

@@ -88,8 +88,8 @@ describe('gateway SIGTERM', () => {
       OPENCLAW_SKIP_CANVAS_HOST: '1'
     };
     const bootstrapPath = path.join(stateDir, 'openclaw-entry-bootstrap.mjs');
-    const runLoopPath = path.resolve('src/cli/gateway-cli/run-loop.ts');
-    const runtimePath = path.resolve('src/runtime.ts');
+    const runLoopPath = path.resolve('src/cli/gateway-cli/run-loop.js');
+    const runtimePath = path.resolve('src/runtime.js');
     fs.writeFileSync(
       bootstrapPath,
       [

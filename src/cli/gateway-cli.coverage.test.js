@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
 const callGateway = vi.fn(async () => ({ ok: true }));
@@ -20,11 +18,11 @@ const gatewayStatusCommand = vi.fn(async () => {
 const runtimeLogs = [];
 const runtimeErrors = [];
 const defaultRuntime = {
-  log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-  error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  log: (msg) => runtimeLogs.push(msg),
+  error: (msg) => runtimeErrors.push(msg),
+  exit: (code) => {
     throw new Error(`__exit__:${code}`);
-  }, 'exit')
+  }
 };
 async function withEnvOverride(overrides, fn) {
   const saved = {};
@@ -50,27 +48,26 @@ async function withEnvOverride(overrides, fn) {
     vi.resetModules();
   }
 }
-__name(withEnvOverride, 'withEnvOverride');
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((opts) => callGateway(opts), 'callGateway'),
-  randomIdempotencyKey: /* @__PURE__ */ __name(() => 'rk_test', 'randomIdempotencyKey')
+  callGateway: (opts) => callGateway(opts),
+  randomIdempotencyKey: () => 'rk_test'
 }));
 vi.mock('../gateway/server.js', () => ({
-  startGatewayServer: /* @__PURE__ */ __name((port, opts) => startGatewayServer(port, opts), 'startGatewayServer')
+  startGatewayServer: (port, opts) => startGatewayServer(port, opts)
 }));
 vi.mock('../globals.js', () => ({
-  info: /* @__PURE__ */ __name((msg) => msg, 'info'),
-  isVerbose: /* @__PURE__ */ __name(() => false, 'isVerbose'),
-  setVerbose: /* @__PURE__ */ __name((enabled) => setVerbose(enabled), 'setVerbose')
+  info: (msg) => msg,
+  isVerbose: () => false,
+  setVerbose: (enabled) => setVerbose(enabled)
 }));
 vi.mock('../runtime.js', () => ({
   defaultRuntime
 }));
 vi.mock('./ports.js', () => ({
-  forceFreePortAndWait: /* @__PURE__ */ __name((port) => forceFreePortAndWait(port), 'forceFreePortAndWait')
+  forceFreePortAndWait: (port) => forceFreePortAndWait(port)
 }));
 vi.mock('../daemon/service.js', () => ({
-  resolveGatewayService: /* @__PURE__ */ __name(() => ({
+  resolveGatewayService: () => ({
     label: 'LaunchAgent',
     loadedText: 'loaded',
     notLoadedText: 'not loaded',
@@ -81,18 +78,18 @@ vi.mock('../daemon/service.js', () => ({
     isLoaded: serviceIsLoaded,
     readCommand: vi.fn(),
     readRuntime: vi.fn().mockResolvedValue({ status: 'running' })
-  }), 'resolveGatewayService')
+  })
 }));
 vi.mock('../daemon/program-args.js', () => ({
-  resolveGatewayProgramArguments: /* @__PURE__ */ __name(async () => ({
+  resolveGatewayProgramArguments: async () => ({
     programArguments: ['/bin/node', 'cli', 'gateway', '--port', '18789']
-  }), 'resolveGatewayProgramArguments')
+  })
 }));
 vi.mock('../infra/bonjour-discovery.js', () => ({
-  discoverGatewayBeacons: /* @__PURE__ */ __name((opts) => discoverGatewayBeacons(opts), 'discoverGatewayBeacons')
+  discoverGatewayBeacons: (opts) => discoverGatewayBeacons(opts)
 }));
 vi.mock('../commands/gateway-status.js', () => ({
-  gatewayStatusCommand: /* @__PURE__ */ __name((opts) => gatewayStatusCommand(opts), 'gatewayStatusCommand')
+  gatewayStatusCommand: (opts) => gatewayStatusCommand(opts)
 }));
 describe('gateway-cli coverage', () => {
   it('registers call/health commands and routes to callGateway', async () => {

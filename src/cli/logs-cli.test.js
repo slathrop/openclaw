@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 const callGatewayFromCli = vi.fn();
@@ -7,7 +5,7 @@ vi.mock('./gateway-rpc.js', async () => {
   const actual = await vi.importActual('./gateway-rpc.js');
   return {
     ...actual,
-    callGatewayFromCli: /* @__PURE__ */ __name((...args) => callGatewayFromCli(...args), 'callGatewayFromCli')
+    callGatewayFromCli: (...args) => callGatewayFromCli(...args)
   };
 });
 describe('logs cli', () => {

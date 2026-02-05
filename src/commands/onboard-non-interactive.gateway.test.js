@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs/promises';
 import { createServer } from 'node:net';
 import os from 'node:os';
@@ -9,9 +7,6 @@ import { getDeterministicFreePortBlock } from '../test-utils/ports.js';
 const gatewayClientCalls = [];
 vi.mock('../gateway/client.js', () => ({
   GatewayClient: class {
-    static {
-      __name(this, 'GatewayClient');
-    }
     params;
     constructor(params) {
       this.params = params;
@@ -60,7 +55,6 @@ async function getFreePort() {
     throw err;
   }
 }
-__name(getFreePort, 'getFreePort');
 async function getFreeGatewayPort() {
   try {
     return await getDeterministicFreePortBlock({ offsets: [0, 1, 2, 4] });
@@ -72,16 +66,15 @@ async function getFreeGatewayPort() {
     throw err;
   }
 }
-__name(getFreeGatewayPort, 'getFreeGatewayPort');
 const runtime = {
-  log: /* @__PURE__ */ __name(() => {
-  }, 'log'),
-  error: /* @__PURE__ */ __name((msg) => {
+  log: () => {
+  },
+  error: (msg) => {
     throw new Error(msg);
-  }, 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  },
+  exit: (code) => {
     throw new Error(`exit:${code}`);
-  }, 'exit')
+  }
 };
 describe('onboard (non-interactive): gateway and remote auth', () => {
   const prev = {
@@ -97,7 +90,7 @@ describe('onboard (non-interactive): gateway and remote auth', () => {
     password: process.env.OPENCLAW_GATEWAY_PASSWORD
   };
   let tempHome;
-  const initStateDir = /* @__PURE__ */ __name(async (prefix) => {
+  const initStateDir = async (prefix) => {
     if (!tempHome) {
       throw new Error('temp home not initialized');
     }
@@ -105,7 +98,7 @@ describe('onboard (non-interactive): gateway and remote auth', () => {
     process.env.OPENCLAW_STATE_DIR = stateDir;
     delete process.env.OPENCLAW_CONFIG_PATH;
     return stateDir;
-  }, 'initStateDir');
+  };
   beforeAll(async () => {
     process.env.OPENCLAW_SKIP_CHANNELS = '1';
     process.env.OPENCLAW_SKIP_GMAIL_WATCHER = '1';

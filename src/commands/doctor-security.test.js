@@ -1,12 +1,10 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const note = vi.hoisted(() => vi.fn());
 vi.mock('../terminal/note.js', () => ({
   note
 }));
 vi.mock('../channels/plugins/index.js', () => ({
-  listChannelPlugins: /* @__PURE__ */ __name(() => [], 'listChannelPlugins')
+  listChannelPlugins: () => []
 }));
 import { noteSecurityWarnings } from './doctor-security.js';
 describe('noteSecurityWarnings gateway exposure', () => {
@@ -31,7 +29,7 @@ describe('noteSecurityWarnings gateway exposure', () => {
       process.env.OPENCLAW_GATEWAY_PASSWORD = prevPassword;
     }
   });
-  const lastMessage = /* @__PURE__ */ __name(() => String(note.mock.calls.at(-1)?.[0] ?? ''), 'lastMessage');
+  const lastMessage = () => String(note.mock.calls.at(-1)?.[0] ?? '');
   it('warns when exposed without auth', async () => {
     const cfg = { gateway: { bind: 'lan' } };
     await noteSecurityWarnings(cfg);

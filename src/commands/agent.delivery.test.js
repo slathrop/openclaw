@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   deliverOutboundPayloads: vi.fn(async () => []),
@@ -8,7 +6,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock('../channels/plugins/index.js', () => ({
   getChannelPlugin: mocks.getChannelPlugin,
-  normalizeChannelId: /* @__PURE__ */ __name((value) => value, 'normalizeChannelId')
+  normalizeChannelId: (value) => value
 }));
 vi.mock('../infra/outbound/deliver.js', () => ({
   deliverOutboundPayloads: mocks.deliverOutboundPayloads

@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   listSandboxContainers: vi.fn(),
@@ -31,7 +29,6 @@ function createContainer(overrides = {}) {
     ...overrides
   };
 }
-__name(createContainer, 'createContainer');
 function createBrowser(overrides = {}) {
   return {
     containerName: 'openclaw-browser-test',
@@ -46,7 +43,6 @@ function createBrowser(overrides = {}) {
     ...overrides
   };
 }
-__name(createBrowser, 'createBrowser');
 function createMockRuntime() {
   return {
     log: vi.fn(),
@@ -54,7 +50,6 @@ function createMockRuntime() {
     exit: vi.fn()
   };
 }
-__name(createMockRuntime, 'createMockRuntime');
 function setupDefaultMocks() {
   mocks.listSandboxContainers.mockResolvedValue([]);
   mocks.listSandboxBrowsers.mockResolvedValue([]);
@@ -62,15 +57,12 @@ function setupDefaultMocks() {
   mocks.removeSandboxBrowserContainer.mockResolvedValue(void 0);
   mocks.clackConfirm.mockResolvedValue(true);
 }
-__name(setupDefaultMocks, 'setupDefaultMocks');
 function expectLogContains(runtime, text) {
   expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining(text));
 }
-__name(expectLogContains, 'expectLogContains');
 function expectErrorContains(runtime, text) {
   expect(runtime.error).toHaveBeenCalledWith(expect.stringContaining(text));
 }
-__name(expectErrorContains, 'expectErrorContains');
 describe('sandboxListCommand', () => {
   let runtime;
   beforeEach(() => {

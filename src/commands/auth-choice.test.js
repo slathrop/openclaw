@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -13,18 +11,18 @@ const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
 vi.mock('../plugins/providers.js', () => ({
   resolvePluginProviders
 }));
-const noopAsync = /* @__PURE__ */ __name(async () => {
-}, 'noopAsync');
-const noop = /* @__PURE__ */ __name(() => {
-}, 'noop');
-const authProfilePathFor = /* @__PURE__ */ __name((agentDir) => path.join(agentDir, 'auth-profiles.json'), 'authProfilePathFor');
-const requireAgentDir = /* @__PURE__ */ __name(() => {
+const noopAsync = async () => {
+};
+const noop = () => {
+};
+const authProfilePathFor = (agentDir) => path.join(agentDir, 'auth-profiles.json');
+const requireAgentDir = () => {
   const agentDir = process.env.OPENCLAW_AGENT_DIR;
   if (!agentDir) {
     throw new Error('OPENCLAW_AGENT_DIR not set');
   }
   return agentDir;
-}, 'requireAgentDir');
+};
 describe('applyAuthChoice', () => {
   const previousStateDir = process.env.OPENCLAW_STATE_DIR;
   const previousAgentDir = process.env.OPENCLAW_AGENT_DIR;

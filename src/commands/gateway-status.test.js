@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 const loadConfig = vi.fn(() => ({
   gateway: {
@@ -81,38 +79,38 @@ const probeGateway = vi.fn(async ({ url }) => {
   };
 });
 vi.mock('../config/config.js', () => ({
-  loadConfig: /* @__PURE__ */ __name(() => loadConfig(), 'loadConfig'),
-  resolveGatewayPort: /* @__PURE__ */ __name((cfg) => resolveGatewayPort(cfg), 'resolveGatewayPort')
+  loadConfig: () => loadConfig(),
+  resolveGatewayPort: (cfg) => resolveGatewayPort(cfg)
 }));
 vi.mock('../infra/bonjour-discovery.js', () => ({
-  discoverGatewayBeacons: /* @__PURE__ */ __name((opts) => discoverGatewayBeacons(opts), 'discoverGatewayBeacons')
+  discoverGatewayBeacons: (opts) => discoverGatewayBeacons(opts)
 }));
 vi.mock('../infra/tailnet.js', () => ({
-  pickPrimaryTailnetIPv4: /* @__PURE__ */ __name(() => pickPrimaryTailnetIPv4(), 'pickPrimaryTailnetIPv4')
+  pickPrimaryTailnetIPv4: () => pickPrimaryTailnetIPv4()
 }));
 vi.mock('../infra/ssh-tunnel.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    startSshPortForward: /* @__PURE__ */ __name((opts) => startSshPortForward(opts), 'startSshPortForward')
+    startSshPortForward: (opts) => startSshPortForward(opts)
   };
 });
 vi.mock('../infra/ssh-config.js', () => ({
-  resolveSshConfig: /* @__PURE__ */ __name((opts) => resolveSshConfig(opts), 'resolveSshConfig')
+  resolveSshConfig: (opts) => resolveSshConfig(opts)
 }));
 vi.mock('../gateway/probe.js', () => ({
-  probeGateway: /* @__PURE__ */ __name((opts) => probeGateway(opts), 'probeGateway')
+  probeGateway: (opts) => probeGateway(opts)
 }));
 describe('gateway-status command', () => {
   it('prints human output by default', async () => {
     const runtimeLogs = [];
     const runtimeErrors = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-      error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      log: (msg) => runtimeLogs.push(msg),
+      error: (msg) => runtimeErrors.push(msg),
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     const { gatewayStatusCommand } = await import('./gateway-status.js');
     await gatewayStatusCommand(
@@ -128,11 +126,11 @@ describe('gateway-status command', () => {
     const runtimeLogs = [];
     const runtimeErrors = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-      error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      log: (msg) => runtimeLogs.push(msg),
+      error: (msg) => runtimeErrors.push(msg),
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     const { gatewayStatusCommand } = await import('./gateway-status.js');
     await gatewayStatusCommand(
@@ -151,13 +149,13 @@ describe('gateway-status command', () => {
   it('supports SSH tunnel targets', async () => {
     const runtimeLogs = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
+      log: (msg) => runtimeLogs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      error: /* @__PURE__ */ __name((_msg) => {
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      error: (_msg) => {
+      },
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     startSshPortForward.mockClear();
     sshStop.mockClear();
@@ -181,13 +179,13 @@ describe('gateway-status command', () => {
   it('skips invalid ssh-auto discovery targets', async () => {
     const runtimeLogs = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
+      log: (msg) => runtimeLogs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      error: /* @__PURE__ */ __name((_msg) => {
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      error: (_msg) => {
+      },
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     const originalUser = process.env.USER;
     try {
@@ -218,13 +216,13 @@ describe('gateway-status command', () => {
   it('infers SSH target from gateway.remote.url and ssh config', async () => {
     const runtimeLogs = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
+      log: (msg) => runtimeLogs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      error: /* @__PURE__ */ __name((_msg) => {
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      error: (_msg) => {
+      },
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     const originalUser = process.env.USER;
     try {
@@ -258,13 +256,13 @@ describe('gateway-status command', () => {
   it('falls back to host-only when USER is missing and ssh config is unavailable', async () => {
     const runtimeLogs = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
+      log: (msg) => runtimeLogs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      error: /* @__PURE__ */ __name((_msg) => {
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      error: (_msg) => {
+      },
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     const originalUser = process.env.USER;
     try {
@@ -291,13 +289,13 @@ describe('gateway-status command', () => {
   it('keeps explicit SSH identity even when ssh config provides one', async () => {
     const runtimeLogs = [];
     const runtime = {
-      log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
+      log: (msg) => runtimeLogs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      error: /* @__PURE__ */ __name((_msg) => {
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      error: (_msg) => {
+      },
+      exit: (code) => {
         throw new Error(`__exit__:${code}`);
-      }, 'exit')
+      }
     };
     loadConfig.mockReturnValueOnce({
       gateway: {

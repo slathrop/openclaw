@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 const loadConfig = vi.fn();
 const ensureOpenClawModelsJson = vi.fn().mockResolvedValue(void 0);
@@ -41,14 +39,8 @@ vi.mock('../agents/model-auth.js', () => ({
 }));
 vi.mock('@mariozechner/pi-coding-agent', () => ({
   AuthStorage: class {
-    static {
-      __name(this, 'AuthStorage');
-    }
   },
   ModelRegistry: class {
-    static {
-      __name(this, 'ModelRegistry');
-    }
     getAll() {
       return modelRegistryState.models;
     }
@@ -63,7 +55,6 @@ function makeRuntime() {
     error: vi.fn()
   };
 }
-__name(makeRuntime, 'makeRuntime');
 describe('models list/status', () => {
   it('models status resolves z.ai alias to canonical zai', async () => {
     loadConfig.mockReturnValue({

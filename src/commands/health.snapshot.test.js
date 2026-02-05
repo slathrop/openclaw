@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,12 +12,12 @@ vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => testConfig, 'loadConfig')
+    loadConfig: () => testConfig
   };
 });
 vi.mock('../config/sessions.js', () => ({
-  resolveStorePath: /* @__PURE__ */ __name(() => '/tmp/sessions.json', 'resolveStorePath'),
-  loadSessionStore: /* @__PURE__ */ __name(() => testStore, 'loadSessionStore'),
+  resolveStorePath: () => '/tmp/sessions.json',
+  loadSessionStore: () => testStore,
   readSessionUpdatedAt: vi.fn(() => void 0),
   recordSessionMetaFromInbound: vi.fn().mockResolvedValue(void 0),
   updateLastRoute: vi.fn().mockResolvedValue(void 0)
@@ -77,29 +75,29 @@ describe('getHealthSnapshot', () => {
           return {
             ok: true,
             status: 200,
-            json: /* @__PURE__ */ __name(async () => ({
+            json: async () => ({
               ok: true,
               result: { id: 1, username: 'bot' }
-            }), 'json')
+            })
           };
         }
         if (url.includes('/getWebhookInfo')) {
           return {
             ok: true,
             status: 200,
-            json: /* @__PURE__ */ __name(async () => ({
+            json: async () => ({
               ok: true,
               result: {
                 url: 'https://example.com/h',
                 has_custom_certificate: false
               }
-            }), 'json')
+            })
           };
         }
         return {
           ok: false,
           status: 404,
-          json: /* @__PURE__ */ __name(async () => ({ ok: false, description: 'nope' }), 'json')
+          json: async () => ({ ok: false, description: 'nope' })
         };
       })
     );
@@ -128,29 +126,29 @@ describe('getHealthSnapshot', () => {
           return {
             ok: true,
             status: 200,
-            json: /* @__PURE__ */ __name(async () => ({
+            json: async () => ({
               ok: true,
               result: { id: 1, username: 'bot' }
-            }), 'json')
+            })
           };
         }
         if (url.includes('/getWebhookInfo')) {
           return {
             ok: true,
             status: 200,
-            json: /* @__PURE__ */ __name(async () => ({
+            json: async () => ({
               ok: true,
               result: {
                 url: 'https://example.com/h',
                 has_custom_certificate: false
               }
-            }), 'json')
+            })
           };
         }
         return {
           ok: false,
           status: 404,
-          json: /* @__PURE__ */ __name(async () => ({ ok: false, description: 'nope' }), 'json')
+          json: async () => ({ ok: false, description: 'nope' })
         };
       })
     );
@@ -172,7 +170,7 @@ describe('getHealthSnapshot', () => {
           return {
             ok: false,
             status: 401,
-            json: /* @__PURE__ */ __name(async () => ({ ok: false, description: 'unauthorized' }), 'json')
+            json: async () => ({ ok: false, description: 'unauthorized' })
           };
         }
         throw new Error('unexpected');

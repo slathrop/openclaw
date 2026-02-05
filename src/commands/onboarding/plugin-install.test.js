@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('node:fs', () => ({
@@ -9,7 +7,7 @@ vi.mock('node:fs', () => ({
 }));
 const installPluginFromNpmSpec = vi.fn();
 vi.mock('../../plugins/install.js', () => ({
-  installPluginFromNpmSpec: /* @__PURE__ */ __name((...args) => installPluginFromNpmSpec(...args), 'installPluginFromNpmSpec')
+  installPluginFromNpmSpec: (...args) => installPluginFromNpmSpec(...args)
 }));
 vi.mock('../../plugins/loader.js', () => ({
   loadOpenClawPlugins: vi.fn()

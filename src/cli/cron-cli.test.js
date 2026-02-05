@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
 const callGatewayFromCli = vi.fn(async (method, _opts, params) => {
@@ -12,16 +10,16 @@ vi.mock('./gateway-rpc.js', async () => {
   const actual = await vi.importActual('./gateway-rpc.js');
   return {
     ...actual,
-    callGatewayFromCli: /* @__PURE__ */ __name((method, opts, params, extra) => callGatewayFromCli(method, opts, params, extra), 'callGatewayFromCli')
+    callGatewayFromCli: (method, opts, params, extra) => callGatewayFromCli(method, opts, params, extra)
   };
 });
 vi.mock('../runtime.js', () => ({
   defaultRuntime: {
     log: vi.fn(),
     error: vi.fn(),
-    exit: /* @__PURE__ */ __name((code) => {
+    exit: (code) => {
       throw new Error(`__exit__:${code}`);
-    }, 'exit')
+    }
   }
 }));
 describe('cron cli', () => {

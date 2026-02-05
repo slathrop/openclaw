@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -18,7 +16,6 @@ function setStdinTty(value) {
     // Intentionally ignored
   }
 }
-__name(setStdinTty, 'setStdinTty');
 beforeEach(() => {
   confirm.mockReset().mockResolvedValue(true);
   select.mockReset().mockResolvedValue('node');
@@ -161,7 +158,7 @@ vi.mock('@clack/prompts', () => ({
   select
 }));
 vi.mock('../agents/skills-status.js', () => ({
-  buildWorkspaceSkillStatus: /* @__PURE__ */ __name(() => ({ skills: [] }), 'buildWorkspaceSkillStatus')
+  buildWorkspaceSkillStatus: () => ({ skills: [] })
 }));
 vi.mock('../plugins/loader.js', () => ({
   loadOpenClawPlugins
@@ -213,7 +210,7 @@ vi.mock('../agents/auth-profiles.js', async (importOriginal) => {
   };
 });
 vi.mock('../daemon/service.js', () => ({
-  resolveGatewayService: /* @__PURE__ */ __name(() => ({
+  resolveGatewayService: () => ({
     label: 'LaunchAgent',
     loadedText: 'loaded',
     notLoadedText: 'not loaded',
@@ -224,7 +221,7 @@ vi.mock('../daemon/service.js', () => ({
     isLoaded: serviceIsLoaded,
     readCommand: vi.fn(),
     readRuntime: vi.fn().mockResolvedValue({ status: 'running' })
-  }), 'resolveGatewayService')
+  })
 }));
 vi.mock('../pairing/pairing-store.js', () => ({
   readChannelAllowFromStore: vi.fn().mockResolvedValue([]),
@@ -235,20 +232,20 @@ vi.mock('../telegram/token.js', () => ({
 }));
 vi.mock('../runtime.js', () => ({
   defaultRuntime: {
-    log: /* @__PURE__ */ __name(() => {
-    }, 'log'),
-    error: /* @__PURE__ */ __name(() => {
-    }, 'error'),
-    exit: /* @__PURE__ */ __name(() => {
+    log: () => {
+    },
+    error: () => {
+    },
+    exit: () => {
       throw new Error('exit');
-    }, 'exit')
+    }
   }
 }));
 vi.mock('../utils.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    resolveUserPath: /* @__PURE__ */ __name((value) => value, 'resolveUserPath'),
+    resolveUserPath: (value) => value,
     sleep: vi.fn()
   };
 });
@@ -256,9 +253,9 @@ vi.mock('./health.js', () => ({
   healthCommand: vi.fn().mockResolvedValue(void 0)
 }));
 vi.mock('./onboard-helpers.js', () => ({
-  applyWizardMetadata: /* @__PURE__ */ __name((cfg) => cfg, 'applyWizardMetadata'),
+  applyWizardMetadata: (cfg) => cfg,
   DEFAULT_WORKSPACE: '/tmp',
-  guardCancel: /* @__PURE__ */ __name((value) => value, 'guardCancel'),
+  guardCancel: (value) => value,
   printWizardHeader: vi.fn(),
   randomToken: vi.fn(() => 'test-gateway-token')
 }));

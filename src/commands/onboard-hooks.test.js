@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { setupInternalHooks } from './onboard-hooks.js';
 vi.mock('../hooks/hooks-status.js', () => ({
@@ -13,7 +11,7 @@ describe('onboard-hooks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  const createMockPrompter = /* @__PURE__ */ __name((multiselectValue) => ({
+  const createMockPrompter = (multiselectValue) => ({
     confirm: vi.fn().mockResolvedValue(true),
     note: vi.fn().mockResolvedValue(void 0),
     intro: vi.fn().mockResolvedValue(void 0),
@@ -25,13 +23,13 @@ describe('onboard-hooks', () => {
       stop: vi.fn(),
       update: vi.fn()
     })
-  }), 'createMockPrompter');
-  const createMockRuntime = /* @__PURE__ */ __name(() => ({
+  });
+  const createMockRuntime = () => ({
     log: vi.fn(),
     error: vi.fn(),
     exit: vi.fn()
-  }), 'createMockRuntime');
-  const createMockHookReport = /* @__PURE__ */ __name((eligible = true) => ({
+  });
+  const createMockHookReport = (eligible = true) => ({
     workspaceDir: '/mock/workspace',
     managedHooksDir: '/mock/.openclaw/hooks',
     hooks: [
@@ -102,7 +100,7 @@ describe('onboard-hooks', () => {
         install: []
       }
     ]
-  }), 'createMockHookReport');
+  });
   describe('setupInternalHooks', () => {
     it('should enable hooks when user selects them', async () => {
       const { buildWorkspaceHookStatus } = await import('../hooks/hooks-status.js');

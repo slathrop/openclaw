@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 process.env.NO_COLOR = '1';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getChannelPlugin, listChannelPlugins } from '../../channels/plugins/index.js';
@@ -21,17 +19,16 @@ vi.mock('../../slack/scopes.js', () => ({
   fetchSlackScopes: vi.fn()
 }));
 const runtime = {
-  log: /* @__PURE__ */ __name((value) => logs.push(value), 'log'),
-  error: /* @__PURE__ */ __name((value) => errors.push(value), 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  log: (value) => logs.push(value),
+  error: (value) => errors.push(value),
+  exit: (code) => {
     throw new Error(`exit:${code}`);
-  }, 'exit')
+  }
 };
 function resetOutput() {
   logs.length = 0;
   errors.length = 0;
 }
-__name(resetOutput, 'resetOutput');
 function buildPlugin(params) {
   const capabilities = params.capabilities ?? { chatTypes: ['direct'] };
   return {
@@ -45,21 +42,20 @@ function buildPlugin(params) {
     },
     capabilities,
     config: {
-      listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-      resolveAccount: /* @__PURE__ */ __name(() => params.account ?? { accountId: 'default' }, 'resolveAccount'),
-      defaultAccountId: /* @__PURE__ */ __name(() => 'default', 'defaultAccountId'),
-      isConfigured: /* @__PURE__ */ __name(() => true, 'isConfigured'),
-      isEnabled: /* @__PURE__ */ __name(() => true, 'isEnabled')
+      listAccountIds: () => ['default'],
+      resolveAccount: () => params.account ?? { accountId: 'default' },
+      defaultAccountId: () => 'default',
+      isConfigured: () => true,
+      isEnabled: () => true
     },
     status: params.probe ? {
-      probeAccount: /* @__PURE__ */ __name(async () => params.probe, 'probeAccount')
+      probeAccount: async () => params.probe
     } : void 0,
     actions: {
-      listActions: /* @__PURE__ */ __name(() => ['poll'], 'listActions')
+      listActions: () => ['poll']
     }
   };
 }
-__name(buildPlugin, 'buildPlugin');
 describe('channelsCapabilitiesCommand', () => {
   beforeEach(() => {
     resetOutput();

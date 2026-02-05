@@ -1,47 +1,45 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestRegistry } from '../test-utils/channel-plugins.js';
-const loadMessageCommand = /* @__PURE__ */ __name(async () => await import('./message.js'), 'loadMessageCommand');
+const loadMessageCommand = async () => await import('./message.js');
 let testConfig = {};
 vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => testConfig, 'loadConfig')
+    loadConfig: () => testConfig
   };
 });
 const callGatewayMock = vi.fn();
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((...args) => callGatewayMock(...args), 'callGateway'),
-  randomIdempotencyKey: /* @__PURE__ */ __name(() => 'idem-1', 'randomIdempotencyKey')
+  callGateway: (...args) => callGatewayMock(...args),
+  randomIdempotencyKey: () => 'idem-1'
 }));
 const webAuthExists = vi.fn(async () => false);
 vi.mock('../web/session.js', () => ({
-  webAuthExists: /* @__PURE__ */ __name((...args) => webAuthExists(...args), 'webAuthExists')
+  webAuthExists: (...args) => webAuthExists(...args)
 }));
 const handleDiscordAction = vi.fn(async () => ({ details: { ok: true } }));
 vi.mock('../agents/tools/discord-actions.js', () => ({
-  handleDiscordAction: /* @__PURE__ */ __name((...args) => handleDiscordAction(...args), 'handleDiscordAction')
+  handleDiscordAction: (...args) => handleDiscordAction(...args)
 }));
 const handleSlackAction = vi.fn(async () => ({ details: { ok: true } }));
 vi.mock('../agents/tools/slack-actions.js', () => ({
-  handleSlackAction: /* @__PURE__ */ __name((...args) => handleSlackAction(...args), 'handleSlackAction')
+  handleSlackAction: (...args) => handleSlackAction(...args)
 }));
 const handleTelegramAction = vi.fn(async () => ({ details: { ok: true } }));
 vi.mock('../agents/tools/telegram-actions.js', () => ({
-  handleTelegramAction: /* @__PURE__ */ __name((...args) => handleTelegramAction(...args), 'handleTelegramAction')
+  handleTelegramAction: (...args) => handleTelegramAction(...args)
 }));
 const handleWhatsAppAction = vi.fn(async () => ({ details: { ok: true } }));
 vi.mock('../agents/tools/whatsapp-actions.js', () => ({
-  handleWhatsAppAction: /* @__PURE__ */ __name((...args) => handleWhatsAppAction(...args), 'handleWhatsAppAction')
+  handleWhatsAppAction: (...args) => handleWhatsAppAction(...args)
 }));
 const originalTelegramToken = process.env.TELEGRAM_BOT_TOKEN;
 const originalDiscordToken = process.env.DISCORD_BOT_TOKEN;
-const setRegistry = /* @__PURE__ */ __name(async (registry) => {
+const setRegistry = async (registry) => {
   const { setActivePluginRegistry } = await import('../plugins/runtime.js');
   setActivePluginRegistry(registry);
-}, 'setRegistry');
+};
 beforeEach(async () => {
   process.env.TELEGRAM_BOT_TOKEN = '';
   process.env.DISCORD_BOT_TOKEN = '';
@@ -66,7 +64,7 @@ const runtime = {
     throw new Error('exit');
   })
 };
-const makeDeps = /* @__PURE__ */ __name((overrides = {}) => ({
+const makeDeps = (overrides = {}) => ({
   sendMessageWhatsApp: vi.fn(),
   sendMessageTelegram: vi.fn(),
   sendMessageDiscord: vi.fn(),
@@ -74,8 +72,8 @@ const makeDeps = /* @__PURE__ */ __name((overrides = {}) => ({
   sendMessageSignal: vi.fn(),
   sendMessageIMessage: vi.fn(),
   ...overrides
-}), 'makeDeps');
-const createStubPlugin = /* @__PURE__ */ __name((params) => ({
+});
+const createStubPlugin = (params) => ({
   id: params.id,
   meta: {
     id: params.id,
@@ -86,13 +84,13 @@ const createStubPlugin = /* @__PURE__ */ __name((params) => ({
   },
   capabilities: { chatTypes: ['direct'] },
   config: {
-    listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-    resolveAccount: /* @__PURE__ */ __name(() => ({}), 'resolveAccount'),
-    isConfigured: /* @__PURE__ */ __name(async () => true, 'isConfigured')
+    listAccountIds: () => ['default'],
+    resolveAccount: () => ({}),
+    isConfigured: async () => true
   },
   actions: params.actions,
   outbound: params.outbound
-}), 'createStubPlugin');
+});
 describe('messageCommand', () => {
   it('defaults channel when only one configured', async () => {
     process.env.TELEGRAM_BOT_TOKEN = 'token-abc';
@@ -105,11 +103,11 @@ describe('messageCommand', () => {
             id: 'telegram',
             label: 'Telegram',
             actions: {
-              listActions: /* @__PURE__ */ __name(() => ['send'], 'listActions'),
-              handleAction: /* @__PURE__ */ __name(async ({ action, params, cfg, accountId }) => await handleTelegramAction(
+              listActions: () => ['send'],
+              handleAction: async ({ action, params, cfg, accountId }) => await handleTelegramAction(
                 { action, to: params.to, accountId: accountId ?? void 0 },
                 cfg
-              ), 'handleAction')
+              )
             }
           })
         }
@@ -139,11 +137,11 @@ describe('messageCommand', () => {
             id: 'telegram',
             label: 'Telegram',
             actions: {
-              listActions: /* @__PURE__ */ __name(() => ['send'], 'listActions'),
-              handleAction: /* @__PURE__ */ __name(async ({ action, params, cfg, accountId }) => await handleTelegramAction(
+              listActions: () => ['send'],
+              handleAction: async ({ action, params, cfg, accountId }) => await handleTelegramAction(
                 { action, to: params.to, accountId: accountId ?? void 0 },
                 cfg
-              ), 'handleAction')
+              )
             }
           })
         },
@@ -154,11 +152,11 @@ describe('messageCommand', () => {
             id: 'discord',
             label: 'Discord',
             actions: {
-              listActions: /* @__PURE__ */ __name(() => ['poll'], 'listActions'),
-              handleAction: /* @__PURE__ */ __name(async ({ action, params, cfg, accountId }) => await handleDiscordAction(
+              listActions: () => ['poll'],
+              handleAction: async ({ action, params, cfg, accountId }) => await handleDiscordAction(
                 { action, to: params.to, accountId: accountId ?? void 0 },
                 cfg
-              ), 'handleAction')
+              )
             }
           })
         }
@@ -218,11 +216,11 @@ describe('messageCommand', () => {
             id: 'discord',
             label: 'Discord',
             actions: {
-              listActions: /* @__PURE__ */ __name(() => ['poll'], 'listActions'),
-              handleAction: /* @__PURE__ */ __name(async ({ action, params, cfg, accountId }) => await handleDiscordAction(
+              listActions: () => ['poll'],
+              handleAction: async ({ action, params, cfg, accountId }) => await handleDiscordAction(
                 { action, to: params.to, accountId: accountId ?? void 0 },
                 cfg
-              ), 'handleAction')
+              )
             }
           })
         }

@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setActivePluginRegistry } from '../plugins/runtime.js';
 import { stripAnsi } from '../terminal/ansi.js';
@@ -8,12 +6,12 @@ import { healthCommand } from './health.js';
 const callGatewayMock = vi.fn();
 const logWebSelfIdMock = vi.fn();
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((...args) => callGatewayMock(...args), 'callGateway')
+  callGateway: (...args) => callGatewayMock(...args)
 }));
 vi.mock('../web/auth-store.js', () => ({
   webAuthExists: vi.fn(async () => true),
   getWebAuthAgeMs: vi.fn(() => 0),
-  logWebSelfId: /* @__PURE__ */ __name((...args) => logWebSelfIdMock(...args), 'logWebSelfId')
+  logWebSelfId: (...args) => logWebSelfIdMock(...args)
 }));
 describe('healthCommand (coverage)', () => {
   const runtime = {
@@ -39,11 +37,11 @@ describe('healthCommand (coverage)', () => {
             },
             capabilities: { chatTypes: ['direct', 'group'] },
             config: {
-              listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-              resolveAccount: /* @__PURE__ */ __name(() => ({}), 'resolveAccount')
+              listAccountIds: () => ['default'],
+              resolveAccount: () => ({})
             },
             status: {
-              logSelfId: /* @__PURE__ */ __name(() => logWebSelfIdMock(), 'logSelfId')
+              logSelfId: () => logWebSelfIdMock()
             }
           }
         }

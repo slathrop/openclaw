@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 let previousProfile;
 beforeAll(() => {
@@ -87,7 +85,7 @@ vi.mock('../memory/manager.js', () => ({
   MemoryIndexManager: {
     get: vi.fn(async ({ agentId }) => ({
       probeVectorAvailability: vi.fn(async () => true),
-      status: /* @__PURE__ */ __name(() => ({
+      status: () => ({
         files: 2,
         chunks: 3,
         dirty: false,
@@ -106,7 +104,7 @@ vi.mock('../memory/manager.js', () => ({
           extensionPath: '/opt/vec0.dylib',
           dims: 1024
         }
-      }), 'status'),
+      }),
       close: vi.fn(async () => {
       }),
       __agentId: agentId
@@ -121,7 +119,7 @@ vi.mock('../config/sessions.js', () => ({
   recordSessionMetaFromInbound: vi.fn().mockResolvedValue(void 0)
 }));
 vi.mock('../channels/plugins/index.js', () => ({
-  listChannelPlugins: /* @__PURE__ */ __name(() => [
+  listChannelPlugins: () => [
     {
       id: 'whatsapp',
       meta: {
@@ -132,11 +130,11 @@ vi.mock('../channels/plugins/index.js', () => ({
         blurb: 'mock'
       },
       config: {
-        listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-        resolveAccount: /* @__PURE__ */ __name(() => ({}), 'resolveAccount')
+        listAccountIds: () => ['default'],
+        resolveAccount: () => ({})
       },
       status: {
-        buildChannelSummary: /* @__PURE__ */ __name(async () => ({ linked: true, authAgeMs: 5e3 }), 'buildChannelSummary')
+        buildChannelSummary: async () => ({ linked: true, authAgeMs: 5e3 })
       }
     },
     {
@@ -149,15 +147,15 @@ vi.mock('../channels/plugins/index.js', () => ({
         blurb: 'mock'
       },
       config: {
-        listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-        resolveAccount: /* @__PURE__ */ __name(() => ({}), 'resolveAccount')
+        listAccountIds: () => ['default'],
+        resolveAccount: () => ({})
       },
       status: {
-        collectStatusIssues: /* @__PURE__ */ __name((accounts) => accounts.filter((account) => typeof account.lastError === 'string' && account.lastError).map((account) => ({
+        collectStatusIssues: (accounts) => accounts.filter((account) => typeof account.lastError === 'string' && account.lastError).map((account) => ({
           channel: 'signal',
           accountId: typeof account.accountId === 'string' ? account.accountId : 'default',
           message: `Channel error: ${String(account.lastError)}`
-        })), 'collectStatusIssues')
+        }))
       }
     },
     {
@@ -170,18 +168,18 @@ vi.mock('../channels/plugins/index.js', () => ({
         blurb: 'mock'
       },
       config: {
-        listAccountIds: /* @__PURE__ */ __name(() => ['default'], 'listAccountIds'),
-        resolveAccount: /* @__PURE__ */ __name(() => ({}), 'resolveAccount')
+        listAccountIds: () => ['default'],
+        resolveAccount: () => ({})
       },
       status: {
-        collectStatusIssues: /* @__PURE__ */ __name((accounts) => accounts.filter((account) => typeof account.lastError === 'string' && account.lastError).map((account) => ({
+        collectStatusIssues: (accounts) => accounts.filter((account) => typeof account.lastError === 'string' && account.lastError).map((account) => ({
           channel: 'imessage',
           accountId: typeof account.accountId === 'string' ? account.accountId : 'default',
           message: `Channel error: ${String(account.lastError)}`
-        })), 'collectStatusIssues')
+        }))
       }
     }
-  ], 'listChannelPlugins')
+  ]
 }));
 vi.mock('../web/session.js', () => ({
   webAuthExists: mocks.webAuthExists,
@@ -203,12 +201,12 @@ vi.mock('../infra/openclaw-root.js', () => ({
   resolveOpenClawPackageRoot: vi.fn().mockResolvedValue('/tmp/openclaw')
 }));
 vi.mock('../infra/os-summary.js', () => ({
-  resolveOsSummary: /* @__PURE__ */ __name(() => ({
+  resolveOsSummary: () => ({
     platform: 'darwin',
     arch: 'arm64',
     release: '23.0.0',
     label: 'macos 14.0 (arm64)'
-  }), 'resolveOsSummary')
+  })
 }));
 vi.mock('../infra/update-check.js', () => ({
   checkUpdateStatus: vi.fn().mockResolvedValue({
@@ -238,34 +236,34 @@ vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => ({ session: {} }), 'loadConfig')
+    loadConfig: () => ({ session: {} })
   };
 });
 vi.mock('../daemon/service.js', () => ({
-  resolveGatewayService: /* @__PURE__ */ __name(() => ({
+  resolveGatewayService: () => ({
     label: 'LaunchAgent',
     loadedText: 'loaded',
     notLoadedText: 'not loaded',
-    isLoaded: /* @__PURE__ */ __name(async () => true, 'isLoaded'),
-    readRuntime: /* @__PURE__ */ __name(async () => ({ status: 'running', pid: 1234 }), 'readRuntime'),
-    readCommand: /* @__PURE__ */ __name(async () => ({
+    isLoaded: async () => true,
+    readRuntime: async () => ({ status: 'running', pid: 1234 }),
+    readCommand: async () => ({
       programArguments: ['node', 'dist/entry.js', 'gateway'],
       sourcePath: '/tmp/Library/LaunchAgents/bot.molt.gateway.plist'
-    }), 'readCommand')
-  }), 'resolveGatewayService')
+    })
+  })
 }));
 vi.mock('../daemon/node-service.js', () => ({
-  resolveNodeService: /* @__PURE__ */ __name(() => ({
+  resolveNodeService: () => ({
     label: 'LaunchAgent',
     loadedText: 'loaded',
     notLoadedText: 'not loaded',
-    isLoaded: /* @__PURE__ */ __name(async () => true, 'isLoaded'),
-    readRuntime: /* @__PURE__ */ __name(async () => ({ status: 'running', pid: 4321 }), 'readRuntime'),
-    readCommand: /* @__PURE__ */ __name(async () => ({
+    isLoaded: async () => true,
+    readRuntime: async () => ({ status: 'running', pid: 4321 }),
+    readCommand: async () => ({
       programArguments: ['node', 'dist/entry.js', 'node-host'],
       sourcePath: '/tmp/Library/LaunchAgents/bot.molt.node.plist'
-    }), 'readCommand')
-  }), 'resolveNodeService')
+    })
+  })
 }));
 vi.mock('../security/audit.js', () => ({
   runSecurityAudit: mocks.runSecurityAudit

@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,7 +5,7 @@ import { withTempHome as withTempHomeBase } from '../../test/helpers/temp-home.j
 vi.mock('../agents/pi-embedded.js', () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   runEmbeddedPiAgent: vi.fn(),
-  resolveEmbeddedSessionLane: /* @__PURE__ */ __name((key) => `session:${key.trim() || 'main'}`, 'resolveEmbeddedSessionLane')
+  resolveEmbeddedSessionLane: (key) => `session:${key.trim() || 'main'}`
 }));
 vi.mock('../agents/model-catalog.js', () => ({
   loadModelCatalog: vi.fn()
@@ -33,7 +31,6 @@ const configSpy = vi.spyOn(configModule, 'loadConfig');
 async function withTempHome(fn) {
   return withTempHomeBase(fn, { prefix: 'openclaw-agent-' });
 }
-__name(withTempHome, 'withTempHome');
 function mockConfig(home, storePath, agentOverrides, telegramOverrides, agentsList) {
   configSpy.mockReturnValue({
     agents: {
@@ -49,7 +46,6 @@ function mockConfig(home, storePath, agentOverrides, telegramOverrides, agentsLi
     telegram: telegramOverrides ? { ...telegramOverrides } : void 0
   });
 }
-__name(mockConfig, 'mockConfig');
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(runEmbeddedPiAgent).mockResolvedValue({

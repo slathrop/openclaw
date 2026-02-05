@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 let mockCfg = {};
 vi.mock('../config/config.js', async (importOriginal) => {
@@ -26,11 +24,11 @@ describe('sandbox explain command', () => {
     const { sandboxExplainCommand } = await import('./sandbox-explain.js');
     const logs = [];
     await sandboxExplainCommand({ json: true, session: 'agent:main:main' }, {
-      log: /* @__PURE__ */ __name((msg) => logs.push(msg), 'log'),
-      error: /* @__PURE__ */ __name((msg) => logs.push(msg), 'error'),
+      log: (msg) => logs.push(msg),
+      error: (msg) => logs.push(msg),
       // eslint-disable-next-line no-unused-vars
-      exit: /* @__PURE__ */ __name((_code) => {
-      }, 'exit')
+      exit: (_code) => {
+      }
     });
     const out = logs.join('');
     const parsed = JSON.parse(out);

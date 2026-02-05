@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 const getMemorySearchManager = vi.fn();
@@ -30,7 +28,7 @@ describe('memory cli', () => {
     getMemorySearchManager.mockResolvedValueOnce({
       manager: {
         probeVectorAvailability: vi.fn(async () => true),
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 2,
           chunks: 5,
           dirty: false,
@@ -47,7 +45,7 @@ describe('memory cli', () => {
             extensionPath: '/opt/sqlite-vec.dylib',
             dims: 1024
           }
-        }), 'status'),
+        }),
         close
       }
     });
@@ -74,7 +72,7 @@ describe('memory cli', () => {
     getMemorySearchManager.mockResolvedValueOnce({
       manager: {
         probeVectorAvailability: vi.fn(async () => false),
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 0,
           chunks: 0,
           dirty: true,
@@ -88,7 +86,7 @@ describe('memory cli', () => {
             available: false,
             loadError: 'load failed'
           }
-        }), 'status'),
+        }),
         close
       }
     });
@@ -112,7 +110,7 @@ describe('memory cli', () => {
       manager: {
         probeVectorAvailability: vi.fn(async () => true),
         probeEmbeddingAvailability,
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 1,
           chunks: 1,
           dirty: false,
@@ -122,7 +120,7 @@ describe('memory cli', () => {
           model: 'text-embedding-3-small',
           requestedProvider: 'openai',
           vector: { enabled: true, available: true }
-        }), 'status'),
+        }),
         close
       }
     });
@@ -144,7 +142,7 @@ describe('memory cli', () => {
     getMemorySearchManager.mockResolvedValueOnce({
       manager: {
         probeVectorAvailability: vi.fn(async () => true),
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 0,
           chunks: 0,
           dirty: false,
@@ -154,7 +152,7 @@ describe('memory cli', () => {
           model: 'text-embedding-3-small',
           requestedProvider: 'openai',
           vector: { enabled: true, available: true }
-        }), 'status'),
+        }),
         close
       }
     });
@@ -173,7 +171,7 @@ describe('memory cli', () => {
     getMemorySearchManager.mockResolvedValueOnce({
       manager: {
         probeVectorAvailability: vi.fn(async () => true),
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 1,
           chunks: 1,
           dirty: false,
@@ -182,7 +180,7 @@ describe('memory cli', () => {
           provider: 'openai',
           model: 'text-embedding-3-small',
           requestedProvider: 'openai'
-        }), 'status'),
+        }),
         close
       }
     });
@@ -211,7 +209,7 @@ describe('memory cli', () => {
         probeVectorAvailability: vi.fn(async () => true),
         probeEmbeddingAvailability,
         sync,
-        status: /* @__PURE__ */ __name(() => ({
+        status: () => ({
           files: 1,
           chunks: 1,
           dirty: false,
@@ -221,7 +219,7 @@ describe('memory cli', () => {
           model: 'text-embedding-3-small',
           requestedProvider: 'openai',
           vector: { enabled: true, available: true }
-        }), 'status'),
+        }),
         close
       }
     });

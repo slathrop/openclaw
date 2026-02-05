@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   clackIntro: vi.fn(),
@@ -43,9 +41,9 @@ vi.mock('../terminal/note.js', () => ({
 }));
 vi.mock('./onboard-helpers.js', () => ({
   DEFAULT_WORKSPACE: '~/.openclaw/workspace',
-  applyWizardMetadata: /* @__PURE__ */ __name((cfg) => cfg, 'applyWizardMetadata'),
+  applyWizardMetadata: (cfg) => cfg,
   ensureWorkspaceAndSessions: vi.fn(),
-  guardCancel: /* @__PURE__ */ __name((value) => value, 'guardCancel'),
+  guardCancel: (value) => value,
   printWizardHeader: mocks.printWizardHeader,
   probeGatewayReachable: mocks.probeGatewayReachable,
   resolveControlUiLinks: mocks.resolveControlUiLinks,

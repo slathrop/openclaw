@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatHealthChannelLines, healthCommand } from './health.js';
 const runtime = {
@@ -9,7 +7,7 @@ const runtime = {
 };
 const callGatewayMock = vi.fn();
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((...args) => callGatewayMock(...args), 'callGateway')
+  callGateway: (...args) => callGatewayMock(...args)
 }));
 describe('healthCommand', () => {
   beforeEach(() => {

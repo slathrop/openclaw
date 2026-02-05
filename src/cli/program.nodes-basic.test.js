@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const messageCommand = vi.fn();
 const statusCommand = vi.fn();
@@ -41,14 +39,14 @@ vi.mock('./channel-auth.js', () => ({ runChannelLogin, runChannelLogout }));
 vi.mock('../tui/tui.js', () => ({ runTui }));
 vi.mock('../gateway/call.js', () => ({
   callGateway,
-  randomIdempotencyKey: /* @__PURE__ */ __name(() => 'idem-test', 'randomIdempotencyKey'),
-  buildGatewayConnectionDetails: /* @__PURE__ */ __name(() => ({
+  randomIdempotencyKey: () => 'idem-test',
+  buildGatewayConnectionDetails: () => ({
     url: 'ws://127.0.0.1:1234',
     urlSource: 'test',
     message: 'Gateway target: ws://127.0.0.1:1234'
-  }), 'buildGatewayConnectionDetails')
+  })
 }));
-vi.mock('./deps.js', () => ({ createDefaultDeps: /* @__PURE__ */ __name(() => ({}), 'createDefaultDeps') }));
+vi.mock('./deps.js', () => ({ createDefaultDeps: () => ({}) }));
 const { buildProgram } = await import('./program.js');
 describe('cli program (nodes basics)', () => {
   beforeEach(() => {

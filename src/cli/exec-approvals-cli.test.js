@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
 const callGatewayFromCli = vi.fn(async (method, _opts, params) => {
@@ -16,11 +14,11 @@ const callGatewayFromCli = vi.fn(async (method, _opts, params) => {
 const runtimeLogs = [];
 const runtimeErrors = [];
 const defaultRuntime = {
-  log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-  error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  log: (msg) => runtimeLogs.push(msg),
+  error: (msg) => runtimeErrors.push(msg),
+  exit: (code) => {
     throw new Error(`__exit__:${code}`);
-  }, 'exit')
+  }
 };
 const localSnapshot = {
   path: '/tmp/local-exec-approvals.json',
@@ -30,7 +28,7 @@ const localSnapshot = {
   file: { version: 1, agents: {} }
 };
 vi.mock('./gateway-rpc.js', () => ({
-  callGatewayFromCli: /* @__PURE__ */ __name((method, opts, params) => callGatewayFromCli(method, opts, params), 'callGatewayFromCli')
+  callGatewayFromCli: (method, opts, params) => callGatewayFromCli(method, opts, params)
 }));
 vi.mock('./nodes-cli/rpc.js', async () => {
   const actual = await vi.importActual('./nodes-cli/rpc.js');
@@ -48,7 +46,7 @@ vi.mock('../infra/exec-approvals.js', async () => {
   );
   return {
     ...actual,
-    readExecApprovalsSnapshot: /* @__PURE__ */ __name(() => localSnapshot, 'readExecApprovalsSnapshot'),
+    readExecApprovalsSnapshot: () => localSnapshot,
     saveExecApprovals: vi.fn()
   };
 });

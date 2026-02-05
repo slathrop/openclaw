@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -9,7 +7,7 @@ vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => ({
+    loadConfig: () => ({
       agents: {
         defaults: {
           model: { primary: 'pi:opus' },
@@ -17,33 +15,33 @@ vi.mock('../config/config.js', async (importOriginal) => {
           contextTokens: 32e3
         }
       }
-    }), 'loadConfig')
+    })
   };
 });
 import { sessionsCommand } from './sessions.js';
-const makeRuntime = /* @__PURE__ */ __name(() => {
+const makeRuntime = () => {
   const logs = [];
   return {
     runtime: {
-      log: /* @__PURE__ */ __name((msg) => logs.push(String(msg)), 'log'),
-      error: /* @__PURE__ */ __name((msg) => {
+      log: (msg) => logs.push(String(msg)),
+      error: (msg) => {
         throw new Error(String(msg));
-      }, 'error'),
-      exit: /* @__PURE__ */ __name((code) => {
+      },
+      exit: (code) => {
         throw new Error(`exit ${code}`);
-      }, 'exit')
+      }
     },
     logs
   };
-}, 'makeRuntime');
-const writeStore = /* @__PURE__ */ __name((data) => {
+};
+const writeStore = (data) => {
   const file = path.join(
     os.tmpdir(),
     `sessions-${Date.now()}-${Math.random().toString(16).slice(2)}.json`
   );
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
   return file;
-}, 'writeStore');
+};
 describe('sessionsCommand', () => {
   beforeEach(() => {
     vi.useFakeTimers();

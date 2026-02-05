@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
 const callGateway = vi.fn(async (opts) => {
@@ -53,21 +51,21 @@ const randomIdempotencyKey = vi.fn(() => 'rk_test');
 const runtimeLogs = [];
 const runtimeErrors = [];
 const defaultRuntime = {
-  log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-  error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  log: (msg) => runtimeLogs.push(msg),
+  error: (msg) => runtimeErrors.push(msg),
+  exit: (code) => {
     throw new Error(`__exit__:${code}`);
-  }, 'exit')
+  }
 };
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((opts) => callGateway(opts), 'callGateway'),
-  randomIdempotencyKey: /* @__PURE__ */ __name(() => randomIdempotencyKey(), 'randomIdempotencyKey')
+  callGateway: (opts) => callGateway(opts),
+  randomIdempotencyKey: () => randomIdempotencyKey()
 }));
 vi.mock('../runtime.js', () => ({
   defaultRuntime
 }));
 vi.mock('../config/config.js', () => ({
-  loadConfig: /* @__PURE__ */ __name(() => ({}), 'loadConfig')
+  loadConfig: () => ({})
 }));
 describe('nodes-cli coverage', () => {
   it('lists nodes via node.list', async () => {

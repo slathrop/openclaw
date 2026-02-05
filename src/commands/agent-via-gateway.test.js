@@ -1,12 +1,10 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../gateway/call.js', () => ({
   callGateway: vi.fn(),
-  randomIdempotencyKey: /* @__PURE__ */ __name(() => 'idem-1', 'randomIdempotencyKey')
+  randomIdempotencyKey: () => 'idem-1'
 }));
 vi.mock('./agent.js', () => ({
   agentCommand: vi.fn()
@@ -37,7 +35,6 @@ function mockConfig(storePath, overrides) {
     gateway: overrides?.gateway
   });
 }
-__name(mockConfig, 'mockConfig');
 beforeEach(() => {
   vi.clearAllMocks();
 });

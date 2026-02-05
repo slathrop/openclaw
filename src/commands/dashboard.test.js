@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { dashboardCommand } from './dashboard.js';
 const mocks = vi.hoisted(() => ({
@@ -34,7 +32,6 @@ function resetRuntime() {
   runtime.error.mockClear();
   runtime.exit.mockClear();
 }
-__name(resetRuntime, 'resetRuntime');
 function mockSnapshot(token = 'abc') {
   mocks.readConfigFileSnapshot.mockResolvedValue({
     path: '/tmp/openclaw.json',
@@ -52,7 +49,6 @@ function mockSnapshot(token = 'abc') {
     wsUrl: 'ws://127.0.0.1:18789'
   });
 }
-__name(mockSnapshot, 'mockSnapshot');
 describe('dashboardCommand', () => {
   beforeEach(() => {
     resetRuntime();

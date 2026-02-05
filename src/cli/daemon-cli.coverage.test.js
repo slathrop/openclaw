@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Command } from 'commander';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const callGateway = vi.fn(async () => ({ ok: true }));
@@ -23,20 +21,20 @@ const inspectPortUsage = vi.fn(async (port) => ({
 const runtimeLogs = [];
 const runtimeErrors = [];
 const defaultRuntime = {
-  log: /* @__PURE__ */ __name((msg) => runtimeLogs.push(msg), 'log'),
-  error: /* @__PURE__ */ __name((msg) => runtimeErrors.push(msg), 'error'),
-  exit: /* @__PURE__ */ __name((code) => {
+  log: (msg) => runtimeLogs.push(msg),
+  error: (msg) => runtimeErrors.push(msg),
+  exit: (code) => {
     throw new Error(`__exit__:${code}`);
-  }, 'exit')
+  }
 };
 vi.mock('../gateway/call.js', () => ({
-  callGateway: /* @__PURE__ */ __name((opts) => callGateway(opts), 'callGateway')
+  callGateway: (opts) => callGateway(opts)
 }));
 vi.mock('../daemon/program-args.js', () => ({
-  resolveGatewayProgramArguments: /* @__PURE__ */ __name((opts) => resolveGatewayProgramArguments(opts), 'resolveGatewayProgramArguments')
+  resolveGatewayProgramArguments: (opts) => resolveGatewayProgramArguments(opts)
 }));
 vi.mock('../daemon/service.js', () => ({
-  resolveGatewayService: /* @__PURE__ */ __name(() => ({
+  resolveGatewayService: () => ({
     label: 'LaunchAgent',
     loadedText: 'loaded',
     notLoadedText: 'not loaded',
@@ -47,28 +45,28 @@ vi.mock('../daemon/service.js', () => ({
     isLoaded: serviceIsLoaded,
     readCommand: serviceReadCommand,
     readRuntime: serviceReadRuntime
-  }), 'resolveGatewayService')
+  })
 }));
 vi.mock('../daemon/legacy.js', () => ({
-  findLegacyGatewayServices: /* @__PURE__ */ __name(async () => [], 'findLegacyGatewayServices')
+  findLegacyGatewayServices: async () => []
 }));
 vi.mock('../daemon/inspect.js', () => ({
-  findExtraGatewayServices: /* @__PURE__ */ __name((env, opts) => findExtraGatewayServices(env, opts), 'findExtraGatewayServices'),
-  renderGatewayServiceCleanupHints: /* @__PURE__ */ __name(() => [], 'renderGatewayServiceCleanupHints')
+  findExtraGatewayServices: (env, opts) => findExtraGatewayServices(env, opts),
+  renderGatewayServiceCleanupHints: () => []
 }));
 vi.mock('../infra/ports.js', () => ({
-  inspectPortUsage: /* @__PURE__ */ __name((port) => inspectPortUsage(port), 'inspectPortUsage'),
-  formatPortDiagnostics: /* @__PURE__ */ __name(() => ['Port 18789 is already in use.'], 'formatPortDiagnostics')
+  inspectPortUsage: (port) => inspectPortUsage(port),
+  formatPortDiagnostics: () => ['Port 18789 is already in use.']
 }));
 vi.mock('../runtime.js', () => ({
   defaultRuntime
 }));
 vi.mock('./deps.js', () => ({
-  createDefaultDeps: /* @__PURE__ */ __name(() => {
-  }, 'createDefaultDeps')
+  createDefaultDeps: () => {
+  }
 }));
 vi.mock('./progress.js', () => ({
-  withProgress: /* @__PURE__ */ __name(async (_opts, fn) => await fn(), 'withProgress')
+  withProgress: async (_opts, fn) => await fn()
 }));
 describe('daemon-cli coverage', () => {
   const originalEnv = {
