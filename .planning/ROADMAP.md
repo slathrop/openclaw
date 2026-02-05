@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
 - [x] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
-- [ ] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
+- [x] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
 - [ ] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
 - [ ] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
 - [ ] **Phase 6: Verification and Parity** - Validate all tests pass, coverage holds, and every feature works identically
@@ -75,14 +75,14 @@ Plans:
   5. Gateway server starts and accepts WebSocket connections when run from the converted source
 
 Plans:
-- [ ] 03-01-PLAN.md -- Install esbuild, convert logging, sessions, terminal, and providers
+- [x] 03-01-PLAN.md -- Install esbuild, convert logging, sessions, terminal, and providers
 - [x] 03-02-PLAN.md -- Convert memory subsystem and plugin system
-- [ ] 03-03-PLAN.md -- Convert gateway protocol layer (TypeBox/Zod schemas)
+- [x] 03-03-PLAN.md -- Convert gateway protocol layer (TypeBox/Zod schemas)
 - [x] 03-04-PLAN.md -- Convert gateway source files (root, server, server-methods)
-- [ ] 03-05-PLAN.md -- Convert agents root-level source files
+- [x] 03-05-PLAN.md -- Convert agents root-level source files
 - [x] 03-06-PLAN.md -- Convert agents subdirectories (tools, auth-profiles, pi-embedded, sandbox, skills)
-- [ ] 03-07-PLAN.md -- Convert gateway test files and verify full gateway test suite
-- [ ] 03-08-PLAN.md -- Convert agents root-level test files and verify root-level test suite
+- [x] 03-07-PLAN.md -- Convert gateway test files and verify full gateway test suite
+- [x] 03-08-PLAN.md -- Convert agents root-level test files and verify root-level test suite
 
 ### Phase 4: CLI and Channels
 **Goal**: The CLI layer, all commands, and all nine messaging channel implementations are converted to idiomatic JavaScript
@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
 | 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
-| 3. Core Services | 7/8 | In progress | - |
+| 3. Core Services | 8/8 | Complete | 2026-02-05 |
 | 4. CLI and Channels | 0/3 | Not started | - |
 | 5. UI and Extensions | 0/3 | Not started | - |
 | 6. Verification and Parity | 0/3 | Not started | - |
