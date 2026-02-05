@@ -111,12 +111,12 @@ Plans:
   3. All extension packages in `extensions/` are JavaScript with updated package.json files for JS-only workflow
   4. All colocated test files (`*.test.ts`) across the entire codebase have been converted to JavaScript (`*.test.js`)
   5. Zero `.ts` files remain in `src/`, `ui/src/`, or `extensions/` (excluding declaration files if any are deliberately retained)
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: Convert web UI source and Vite configuration
-- [ ] 05-02: Convert extension packages
-- [ ] 05-03: Convert all remaining test files and verify zero .ts files remain
+- [ ] 05-01-PLAN.md -- Convert web UI source (113 Lit files) and Vite/Vitest configuration
+- [ ] 05-02-PLAN.md -- Convert all 31 extension packages (394 files) and update package.json configs
+- [ ] 05-03-PLAN.md -- Convert remaining src/ directories (571 files), test/ (15 files), update vitest configs, verify zero .ts
 
 ### Phase 6: Verification and Parity
 **Goal**: Every feature works identically to the TypeScript version, all tests pass, and coverage thresholds are maintained
