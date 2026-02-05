@@ -1,11 +1,8 @@
-import type { DatabaseSync } from "node:sqlite";
-
-export function ensureMemoryIndexSchema(params: {
-  db: DatabaseSync;
-  embeddingCacheTable: string;
-  ftsTable: string;
-  ftsEnabled: boolean;
-}): { ftsAvailable: boolean; ftsError?: string } {
+/**
+ * @param params
+ * @module memory/memory-schema - SQLite schema definition for the memory index database.
+ */
+function ensureMemoryIndexSchema(params) {
   params.db.exec(`
     CREATE TABLE IF NOT EXISTS meta (
       key TEXT PRIMARY KEY,
@@ -48,23 +45,22 @@ export function ensureMemoryIndexSchema(params: {
     );
   `);
   params.db.exec(
-    `CREATE INDEX IF NOT EXISTS idx_embedding_cache_updated_at ON ${params.embeddingCacheTable}(updated_at);`,
+    `CREATE INDEX IF NOT EXISTS idx_embedding_cache_updated_at ON ${params.embeddingCacheTable}(updated_at);`
   );
-
   let ftsAvailable = false;
-  let ftsError: string | undefined;
+  let ftsError;
   if (params.ftsEnabled) {
     try {
       params.db.exec(
-        `CREATE VIRTUAL TABLE IF NOT EXISTS ${params.ftsTable} USING fts5(\n` +
-          `  text,\n` +
-          `  id UNINDEXED,\n` +
-          `  path UNINDEXED,\n` +
-          `  source UNINDEXED,\n` +
-          `  model UNINDEXED,\n` +
-          `  start_line UNINDEXED,\n` +
-          `  end_line UNINDEXED\n` +
-          `);`,
+        `CREATE VIRTUAL TABLE IF NOT EXISTS ${params.ftsTable} USING fts5(
+  text,
+  id UNINDEXED,
+  path UNINDEXED,
+  source UNINDEXED,
+  model UNINDEXED,
+  start_line UNINDEXED,
+  end_line UNINDEXED
+);`
       );
       ftsAvailable = true;
     } catch (err) {
@@ -73,24 +69,19 @@ export function ensureMemoryIndexSchema(params: {
       ftsError = message;
     }
   }
-
-  ensureColumn(params.db, "files", "source", "TEXT NOT NULL DEFAULT 'memory'");
-  ensureColumn(params.db, "chunks", "source", "TEXT NOT NULL DEFAULT 'memory'");
-  params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);`);
-  params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source);`);
-
-  return { ftsAvailable, ...(ftsError ? { ftsError } : {}) };
+  ensureColumn(params.db, 'files', 'source', "TEXT NOT NULL DEFAULT 'memory'");
+  ensureColumn(params.db, 'chunks', 'source', "TEXT NOT NULL DEFAULT 'memory'");
+  params.db.exec('CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);');
+  params.db.exec('CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source);');
+  return { ftsAvailable, ...ftsError ? { ftsError } : {} };
 }
-
-function ensureColumn(
-  db: DatabaseSync,
-  table: "files" | "chunks",
-  column: string,
-  definition: string,
-): void {
-  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+function ensureColumn(db, table, column, definition) {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all();
   if (rows.some((row) => row.name === column)) {
     return;
   }
   db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
+export {
+  ensureMemoryIndexSchema
+};

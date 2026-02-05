@@ -1,33 +1,31 @@
-import { fingerprintHeaderNames } from "./headers-fingerprint.js";
-import { hashText } from "./internal.js";
-
-export function computeEmbeddingProviderKey(params: {
-  providerId: string;
-  providerModel: string;
-  openAi?: { baseUrl: string; model: string; headers: Record<string, string> };
-  gemini?: { baseUrl: string; model: string; headers: Record<string, string> };
-}): string {
+/** @module memory/provider-key - Provider key computation for cache invalidation. */
+import { fingerprintHeaderNames } from './headers-fingerprint.js';
+import { hashText } from './internal.js';
+function computeEmbeddingProviderKey(params) {
   if (params.openAi) {
     const headerNames = fingerprintHeaderNames(params.openAi.headers);
     return hashText(
       JSON.stringify({
-        provider: "openai",
+        provider: 'openai',
         baseUrl: params.openAi.baseUrl,
         model: params.openAi.model,
-        headerNames,
-      }),
+        headerNames
+      })
     );
   }
   if (params.gemini) {
     const headerNames = fingerprintHeaderNames(params.gemini.headers);
     return hashText(
       JSON.stringify({
-        provider: "gemini",
+        provider: 'gemini',
         baseUrl: params.gemini.baseUrl,
         model: params.gemini.model,
-        headerNames,
-      }),
+        headerNames
+      })
     );
   }
   return hashText(JSON.stringify({ provider: params.providerId, model: params.providerModel }));
 }
+export {
+  computeEmbeddingProviderKey
+};
