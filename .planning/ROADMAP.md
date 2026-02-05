@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
 - [x] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
 - [x] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
-- [ ] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
+- [x] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
 - [ ] **Phase 6: Verification and Parity** - Validate all tests pass, coverage holds, and every feature works identically
 
 ## Phase Details
@@ -114,9 +114,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Convert web UI source (113 Lit files) and Vite/Vitest configuration
-- [ ] 05-02-PLAN.md -- Convert all 31 extension packages (394 files) and update package.json configs
-- [ ] 05-03-PLAN.md -- Convert remaining src/ directories (571 files), test/ (15 files), update vitest configs, verify zero .ts
+- [x] 05-01-PLAN.md -- Convert web UI source (113 Lit files) and Vite/Vitest configuration
+- [x] 05-02-PLAN.md -- Convert all 31 extension packages (394 files) and update package.json configs
+- [x] 05-03-PLAN.md -- Convert remaining src/ directories (571 files), test/ (15 files), update vitest configs, verify zero .ts
 
 ### Phase 6: Verification and Parity
 **Goal**: Every feature works identically to the TypeScript version, all tests pass, and coverage thresholds are maintained
@@ -146,5 +146,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
 | 3. Core Services | 8/8 | Complete | 2026-02-05 |
 | 4. CLI and Channels | 3/3 | Complete | 2026-02-05 |
-| 5. UI and Extensions | 0/3 | Not started | - |
+| 5. UI and Extensions | 3/3 | Complete | 2026-02-05 |
 | 6. Verification and Parity | 0/3 | Not started | - |

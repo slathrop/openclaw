@@ -14,13 +14,13 @@ Plan: 3 of 3 in current phase (all done)
 Status: Phase complete
 Last activity: 2026-02-05 -- Completed 05-03-PLAN.md (final src/test conversion: 586 files)
 
-Progress: [===========================] 100% (30/30 total plans)
+Progress: [========================>] 97% (29/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 30
+- Total plans completed: 29
 - Average duration: ~15m
 - Total execution time: ~7.8 hours
 
@@ -158,6 +158,7 @@ Recent decisions affecting current work:
 - 05-03: Parsing errors fixed: const without init (pw-tools-core.responses.js), shebang after global comment (macos/*.js)
 - 05-03: prefer-const fixes via destructuring splits in get-reply.js, get-reply-run.js, agent-runner.js
 - 05-03: All 6 vitest configs updated: setupFiles .ts->.js, include patterns .ts removed, alias .ts->.js, coverage .ts->.js
+- Orchestrator: extensionAPI.js import paths fixed from .ts to .js (missed in Phase 3 conversion when agents/ was still .ts)
 
 ### Pending Todos
 
