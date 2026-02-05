@@ -113,6 +113,8 @@ Recent decisions affecting current work:
 - 03-02: Plugin types.js created as JSDoc-only typedef file (420+ lines, no runtime exports)
 - 03-02: {[key: string]: T} used instead of Object<string, T> for ESLint jsdoc/check-types
 - 03-02: Parallel agent (03-03) committed most plugins .js files; 8 remaining .ts deletions completed here
+- 03-02: shell-utils.js syntax error (mismatched parens in null check) fixed to unblock plugin tests
+- 03-02: esbuild added as devDependency for bulk TS type stripping
 
 ### Pending Todos
 
