@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 3 of 6 (Core Services)
-Plan: 1 of 8 in current phase
+Plan: 2 of 8 in current phase (03-03 done; wave 2 in progress)
 Status: In progress
-Last activity: 2026-02-05 -- Completed 03-01-PLAN.md (logging, sessions, terminal, providers)
+Last activity: 2026-02-05 -- Completed 03-03-PLAN.md (gateway protocol layer)
 
-Progress: [==============......] 47% (14/30 total plans)
+Progress: [===============.....] 50% (15/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: ~13m
-- Total execution time: ~3 hours
+- Total execution time: ~3.2 hours
 
 **By Phase:**
 
@@ -30,12 +30,12 @@ Progress: [==============......] 47% (14/30 total plans)
 | --------------------- | ----- | ------- | -------- |
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
-| 3. Core Services      | 1/8   | ~15m    | ~15m     |
+| 3. Core Services      | 2/8   | ~25m    | ~13m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 03-01 (~15m), 02-10 (9m), 02-06 (~12m), 02-09 (~25m), 02-03 (29m)
-- Trend: 03-01 consistent with Phase 2 average; straightforward leaf module conversion
+- Last 5 plans: 03-03 (~10m), 03-01 (~15m), 02-10 (9m), 02-06 (~12m), 02-09 (~25m)
+- Trend: Protocol schemas very fast (near-pure runtime JS, minimal conversion)
 
 _Updated after each plan completion_
 
@@ -94,6 +94,11 @@ Recent decisions affecting current work:
 - 03-01: as const removed from arrays (unnecessary in JS); runtime behavior unchanged
 - 03-01: Generic parseJsonResponse<T> simplified to untyped return (JS has no generics)
 - 03-01: /** @type {any} */ cast pattern for test fixtures replacing as unknown as Type
+- 03-03: types.ts converted to JSDoc typedef-only file with Static<typeof Schema> references
+- 03-03: Ajv constructor simplified with @type {any} cast (replacing as unknown as new ...)
+- 03-03: as const removed from object literals (GATEWAY_CLIENT_IDS etc); unnecessary in JS
+- 03-03: Generic Set<T> types removed; inference from Object.values() is sufficient
+- 03-03: Protocol root files committed by parallel agent 03-05 (multi-agent interleave)
 
 ### Pending Todos
 
@@ -106,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-05T01:54:00Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-02-05T05:16:00Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
