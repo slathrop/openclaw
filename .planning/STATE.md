@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** Human-friendly JavaScript that senior engineers will accept and maintain
-**Current focus:** Phase 3 (Core Services) -- COMPLETE
+**Current focus:** Phase 4 (CLI and Channels) -- In progress
 
 ## Current Position
 
-Phase: 3 of 6 (Core Services) -- COMPLETE
-Plan: 8 of 8 in current phase (03-01 through 03-08 done)
-Status: Complete
-Last activity: 2026-02-05 -- Phase 3 complete (all 8 plans executed)
+Phase: 4 of 6 (CLI and Channels)
+Plan: 2 of 3 in current phase (04-02 done)
+Status: In progress
+Last activity: 2026-02-05 -- Completed 04-02-PLAN.md (channel conversion)
 
-Progress: [===============>....] 73% (22/30 total plans)
+Progress: [=================>..] 80% (24/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 22
-- Average duration: ~13m
-- Total execution time: ~4.6 hours
+- Total plans completed: 24
+- Average duration: ~14m
+- Total execution time: ~5.2 hours
 
 **By Phase:**
 
@@ -31,11 +31,12 @@ Progress: [===============>....] 73% (22/30 total plans)
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
 | 3. Core Services      | 8/8   | ~107m   | ~13m     |
+| 4. CLI and Channels   | 2/3   | ~18m    | ~18m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 03-07 (~13m), 03-08 (~11m), 03-04 (~15m), 03-06 (~12m), 03-05 (~11m)
-- Trend: Consistent ~10-15m for conversion; multi-agent interleaving working smoothly
+- Last 5 plans: 04-02 (~18m), 03-07 (~13m), 03-08 (~11m), 03-04 (~15m), 03-06 (~12m)
+- Trend: Larger batches (220 files) take ~18m; __name boilerplate removal added time
 
 _Updated after each plan completion_
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - 03-07: esbuild == null regex can produce broken parens when original has if(...); manual review needed
 - 03-07: Missing vitest imports (beforeEach/afterEach, agentCommand) pre-existed in TS but only surfaced in JS eslint
 - 03-07: Empty finally blocks annotated as server lifecycle placeholders (openai-http, openresponses-http)
+- 04-02: esbuild keepNames boilerplate (__defProp/__name) must be removed from all converted files (breaks vi.mock hoisting)
+- 04-02: Private constructor params expanded correctly by esbuild (no manual underscore-prefix needed)
+- 04-02: Null equality regex must use word-boundary matching to avoid capturing opening parens
 
 ### Pending Todos
 
@@ -142,6 +146,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Phase 3 complete — all 8 plans executed
+Stopped at: Completed 04-02-PLAN.md (channel conversion: telegram, discord, whatsapp, slack)
 Resume file: None
-Next action: Plan Phase 4 (CLI and Channels)
+Next action: Execute 04-03 (remaining channels: signal, imessage, web, channels, routing) or 04-01 (CLI)
