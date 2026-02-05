@@ -10,7 +10,6 @@
  * (API keys, tokens, passwords) from the process environment into config.
  * The uppercase-only pattern restriction limits the attack surface, but
  * any env var matching `[A-Z_][A-Z0-9_]*` can be referenced.
- *
  * @example
  * ```json5
  * {
@@ -147,7 +146,6 @@ function substituteAny(value, env, configPath) {
 
 /**
  * Resolves `${VAR_NAME}` environment variable references in config values.
- *
  * @param {unknown} obj - The parsed config object (after JSON5 parse and $include resolution)
  * @param {NodeJS.ProcessEnv} [env] - Environment variables to use for substitution (defaults to process.env)
  * @returns {unknown} The config object with env vars substituted

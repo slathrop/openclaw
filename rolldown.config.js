@@ -19,7 +19,7 @@ const shared = {
 
 export default defineConfig([
   {
-    input: 'src/index.ts',
+    input: 'src/index.js',
     output: {
       dir: 'dist',
       format: 'esm'
@@ -27,7 +27,7 @@ export default defineConfig([
     ...shared
   },
   {
-    input: 'src/entry.ts',
+    input: 'src/entry.js',
     output: {
       dir: 'dist',
       format: 'esm'
