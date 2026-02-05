@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { sequentialize } from '@grammyjs/runner';
 import { apiThrottler } from '@grammyjs/transformer-throttler';
 import { Bot, webhookCallback } from 'grammy';
@@ -65,14 +63,13 @@ function getTelegramSequentialKey(ctx) {
   }
   return 'telegram:unknown';
 }
-__name(getTelegramSequentialKey, 'getTelegramSequentialKey');
 function createTelegramBot(opts) {
   const runtime = opts.runtime ?? {
     log: console.log,
     error: console.error,
-    exit: /* @__PURE__ */ __name((code) => {
+    exit: (code) => {
       throw new Error(`exit ${code}`);
-    }, 'exit')
+    }
   };
   const cfg = opts.config ?? loadConfig();
   const account = resolveTelegramAccount({
@@ -97,7 +94,7 @@ function createTelegramBot(opts) {
   });
   const recentUpdates = createTelegramUpdateDedupe();
   let lastUpdateId = typeof opts.updateOffset?.lastUpdateId === 'number' ? opts.updateOffset.lastUpdateId : null;
-  const recordUpdateId = /* @__PURE__ */ __name((ctx) => {
+  const recordUpdateId = (ctx) => {
     const updateId = resolveTelegramUpdateId(ctx);
     if (typeof updateId !== 'number') {
       return;
@@ -107,8 +104,8 @@ function createTelegramBot(opts) {
     }
     lastUpdateId = updateId;
     void opts.updateOffset?.onUpdateId?.(updateId);
-  }, 'recordUpdateId');
-  const shouldSkipUpdate = /* @__PURE__ */ __name((ctx) => {
+  };
+  const shouldSkipUpdate = (ctx) => {
     const updateId = resolveTelegramUpdateId(ctx);
     if (typeof updateId === 'number' && lastUpdateId !== null) {
       if (updateId <= lastUpdateId) {
@@ -121,12 +118,12 @@ function createTelegramBot(opts) {
       logVerbose(`telegram dedupe: skipped ${key}`);
     }
     return skipped;
-  }, 'shouldSkipUpdate');
+  };
   const rawUpdateLogger = createSubsystemLogger('gateway/channels/telegram/raw-update');
   const MAX_RAW_UPDATE_CHARS = 8e3;
   const MAX_RAW_UPDATE_STRING = 500;
   const MAX_RAW_UPDATE_ARRAY = 20;
-  const stringifyUpdate = /* @__PURE__ */ __name((update) => {
+  const stringifyUpdate = (update) => {
     const seen = /* @__PURE__ */ new WeakSet();
     return JSON.stringify(update ?? null, (key, value) => {
       if (typeof value === 'string' && value.length > MAX_RAW_UPDATE_STRING) {
@@ -146,7 +143,7 @@ function createTelegramBot(opts) {
       }
       return value;
     });
-  }, 'stringifyUpdate');
+  };
   bot.use(async (ctx, next) => {
     if (shouldLogVerbose()) {
       try {
@@ -190,7 +187,7 @@ function createTelegramBot(opts) {
   const logger = getChildLogger({ module: 'telegram-auto-reply' });
   const streamMode = resolveTelegramStreamMode(telegramCfg);
   let botHasTopicsEnabled;
-  const resolveBotTopicsEnabled = /* @__PURE__ */ __name(async (ctx) => {
+  const resolveBotTopicsEnabled = async (ctx) => {
     if (typeof ctx?.me?.has_topics_enabled === 'boolean') {
       botHasTopicsEnabled = ctx.me.has_topics_enabled;
       return botHasTopicsEnabled;
@@ -206,7 +203,7 @@ function createTelegramBot(opts) {
       const me = await withTelegramApiErrorLogging({
         operation: 'getMe',
         runtime,
-        fn: /* @__PURE__ */ __name(() => bot.api.getMe(), 'fn')
+        fn: () => bot.api.getMe()
       });
       botHasTopicsEnabled = Boolean(me?.has_topics_enabled);
     } catch (err) {
@@ -214,14 +211,14 @@ function createTelegramBot(opts) {
       botHasTopicsEnabled = false;
     }
     return botHasTopicsEnabled;
-  }, 'resolveBotTopicsEnabled');
-  const resolveGroupPolicy = /* @__PURE__ */ __name((chatId) => resolveChannelGroupPolicy({
+  };
+  const resolveGroupPolicy = (chatId) => resolveChannelGroupPolicy({
     cfg,
     channel: 'telegram',
     accountId: account.accountId,
     groupId: String(chatId)
-  }), 'resolveGroupPolicy');
-  const resolveGroupActivation = /* @__PURE__ */ __name((params) => {
+  });
+  const resolveGroupActivation = (params) => {
     const agentId = params.agentId ?? resolveDefaultAgentId(cfg);
     const sessionKey = params.sessionKey ?? `agent:${agentId}:telegram:group:${buildTelegramGroupPeerId(params.chatId, params.messageThreadId)}`;
     const storePath = resolveStorePath(cfg.session?.store, { agentId });
@@ -238,16 +235,16 @@ function createTelegramBot(opts) {
       logVerbose(`Failed to load session for activation check: ${String(err)}`);
     }
     return void 0;
-  }, 'resolveGroupActivation');
-  const resolveGroupRequireMention = /* @__PURE__ */ __name((chatId) => resolveChannelGroupRequireMention({
+  };
+  const resolveGroupRequireMention = (chatId) => resolveChannelGroupRequireMention({
     cfg,
     channel: 'telegram',
     accountId: account.accountId,
     groupId: String(chatId),
     requireMentionOverride: opts.requireMention,
     overrideOrder: 'after-config'
-  }), 'resolveGroupRequireMention');
-  const resolveTelegramGroupConfig = /* @__PURE__ */ __name((chatId, messageThreadId) => {
+  });
+  const resolveTelegramGroupConfig = (chatId, messageThreadId) => {
     const groups = telegramCfg.groups;
     if (!groups) {
       return { groupConfig: void 0, topicConfig: void 0 };
@@ -256,7 +253,7 @@ function createTelegramBot(opts) {
     const groupConfig = groups[groupKey] ?? groups['*'];
     const topicConfig = messageThreadId !== null && messageThreadId !== undefined ? groupConfig?.topics?.[String(messageThreadId)] : void 0;
     return { groupConfig, topicConfig };
-  }, 'resolveTelegramGroupConfig');
+  };
   const processMessage = createTelegramMessageProcessor({
     bot,
     cfg,
@@ -380,11 +377,9 @@ function createTelegramBot(opts) {
   });
   return bot;
 }
-__name(createTelegramBot, 'createTelegramBot');
 function createTelegramWebhookCallback(bot, path = '/telegram-webhook') {
   return { path, handler: webhookCallback(bot, 'http') };
 }
-__name(createTelegramWebhookCallback, 'createTelegramWebhookCallback');
 export {
   createTelegramBot,
   createTelegramWebhookCallback,

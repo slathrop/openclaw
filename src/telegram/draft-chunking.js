@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveTextChunkLimit } from '../auto-reply/chunk.js';
 import { getChannelDock } from '../channels/dock.js';
 import { normalizeAccountId } from '../routing/session-key.js';
@@ -25,7 +23,6 @@ function resolveTelegramDraftStreamingChunking(cfg, accountId) {
   const breakPreference = draftCfg?.breakPreference === 'newline' || draftCfg?.breakPreference === 'sentence' ? draftCfg.breakPreference : 'paragraph';
   return { minChars, maxChars, breakPreference };
 }
-__name(resolveTelegramDraftStreamingChunking, 'resolveTelegramDraftStreamingChunking');
 export {
   resolveTelegramDraftStreamingChunking
 };

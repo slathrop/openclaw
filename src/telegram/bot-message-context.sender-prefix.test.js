@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { buildTelegramMessageContext } from './bot-message-context.js';
 describe('buildTelegramMessageContext sender prefix', () => {
@@ -37,12 +35,12 @@ describe('buildTelegramMessageContext sender prefix', () => {
       groupAllowFrom: [],
       ackReactionScope: 'off',
       logger: { info: vi.fn() },
-      resolveGroupActivation: /* @__PURE__ */ __name(() => void 0, 'resolveGroupActivation'),
-      resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-      resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+      resolveGroupActivation: () => void 0,
+      resolveGroupRequireMention: () => false,
+      resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
         topicConfig: void 0
-      }), 'resolveTelegramGroupConfig')
+      })
     });
     expect(ctx).not.toBeNull();
     const body = ctx?.ctxPayload?.Body ?? '';
@@ -82,12 +80,12 @@ describe('buildTelegramMessageContext sender prefix', () => {
       groupAllowFrom: [],
       ackReactionScope: 'off',
       logger: { info: vi.fn() },
-      resolveGroupActivation: /* @__PURE__ */ __name(() => void 0, 'resolveGroupActivation'),
-      resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-      resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+      resolveGroupActivation: () => void 0,
+      resolveGroupRequireMention: () => false,
+      resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
         topicConfig: void 0
-      }), 'resolveTelegramGroupConfig')
+      })
     });
     expect(ctx).not.toBeNull();
     expect(ctx?.ctxPayload?.MessageSid).toBe('12345');
@@ -126,12 +124,12 @@ describe('buildTelegramMessageContext sender prefix', () => {
       groupAllowFrom: [],
       ackReactionScope: 'off',
       logger: { info: vi.fn() },
-      resolveGroupActivation: /* @__PURE__ */ __name(() => void 0, 'resolveGroupActivation'),
-      resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-      resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+      resolveGroupActivation: () => void 0,
+      resolveGroupRequireMention: () => false,
+      resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
         topicConfig: void 0
-      }), 'resolveTelegramGroupConfig')
+      })
     });
     expect(ctx).not.toBeNull();
     expect(ctx?.ctxPayload?.MessageSid).toBe('67890');

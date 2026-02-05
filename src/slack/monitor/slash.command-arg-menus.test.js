@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerSlackMonitorSlashCommands } from './slash.js';
 const dispatchMock = vi.fn();
@@ -7,20 +5,20 @@ const readAllowFromStoreMock = vi.fn();
 const upsertPairingRequestMock = vi.fn();
 const resolveAgentRouteMock = vi.fn();
 vi.mock('../../auto-reply/reply/provider-dispatcher.js', () => ({
-  dispatchReplyWithDispatcher: /* @__PURE__ */ __name((...args) => dispatchMock(...args), 'dispatchReplyWithDispatcher')
+  dispatchReplyWithDispatcher: (...args) => dispatchMock(...args)
 }));
 vi.mock('../../pairing/pairing-store.js', () => ({
-  readChannelAllowFromStore: /* @__PURE__ */ __name((...args) => readAllowFromStoreMock(...args), 'readChannelAllowFromStore'),
-  upsertChannelPairingRequest: /* @__PURE__ */ __name((...args) => upsertPairingRequestMock(...args), 'upsertChannelPairingRequest')
+  readChannelAllowFromStore: (...args) => readAllowFromStoreMock(...args),
+  upsertChannelPairingRequest: (...args) => upsertPairingRequestMock(...args)
 }));
 vi.mock('../../routing/resolve-route.js', () => ({
-  resolveAgentRoute: /* @__PURE__ */ __name((...args) => resolveAgentRouteMock(...args), 'resolveAgentRoute')
+  resolveAgentRoute: (...args) => resolveAgentRouteMock(...args)
 }));
 vi.mock('../../agents/identity.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    resolveEffectiveMessagesConfig: /* @__PURE__ */ __name(() => ({ responsePrefix: '' }), 'resolveEffectiveMessagesConfig')
+    resolveEffectiveMessagesConfig: () => ({ responsePrefix: '' })
   };
 });
 function encodeValue(parts) {
@@ -32,19 +30,18 @@ function encodeValue(parts) {
     encodeURIComponent(parts.userId)
   ].join('|');
 }
-__name(encodeValue, 'encodeValue');
 function createHarness() {
   const commands = /* @__PURE__ */ new Map();
   const actions = /* @__PURE__ */ new Map();
   const postEphemeral = vi.fn().mockResolvedValue({ ok: true });
   const app = {
     client: { chat: { postEphemeral } },
-    command: /* @__PURE__ */ __name((name, handler) => {
+    command: (name, handler) => {
       commands.set(name, handler);
-    }, 'command'),
-    action: /* @__PURE__ */ __name((id, handler) => {
+    },
+    action: (id, handler) => {
       actions.set(id, handler);
-    }, 'action')
+    }
   };
   const ctx = {
     cfg: { commands: { native: true } },
@@ -69,14 +66,13 @@ function createHarness() {
     },
     textLimit: 4e3,
     app,
-    isChannelAllowed: /* @__PURE__ */ __name(() => true, 'isChannelAllowed'),
-    resolveChannelName: /* @__PURE__ */ __name(async () => ({ name: 'dm', type: 'im' }), 'resolveChannelName'),
-    resolveUserName: /* @__PURE__ */ __name(async () => ({ name: 'Ada' }), 'resolveUserName')
+    isChannelAllowed: () => true,
+    resolveChannelName: async () => ({ name: 'dm', type: 'im' }),
+    resolveUserName: async () => ({ name: 'Ada' })
   };
   const account = { accountId: 'acct', config: { commands: { native: true } } };
   return { commands, actions, postEphemeral, ctx, account };
 }
-__name(createHarness, 'createHarness');
 beforeEach(() => {
   dispatchMock.mockReset().mockResolvedValue({ counts: { final: 1, tool: 0, block: 0 } });
   readAllowFromStoreMock.mockReset().mockResolvedValue([]);

@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerSlackMonitorSlashCommands } from './slash.js';
 const dispatchMock = vi.fn();
@@ -7,20 +5,20 @@ const readAllowFromStoreMock = vi.fn();
 const upsertPairingRequestMock = vi.fn();
 const resolveAgentRouteMock = vi.fn();
 vi.mock('../../auto-reply/reply/provider-dispatcher.js', () => ({
-  dispatchReplyWithDispatcher: /* @__PURE__ */ __name((...args) => dispatchMock(...args), 'dispatchReplyWithDispatcher')
+  dispatchReplyWithDispatcher: (...args) => dispatchMock(...args)
 }));
 vi.mock('../../pairing/pairing-store.js', () => ({
-  readChannelAllowFromStore: /* @__PURE__ */ __name((...args) => readAllowFromStoreMock(...args), 'readChannelAllowFromStore'),
-  upsertChannelPairingRequest: /* @__PURE__ */ __name((...args) => upsertPairingRequestMock(...args), 'upsertChannelPairingRequest')
+  readChannelAllowFromStore: (...args) => readAllowFromStoreMock(...args),
+  upsertChannelPairingRequest: (...args) => upsertPairingRequestMock(...args)
 }));
 vi.mock('../../routing/resolve-route.js', () => ({
-  resolveAgentRoute: /* @__PURE__ */ __name((...args) => resolveAgentRouteMock(...args), 'resolveAgentRoute')
+  resolveAgentRoute: (...args) => resolveAgentRouteMock(...args)
 }));
 vi.mock('../../agents/identity.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    resolveEffectiveMessagesConfig: /* @__PURE__ */ __name(() => ({ responsePrefix: '' }), 'resolveEffectiveMessagesConfig')
+    resolveEffectiveMessagesConfig: () => ({ responsePrefix: '' })
   };
 });
 function createHarness(overrides) {
@@ -28,9 +26,9 @@ function createHarness(overrides) {
   const postEphemeral = vi.fn().mockResolvedValue({ ok: true });
   const app = {
     client: { chat: { postEphemeral } },
-    command: /* @__PURE__ */ __name((name, handler) => {
+    command: (name, handler) => {
       commands.set(name, handler);
-    }, 'command')
+    }
   };
   const channelId = overrides?.channelId ?? 'C_UNLISTED';
   const channelName = overrides?.channelName ?? 'unlisted';
@@ -57,14 +55,13 @@ function createHarness(overrides) {
     },
     textLimit: 4e3,
     app,
-    isChannelAllowed: /* @__PURE__ */ __name(() => true, 'isChannelAllowed'),
+    isChannelAllowed: () => true,
     resolveChannelName: overrides?.resolveChannelName ?? (async () => ({ name: channelName, type: 'channel' })),
-    resolveUserName: /* @__PURE__ */ __name(async () => ({ name: 'Ada' }), 'resolveUserName')
+    resolveUserName: async () => ({ name: 'Ada' })
   };
   const account = { accountId: 'acct', config: { commands: { native: false } } };
   return { commands, ctx, account, postEphemeral, channelId, channelName };
 }
-__name(createHarness, 'createHarness');
 beforeEach(() => {
   dispatchMock.mockReset().mockResolvedValue({ counts: { final: 1, tool: 0, block: 0 } });
   readAllowFromStoreMock.mockReset().mockResolvedValue([]);
@@ -175,7 +172,7 @@ describe('slack slash commands access groups', () => {
       allowFrom: [],
       channelId: 'C_UNKNOWN',
       channelName: 'unknown',
-      resolveChannelName: /* @__PURE__ */ __name(async () => ({}), 'resolveChannelName')
+      resolveChannelName: async () => ({})
     });
     registerSlackMonitorSlashCommands({ ctx, account });
     const handler = [...commands.values()][0];
@@ -206,7 +203,7 @@ describe('slack slash commands access groups', () => {
       allowFrom: [],
       channelId: 'D123',
       channelName: 'notdirectmessage',
-      resolveChannelName: /* @__PURE__ */ __name(async () => ({}), 'resolveChannelName')
+      resolveChannelName: async () => ({})
     });
     registerSlackMonitorSlashCommands({ ctx, account });
     const handler = [...commands.values()][0];
@@ -236,7 +233,7 @@ describe('slack slash commands access groups', () => {
       allowFrom: [],
       channelId: 'G123',
       channelName: 'private',
-      resolveChannelName: /* @__PURE__ */ __name(async () => ({}), 'resolveChannelName')
+      resolveChannelName: async () => ({})
     });
     registerSlackMonitorSlashCommands({ ctx, account });
     const handler = [...commands.values()][0];

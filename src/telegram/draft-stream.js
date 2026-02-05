@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { buildTelegramThreadParams } from './bot/helpers.js';
 const TELEGRAM_DRAFT_MAX_CHARS = 4096;
 const DEFAULT_THROTTLE_MS = 300;
@@ -16,7 +14,7 @@ function createTelegramDraftStream(params) {
   let inFlight = false;
   let timer;
   let stopped = false;
-  const sendDraft = /* @__PURE__ */ __name(async (text) => {
+  const sendDraft = async (text) => {
     if (stopped) {
       return;
     }
@@ -42,8 +40,8 @@ function createTelegramDraftStream(params) {
         `telegram draft stream failed: ${err instanceof Error ? err.message : String(err)}`
       );
     }
-  }, 'sendDraft');
-  const flush = /* @__PURE__ */ __name(async () => {
+  };
+  const flush = async () => {
     if (timer) {
       clearTimeout(timer);
       timer = void 0;
@@ -73,8 +71,8 @@ function createTelegramDraftStream(params) {
     if (pendingText) {
       schedule();
     }
-  }, 'flush');
-  const schedule = /* @__PURE__ */ __name(() => {
+  };
+  const schedule = () => {
     if (timer) {
       return;
     }
@@ -82,8 +80,8 @@ function createTelegramDraftStream(params) {
     timer = setTimeout(() => {
       void flush();
     }, delay);
-  }, 'schedule');
-  const update = /* @__PURE__ */ __name((text) => {
+  };
+  const update = (text) => {
     if (stopped) {
       return;
     }
@@ -97,21 +95,20 @@ function createTelegramDraftStream(params) {
       return;
     }
     schedule();
-  }, 'update');
-  const stop = /* @__PURE__ */ __name(() => {
+  };
+  const stop = () => {
     stopped = true;
     pendingText = '';
     if (timer) {
       clearTimeout(timer);
       timer = void 0;
     }
-  }, 'stop');
+  };
   params.log?.(
     `telegram draft stream ready (draftId=${draftId}, maxChars=${maxChars}, throttleMs=${throttleMs})`
   );
   return { update, flush, stop };
 }
-__name(createTelegramDraftStream, 'createTelegramDraftStream');
 export {
   createTelegramDraftStream
 };

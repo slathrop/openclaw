@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { formatAllowlistMatchMeta } from '../../channels/allowlist-match.js';
 import { resolveSessionKey } from '../../config/sessions.js';
 import { logVerbose } from '../../globals.js';
@@ -24,7 +22,6 @@ function inferSlackChannelType(channelId) {
   }
   return void 0;
 }
-__name(inferSlackChannelType, 'inferSlackChannelType');
 function normalizeSlackChannelType(channelType, channelId) {
   const normalized = channelType?.trim().toLowerCase();
   if (normalized === 'im' || normalized === 'mpim' || normalized === 'channel' || normalized === 'group') {
@@ -32,7 +29,6 @@ function normalizeSlackChannelType(channelType, channelId) {
   }
   return inferSlackChannelType(channelId) ?? 'channel';
 }
-__name(normalizeSlackChannelType, 'normalizeSlackChannelType');
 function createSlackMonitorContext(params) {
   const channelHistories = /* @__PURE__ */ new Map();
   const logger = getChildLogger({ module: 'slack-auto-reply' });
@@ -42,13 +38,13 @@ function createSlackMonitorContext(params) {
   const allowFrom = normalizeAllowList(params.allowFrom);
   const groupDmChannels = normalizeAllowList(params.groupDmChannels);
   const defaultRequireMention = params.defaultRequireMention ?? true;
-  const markMessageSeen = /* @__PURE__ */ __name((channelId, ts) => {
+  const markMessageSeen = (channelId, ts) => {
     if (!channelId || !ts) {
       return false;
     }
     return seenMessages.check(`${channelId}:${ts}`);
-  }, 'markMessageSeen');
-  const resolveSlackSystemEventSessionKey = /* @__PURE__ */ __name((p) => {
+  };
+  const resolveSlackSystemEventSessionKey = (p) => {
     const channelId = p.channelId?.trim() ?? '';
     if (!channelId) {
       return params.mainKey;
@@ -63,8 +59,8 @@ function createSlackMonitorContext(params) {
       { From: from, ChatType: chatType, Provider: 'slack' },
       params.mainKey
     );
-  }, 'resolveSlackSystemEventSessionKey');
-  const resolveChannelName = /* @__PURE__ */ __name(async (channelId) => {
+  };
+  const resolveChannelName = async (channelId) => {
     const cached = channelCache.get(channelId);
     if (cached) {
       return cached;
@@ -85,8 +81,8 @@ function createSlackMonitorContext(params) {
     } catch {
       return {};
     }
-  }, 'resolveChannelName');
-  const resolveUserName = /* @__PURE__ */ __name(async (userId) => {
+  };
+  const resolveUserName = async (userId) => {
     const cached = userCache.get(userId);
     if (cached) {
       return cached;
@@ -104,8 +100,8 @@ function createSlackMonitorContext(params) {
     } catch {
       return {};
     }
-  }, 'resolveUserName');
-  const setSlackThreadStatus = /* @__PURE__ */ __name(async (p) => {
+  };
+  const setSlackThreadStatus = async (p) => {
     if (!p.threadTs) {
       return;
     }
@@ -127,8 +123,8 @@ function createSlackMonitorContext(params) {
     } catch (err) {
       logVerbose(`slack status update failed for channel ${p.channelId}: ${String(err)}`);
     }
-  }, 'setSlackThreadStatus');
-  const isChannelAllowed = /* @__PURE__ */ __name((p) => {
+  };
+  const isChannelAllowed = (p) => {
     const channelType = normalizeSlackChannelType(p.channelType, p.channelId);
     const isDirectMessage = channelType === 'im';
     const isGroupDm = channelType === 'mpim';
@@ -180,8 +176,8 @@ function createSlackMonitorContext(params) {
       logVerbose(`slack: allow channel ${p.channelId} (${channelMatchMeta})`);
     }
     return true;
-  }, 'isChannelAllowed');
-  const shouldDropMismatchedSlackEvent = /* @__PURE__ */ __name((body) => {
+  };
+  const shouldDropMismatchedSlackEvent = (body) => {
     if (!body || typeof body !== 'object') {
       return false;
     }
@@ -199,7 +195,7 @@ function createSlackMonitorContext(params) {
       return true;
     }
     return false;
-  }, 'shouldDropMismatchedSlackEvent');
+  };
   return {
     cfg: params.cfg,
     accountId: params.accountId,
@@ -242,7 +238,6 @@ function createSlackMonitorContext(params) {
     setSlackThreadStatus
   };
 }
-__name(createSlackMonitorContext, 'createSlackMonitorContext');
 export {
   createSlackMonitorContext,
   inferSlackChannelType,

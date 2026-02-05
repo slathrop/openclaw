@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveAckReaction } from '../agents/identity.js';
 import {
   findModelInCatalog,
@@ -66,8 +64,7 @@ async function resolveStickerVisionSupport(params) {
     return false;
   }
 }
-__name(resolveStickerVisionSupport, 'resolveStickerVisionSupport');
-const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
+const buildTelegramMessageContext = async ({
   primaryCtx,
   allMedia,
   storeAllowFrom,
@@ -136,22 +133,22 @@ const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
     );
     return null;
   }
-  const sendTyping = /* @__PURE__ */ __name(async () => {
+  const sendTyping = async () => {
     await withTelegramApiErrorLogging({
       operation: 'sendChatAction',
-      fn: /* @__PURE__ */ __name(() => bot.api.sendChatAction(chatId, 'typing', buildTypingThreadParams(replyThreadId)), 'fn')
+      fn: () => bot.api.sendChatAction(chatId, 'typing', buildTypingThreadParams(replyThreadId))
     });
-  }, 'sendTyping');
-  const sendRecordVoice = /* @__PURE__ */ __name(async () => {
+  };
+  const sendRecordVoice = async () => {
     try {
       await withTelegramApiErrorLogging({
         operation: 'sendChatAction',
-        fn: /* @__PURE__ */ __name(() => bot.api.sendChatAction(chatId, 'record_voice', buildTypingThreadParams(replyThreadId)), 'fn')
+        fn: () => bot.api.sendChatAction(chatId, 'record_voice', buildTypingThreadParams(replyThreadId))
       });
     } catch (err) {
       logVerbose(`telegram record_voice cue failed for chat ${chatId}: ${String(err)}`);
     }
-  }, 'sendRecordVoice');
+  };
   if (!isGroup) {
     if (dmPolicy === 'disabled') {
       return null;
@@ -194,7 +191,7 @@ const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
               );
               await withTelegramApiErrorLogging({
                 operation: 'sendMessage',
-                fn: /* @__PURE__ */ __name(() => bot.api.sendMessage(
+                fn: () => bot.api.sendMessage(
                   chatId,
                   [
                     'OpenClaw: access not configured.',
@@ -206,7 +203,7 @@ const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
                     'Ask the bot owner to approve with:',
                     formatCliCommand('openclaw pairing approve telegram <code>')
                   ].join('\n')
-                ), 'fn')
+                )
               });
             }
           } catch (err) {
@@ -364,7 +361,7 @@ const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
   }
   const ackReaction = resolveAckReaction(cfg, route.agentId);
   const removeAckAfterReply = cfg.messages?.removeAckAfterReply ?? false;
-  const shouldAckReaction = /* @__PURE__ */ __name(() => Boolean(
+  const shouldAckReaction = () => Boolean(
     ackReaction && shouldAckReactionGate({
       scope: ackReactionScope,
       isDirect: !isGroup,
@@ -375,12 +372,12 @@ const buildTelegramMessageContext = /* @__PURE__ */ __name(async ({
       effectiveWasMentioned,
       shouldBypassMention: mentionGate.shouldBypassMention
     })
-  ), 'shouldAckReaction');
+  );
   const api = bot.api;
   const reactionApi = typeof api.setMessageReaction === 'function' ? api.setMessageReaction.bind(api) : null;
   const ackReactionPromise = shouldAckReaction() && msg.message_id && reactionApi ? withTelegramApiErrorLogging({
     operation: 'setMessageReaction',
-    fn: /* @__PURE__ */ __name(() => reactionApi(chatId, msg.message_id, [{ type: 'emoji', emoji: ackReaction }]), 'fn')
+    fn: () => reactionApi(chatId, msg.message_id, [{ type: 'emoji', emoji: ackReaction }])
   }).then(
     () => true,
     (err) => {
@@ -433,7 +430,7 @@ ${replyTarget.body}
       historyKey,
       limit: historyLimit,
       currentMessage: combinedBody,
-      formatEntry: /* @__PURE__ */ __name((entry) => formatInboundEnvelope({
+      formatEntry: (entry) => formatInboundEnvelope({
         channel: 'Telegram',
         from: groupLabel ?? `group:${chatId}`,
         timestamp: entry.timestamp,
@@ -441,7 +438,7 @@ ${replyTarget.body}
         chatType: 'group',
         senderLabel: entry.sender,
         envelope: envelopeOptions
-      }), 'formatEntry')
+      })
     });
   }
   const skillFilter = firstDefined(topicConfig?.skills, groupConfig?.skills);
@@ -511,9 +508,9 @@ ${replyTarget.body}
       to: String(chatId),
       accountId: route.accountId
     } : void 0,
-    onRecordError: /* @__PURE__ */ __name((err) => {
+    onRecordError: (err) => {
       logVerbose(`telegram: failed updating session meta: ${String(err)}`);
-    }, 'onRecordError')
+    }
   });
   if (replyTarget && shouldLogVerbose()) {
     const preview = replyTarget.body.replace(/\s+/g, ' ').slice(0, 120);
@@ -556,7 +553,7 @@ ${replyTarget.body}
     removeAckAfterReply,
     accountId: account.accountId
   };
-}, 'buildTelegramMessageContext');
+};
 export {
   buildTelegramMessageContext
 };

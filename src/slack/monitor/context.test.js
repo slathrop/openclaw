@@ -1,8 +1,6 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it } from 'vitest';
 import { createSlackMonitorContext, normalizeSlackChannelType } from './context.js';
-const baseParams = /* @__PURE__ */ __name(() => ({
+const baseParams = () => ({
   cfg: {},
   accountId: 'default',
   botToken: 'token',
@@ -35,7 +33,7 @@ const baseParams = /* @__PURE__ */ __name(() => ({
   ackReactionScope: 'group-mentions',
   mediaMaxBytes: 1,
   removeAckAfterReply: false
-}), 'baseParams');
+});
 describe('normalizeSlackChannelType', () => {
   it('infers channel types from ids when missing', () => {
     expect(normalizeSlackChannelType(void 0, 'C123')).toBe('channel');

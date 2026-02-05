@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { normalizeAccountId } from '../routing/session-key.js';
 function resolveAccountGroups(cfg, accountId) {
   if (!accountId) {
@@ -19,7 +17,6 @@ function resolveAccountGroups(cfg, accountId) {
   );
   return { groups: matchKey ? accounts[matchKey]?.groups : void 0 };
 }
-__name(resolveAccountGroups, 'resolveAccountGroups');
 function migrateTelegramGroupsInPlace(groups, oldChatId, newChatId) {
   if (!groups) {
     return { migrated: false, skippedExisting: false };
@@ -37,7 +34,6 @@ function migrateTelegramGroupsInPlace(groups, oldChatId, newChatId) {
   delete groups[oldChatId];
   return { migrated: true, skippedExisting: false };
 }
-__name(migrateTelegramGroupsInPlace, 'migrateTelegramGroupsInPlace');
 function migrateTelegramGroupConfig(params) {
   const scopes = [];
   let migrated = false;
@@ -66,7 +62,6 @@ function migrateTelegramGroupConfig(params) {
   }
   return { migrated, skippedExisting, scopes };
 }
-__name(migrateTelegramGroupConfig, 'migrateTelegramGroupConfig');
 export {
   migrateTelegramGroupConfig,
   migrateTelegramGroupsInPlace

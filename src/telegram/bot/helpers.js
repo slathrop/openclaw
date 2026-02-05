@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { formatLocationText } from '../../channels/location.js';
 const TELEGRAM_GENERAL_TOPIC_ID = 1;
 function resolveTelegramForumThreadId(params) {
@@ -11,7 +9,6 @@ function resolveTelegramForumThreadId(params) {
   }
   return params.messageThreadId;
 }
-__name(resolveTelegramForumThreadId, 'resolveTelegramForumThreadId');
 function resolveTelegramThreadSpec(params) {
   if (params.isGroup) {
     const id = resolveTelegramForumThreadId({
@@ -31,7 +28,6 @@ function resolveTelegramThreadSpec(params) {
     scope: 'dm'
   };
 }
-__name(resolveTelegramThreadSpec, 'resolveTelegramThreadSpec');
 function buildTelegramThreadParams(thread) {
   if (!thread?.id) {
     return void 0;
@@ -42,14 +38,12 @@ function buildTelegramThreadParams(thread) {
   }
   return { message_thread_id: normalized };
 }
-__name(buildTelegramThreadParams, 'buildTelegramThreadParams');
 function buildTypingThreadParams(messageThreadId) {
   if (messageThreadId === null || messageThreadId === undefined) {
     return void 0;
   }
   return { message_thread_id: Math.trunc(messageThreadId) };
 }
-__name(buildTypingThreadParams, 'buildTypingThreadParams');
 function resolveTelegramStreamMode(telegramCfg) {
   const raw = telegramCfg?.streamMode?.trim().toLowerCase();
   if (raw === 'off' || raw === 'partial' || raw === 'block') {
@@ -57,20 +51,16 @@ function resolveTelegramStreamMode(telegramCfg) {
   }
   return 'partial';
 }
-__name(resolveTelegramStreamMode, 'resolveTelegramStreamMode');
 function buildTelegramGroupPeerId(chatId, messageThreadId) {
   return messageThreadId !== null && messageThreadId !== undefined ? `${chatId}:topic:${messageThreadId}` : String(chatId);
 }
-__name(buildTelegramGroupPeerId, 'buildTelegramGroupPeerId');
 function buildTelegramGroupFrom(chatId, messageThreadId) {
   return `telegram:group:${buildTelegramGroupPeerId(chatId, messageThreadId)}`;
 }
-__name(buildTelegramGroupFrom, 'buildTelegramGroupFrom');
 function buildSenderName(msg) {
   const name = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(' ').trim() || msg.from?.username;
   return name || void 0;
 }
-__name(buildSenderName, 'buildSenderName');
 function buildSenderLabel(msg, senderId) {
   const name = buildSenderName(msg);
   const username = msg.from?.username ? `@${msg.from.username}` : void 0;
@@ -91,7 +81,6 @@ function buildSenderLabel(msg, senderId) {
   }
   return idPart ?? 'id:unknown';
 }
-__name(buildSenderLabel, 'buildSenderLabel');
 function buildGroupLabel(msg, chatId, messageThreadId) {
   const title = msg.chat?.title;
   const topicSuffix = messageThreadId !== null && messageThreadId !== undefined ? ` topic:${messageThreadId}` : '';
@@ -100,7 +89,6 @@ function buildGroupLabel(msg, chatId, messageThreadId) {
   }
   return `group:${chatId}${topicSuffix}`;
 }
-__name(buildGroupLabel, 'buildGroupLabel');
 function hasBotMention(msg, botUsername) {
   const text = (msg.text ?? msg.caption ?? '').toLowerCase();
   if (text.includes(`@${botUsername}`)) {
@@ -118,7 +106,6 @@ function hasBotMention(msg, botUsername) {
   }
   return false;
 }
-__name(hasBotMention, 'hasBotMention');
 function expandTextLinks(text, entities) {
   if (!text || !entities?.length) {
     return text;
@@ -137,7 +124,6 @@ function expandTextLinks(text, entities) {
   }
   return result;
 }
-__name(expandTextLinks, 'expandTextLinks');
 function resolveTelegramReplyId(raw) {
   if (!raw) {
     return void 0;
@@ -148,7 +134,6 @@ function resolveTelegramReplyId(raw) {
   }
   return parsed;
 }
-__name(resolveTelegramReplyId, 'resolveTelegramReplyId');
 function describeReplyTarget(msg) {
   const reply = msg.reply_to_message;
   const quote = msg.quote;
@@ -192,7 +177,6 @@ function describeReplyTarget(msg) {
     kind
   };
 }
-__name(describeReplyTarget, 'describeReplyTarget');
 function normalizeForwardedUserLabel(user) {
   const name = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
   const username = user.username?.trim() || void 0;
@@ -200,7 +184,6 @@ function normalizeForwardedUserLabel(user) {
   const display = (name && username ? `${name} (@${username})` : name || (username ? `@${username}` : void 0)) || `user:${id}`;
   return { display, name: name || void 0, username, id };
 }
-__name(normalizeForwardedUserLabel, 'normalizeForwardedUserLabel');
 function normalizeForwardedChatLabel(chat, fallbackKind) {
   const title = chat.title?.trim() || void 0;
   const username = chat.username?.trim() || void 0;
@@ -208,7 +191,6 @@ function normalizeForwardedChatLabel(chat, fallbackKind) {
   const display = title || (username ? `@${username}` : void 0) || `${fallbackKind}:${id}`;
   return { display, title, username, id };
 }
-__name(normalizeForwardedChatLabel, 'normalizeForwardedChatLabel');
 function buildForwardedContextFromUser(params) {
   const { display, name, username, id } = normalizeForwardedUserLabel(params.user);
   if (!display) {
@@ -223,7 +205,6 @@ function buildForwardedContextFromUser(params) {
     fromTitle: name
   };
 }
-__name(buildForwardedContextFromUser, 'buildForwardedContextFromUser');
 function buildForwardedContextFromHiddenName(params) {
   const trimmed = params.name?.trim();
   if (!trimmed) {
@@ -236,7 +217,6 @@ function buildForwardedContextFromHiddenName(params) {
     fromTitle: trimmed
   };
 }
-__name(buildForwardedContextFromHiddenName, 'buildForwardedContextFromHiddenName');
 function buildForwardedContextFromChat(params) {
   const fallbackKind = params.type === 'channel' ? 'channel' : 'chat';
   const { display, title, username, id } = normalizeForwardedChatLabel(params.chat, fallbackKind);
@@ -258,7 +238,6 @@ function buildForwardedContextFromChat(params) {
     fromMessageId: params.messageId
   };
 }
-__name(buildForwardedContextFromChat, 'buildForwardedContextFromChat');
 function resolveForwardOrigin(origin) {
   switch (origin.type) {
     case 'user':
@@ -293,14 +272,12 @@ function resolveForwardOrigin(origin) {
       return null;
   }
 }
-__name(resolveForwardOrigin, 'resolveForwardOrigin');
 function normalizeForwardedContext(msg) {
   if (!msg.forward_origin) {
     return null;
   }
   return resolveForwardOrigin(msg.forward_origin);
 }
-__name(normalizeForwardedContext, 'normalizeForwardedContext');
 function extractTelegramLocation(msg) {
   const { venue, location } = msg;
   if (venue) {
@@ -326,7 +303,6 @@ function extractTelegramLocation(msg) {
   }
   return null;
 }
-__name(extractTelegramLocation, 'extractTelegramLocation');
 export {
   buildGroupLabel,
   buildSenderLabel,

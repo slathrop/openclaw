@@ -1,8 +1,6 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { buildTelegramMessageContext } from './bot-message-context.js';
 import { dispatchTelegramMessage } from './bot-message-dispatch.js';
-const createTelegramMessageProcessor = /* @__PURE__ */ __name((deps) => {
+const createTelegramMessageProcessor = (deps) => {
   const {
     bot,
     cfg,
@@ -61,7 +59,7 @@ const createTelegramMessageProcessor = /* @__PURE__ */ __name((deps) => {
       resolveBotTopicsEnabled
     });
   };
-}, 'createTelegramMessageProcessor');
+};
 export {
   createTelegramMessageProcessor
 };

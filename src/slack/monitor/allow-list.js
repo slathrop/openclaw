@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 function normalizeSlackSlug(raw) {
   const trimmed = raw?.trim().toLowerCase() ?? '';
   if (!trimmed) {
@@ -9,15 +7,12 @@ function normalizeSlackSlug(raw) {
   const cleaned = dashed.replace(/[^a-z0-9#@._+-]+/g, '-');
   return cleaned.replace(/-{2,}/g, '-').replace(/^[-.]+|[-.]+$/g, '');
 }
-__name(normalizeSlackSlug, 'normalizeSlackSlug');
 function normalizeAllowList(list) {
   return (list ?? []).map((entry) => String(entry).trim()).filter(Boolean);
 }
-__name(normalizeAllowList, 'normalizeAllowList');
 function normalizeAllowListLower(list) {
   return normalizeAllowList(list).map((entry) => entry.toLowerCase());
 }
-__name(normalizeAllowListLower, 'normalizeAllowListLower');
 function resolveSlackAllowListMatch(params) {
   const allowList = params.allowList;
   if (allowList.length === 0) {
@@ -51,11 +46,9 @@ function resolveSlackAllowListMatch(params) {
   }
   return { allowed: false };
 }
-__name(resolveSlackAllowListMatch, 'resolveSlackAllowListMatch');
 function allowListMatches(params) {
   return resolveSlackAllowListMatch(params).allowed;
 }
-__name(allowListMatches, 'allowListMatches');
 function resolveSlackUserAllowed(params) {
   const allowList = normalizeAllowListLower(params.allowList);
   if (allowList.length === 0) {
@@ -67,7 +60,6 @@ function resolveSlackUserAllowed(params) {
     name: params.userName
   });
 }
-__name(resolveSlackUserAllowed, 'resolveSlackUserAllowed');
 export {
   allowListMatches,
   normalizeAllowList,

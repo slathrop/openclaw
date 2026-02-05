@@ -17,8 +17,6 @@
  * @property {string} [agentDir]
  * @property {string} [agentId]
  */
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { resolveApiKeyForProvider } from '../agents/model-auth.js';
@@ -45,22 +43,18 @@ function loadCache() {
   }
   return cache;
 }
-__name(loadCache, 'loadCache');
 function saveCache(cache) {
   saveJsonFile(CACHE_FILE, cache);
 }
-__name(saveCache, 'saveCache');
 function getCachedSticker(fileUniqueId) {
   const cache = loadCache();
   return cache.stickers[fileUniqueId] ?? null;
 }
-__name(getCachedSticker, 'getCachedSticker');
 function cacheSticker(sticker) {
   const cache = loadCache();
   cache.stickers[sticker.fileUniqueId] = sticker;
   saveCache(cache);
 }
-__name(cacheSticker, 'cacheSticker');
 function searchStickers(query, limit = 10) {
   const cache = loadCache();
   const queryLower = query.toLowerCase();
@@ -90,12 +84,10 @@ function searchStickers(query, limit = 10) {
   }
   return results.toSorted((a, b) => b.score - a.score).slice(0, limit).map((r) => r.sticker);
 }
-__name(searchStickers, 'searchStickers');
 function getAllCachedStickers() {
   const cache = loadCache();
   return Object.values(cache.stickers);
 }
-__name(getAllCachedStickers, 'getAllCachedStickers');
 function getCacheStats() {
   const cache = loadCache();
   const stickers = Object.values(cache.stickers);
@@ -111,7 +103,6 @@ function getCacheStats() {
     newestAt: sorted[sorted.length - 1]?.cachedAt
   };
 }
-__name(getCacheStats, 'getCacheStats');
 const STICKER_DESCRIPTION_PROMPT = 'Describe this sticker image in 1-2 sentences. Focus on what the sticker depicts (character, object, action, emotion). Be concise and objective.';
 const VISION_PROVIDERS = ['openai', 'anthropic', 'google', 'minimax'];
 async function describeStickerImage(params) {
@@ -129,15 +120,15 @@ async function describeStickerImage(params) {
   } catch {
     // Intentionally ignored
   }
-  const hasProviderKey = /* @__PURE__ */ __name(async (provider2) => {
+  const hasProviderKey = async (provider2) => {
     try {
       await resolveApiKeyForProvider({ provider: provider2, cfg, agentDir });
       return true;
     } catch {
       return false;
     }
-  }, 'hasProviderKey');
-  const selectCatalogModel = /* @__PURE__ */ __name((provider2) => {
+  };
+  const selectCatalogModel = (provider2) => {
     const entries = catalog.filter(
       (entry) => entry.provider.toLowerCase() === provider2.toLowerCase() && modelSupportsVision(entry)
     );
@@ -147,7 +138,7 @@ async function describeStickerImage(params) {
     const defaultId = provider2 === 'openai' ? 'gpt-5-mini' : provider2 === 'anthropic' ? 'claude-opus-4-5' : provider2 === 'google' ? 'gemini-3-flash-preview' : 'MiniMax-VL-01';
     const preferred = entries.find((entry) => entry.id === defaultId);
     return preferred ?? entries[0];
-  }, 'selectCatalogModel');
+  };
   let resolved = null;
   if (activeModel && VISION_PROVIDERS.includes(activeModel.provider) && await hasProviderKey(activeModel.provider)) {
     resolved = activeModel;
@@ -198,7 +189,6 @@ async function describeStickerImage(params) {
     return null;
   }
 }
-__name(describeStickerImage, 'describeStickerImage');
 export {
   cacheSticker,
   describeStickerImage,

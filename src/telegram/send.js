@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { Bot, HttpError, InputFile } from 'grammy';
 import { loadConfig } from '../config/config.js';
 import { resolveMarkdownTableMode } from '../config/markdown-tables.js';
@@ -40,7 +38,6 @@ function createTelegramHttpLogger(cfg) {
     diagLogger.warn(`telegram http error (${label}): ${detail}`);
   };
 }
-__name(createTelegramHttpLogger, 'createTelegramHttpLogger');
 function resolveTelegramClientOptions(account) {
   const proxyUrl = account.config.proxy?.trim();
   const proxyFetch = proxyUrl ? makeProxyFetch(proxyUrl) : void 0;
@@ -53,7 +50,6 @@ function resolveTelegramClientOptions(account) {
     ...timeoutSeconds ? { timeoutSeconds } : {}
   } : void 0;
 }
-__name(resolveTelegramClientOptions, 'resolveTelegramClientOptions');
 function resolveToken(explicit, params) {
   if (explicit?.trim()) {
     return explicit.trim();
@@ -65,7 +61,6 @@ function resolveToken(explicit, params) {
   }
   return params.token.trim();
 }
-__name(resolveToken, 'resolveToken');
 function normalizeChatId(to) {
   const trimmed = to.trim();
   if (!trimmed) {
@@ -90,7 +85,6 @@ function normalizeChatId(to) {
   }
   return normalized;
 }
-__name(normalizeChatId, 'normalizeChatId');
 function normalizeMessageId(raw) {
   if (typeof raw === 'number' && Number.isFinite(raw)) {
     return Math.trunc(raw);
@@ -107,7 +101,6 @@ function normalizeMessageId(raw) {
   }
   throw new Error('Message id is required for Telegram actions');
 }
-__name(normalizeMessageId, 'normalizeMessageId');
 function buildInlineKeyboard(buttons) {
   if (!buttons?.length) {
     return void 0;
@@ -125,7 +118,6 @@ function buildInlineKeyboard(buttons) {
   }
   return { inline_keyboard: rows };
 }
-__name(buildInlineKeyboard, 'buildInlineKeyboard');
 async function sendMessageTelegram(to, text, opts = {}) {
   const cfg = loadConfig();
   const account = resolveTelegramAccount({
@@ -159,17 +151,17 @@ async function sendMessageTelegram(to, text, opts = {}) {
     retry: opts.retry,
     configRetry: account.config.retry,
     verbose: opts.verbose,
-    shouldRetry: /* @__PURE__ */ __name((err) => isRecoverableTelegramNetworkError(err, { context: 'send' }), 'shouldRetry')
+    shouldRetry: (err) => isRecoverableTelegramNetworkError(err, { context: 'send' })
   });
   const logHttpError = createTelegramHttpLogger(cfg);
-  const requestWithDiag = /* @__PURE__ */ __name((fn, label) => withTelegramApiErrorLogging({
+  const requestWithDiag = (fn, label) => withTelegramApiErrorLogging({
     operation: label ?? 'request',
-    fn: /* @__PURE__ */ __name(() => request(fn, label), 'fn')
+    fn: () => request(fn, label)
   }).catch((err) => {
     logHttpError(label ?? 'request', err);
     throw err;
-  }), 'requestWithDiag');
-  const wrapChatNotFound = /* @__PURE__ */ __name((err) => {
+  });
+  const wrapChatNotFound = (err) => {
     if (!/400: Bad Request: chat not found/i.test(formatErrorMessage(err))) {
       return err;
     }
@@ -180,17 +172,17 @@ async function sendMessageTelegram(to, text, opts = {}) {
         `Input was: ${JSON.stringify(to)}.`
       ].join(' ')
     );
-  }, 'wrapChatNotFound');
+  };
   const textMode = opts.textMode ?? 'markdown';
   const tableMode = resolveMarkdownTableMode({
     cfg,
     channel: 'telegram',
     accountId: account.accountId
   });
-  const renderHtmlText = /* @__PURE__ */ __name((value) => renderTelegramHtmlText(value, { textMode, tableMode }), 'renderHtmlText');
+  const renderHtmlText = (value) => renderTelegramHtmlText(value, { textMode, tableMode });
   const linkPreviewEnabled = account.config.linkPreview ?? true;
   const linkPreviewOptions = linkPreviewEnabled ? void 0 : { is_disabled: true };
-  const sendTelegramText = /* @__PURE__ */ __name(async (rawText, params, fallbackText) => {
+  const sendTelegramText = async (rawText, params, fallbackText) => {
     const htmlText = renderHtmlText(rawText);
     const baseParams = params ? { ...params } : {};
     if (linkPreviewOptions) {
@@ -223,7 +215,7 @@ async function sendMessageTelegram(to, text, opts = {}) {
       throw wrapChatNotFound(err);
     });
     return res2;
-  }, 'sendTelegramText');
+  };
   if (mediaUrl) {
     const media = await loadWebMedia(mediaUrl, opts.maxBytes);
     const kind = mediaKindFromMime(media.contentType ?? void 0);
@@ -339,7 +331,6 @@ async function sendMessageTelegram(to, text, opts = {}) {
   });
   return { messageId, chatId: String(res?.chat?.id ?? chatId) };
 }
-__name(sendMessageTelegram, 'sendMessageTelegram');
 async function reactMessageTelegram(chatIdInput, messageIdInput, emoji, opts = {}) {
   const cfg = loadConfig();
   const account = resolveTelegramAccount({
@@ -355,16 +346,16 @@ async function reactMessageTelegram(chatIdInput, messageIdInput, emoji, opts = {
     retry: opts.retry,
     configRetry: account.config.retry,
     verbose: opts.verbose,
-    shouldRetry: /* @__PURE__ */ __name((err) => isRecoverableTelegramNetworkError(err, { context: 'send' }), 'shouldRetry')
+    shouldRetry: (err) => isRecoverableTelegramNetworkError(err, { context: 'send' })
   });
   const logHttpError = createTelegramHttpLogger(cfg);
-  const requestWithDiag = /* @__PURE__ */ __name((fn, label) => withTelegramApiErrorLogging({
+  const requestWithDiag = (fn, label) => withTelegramApiErrorLogging({
     operation: label ?? 'request',
-    fn: /* @__PURE__ */ __name(() => request(fn, label), 'fn')
+    fn: () => request(fn, label)
   }).catch((err) => {
     logHttpError(label ?? 'request', err);
     throw err;
-  }), 'requestWithDiag');
+  });
   const remove = opts.remove === true;
   const trimmedEmoji = emoji.trim();
   const reactions = remove || !trimmedEmoji ? [] : [{ type: 'emoji', emoji: trimmedEmoji }];
@@ -374,7 +365,6 @@ async function reactMessageTelegram(chatIdInput, messageIdInput, emoji, opts = {
   await requestWithDiag(() => api.setMessageReaction(chatId, messageId, reactions), 'reaction');
   return { ok: true };
 }
-__name(reactMessageTelegram, 'reactMessageTelegram');
 async function deleteMessageTelegram(chatIdInput, messageIdInput, opts = {}) {
   const cfg = loadConfig();
   const account = resolveTelegramAccount({
@@ -390,21 +380,20 @@ async function deleteMessageTelegram(chatIdInput, messageIdInput, opts = {}) {
     retry: opts.retry,
     configRetry: account.config.retry,
     verbose: opts.verbose,
-    shouldRetry: /* @__PURE__ */ __name((err) => isRecoverableTelegramNetworkError(err, { context: 'send' }), 'shouldRetry')
+    shouldRetry: (err) => isRecoverableTelegramNetworkError(err, { context: 'send' })
   });
   const logHttpError = createTelegramHttpLogger(cfg);
-  const requestWithDiag = /* @__PURE__ */ __name((fn, label) => withTelegramApiErrorLogging({
+  const requestWithDiag = (fn, label) => withTelegramApiErrorLogging({
     operation: label ?? 'request',
-    fn: /* @__PURE__ */ __name(() => request(fn, label), 'fn')
+    fn: () => request(fn, label)
   }).catch((err) => {
     logHttpError(label ?? 'request', err);
     throw err;
-  }), 'requestWithDiag');
+  });
   await requestWithDiag(() => api.deleteMessage(chatId, messageId), 'deleteMessage');
   logVerbose(`[telegram] Deleted message ${messageId} from chat ${chatId}`);
   return { ok: true };
 }
-__name(deleteMessageTelegram, 'deleteMessageTelegram');
 async function editMessageTelegram(chatIdInput, messageIdInput, text, opts = {}) {
   const cfg = opts.cfg ?? loadConfig();
   const account = resolveTelegramAccount({
@@ -422,13 +411,13 @@ async function editMessageTelegram(chatIdInput, messageIdInput, text, opts = {})
     verbose: opts.verbose
   });
   const logHttpError = createTelegramHttpLogger(cfg);
-  const requestWithDiag = /* @__PURE__ */ __name((fn, label) => withTelegramApiErrorLogging({
+  const requestWithDiag = (fn, label) => withTelegramApiErrorLogging({
     operation: label ?? 'request',
-    fn: /* @__PURE__ */ __name(() => request(fn, label), 'fn')
+    fn: () => request(fn, label)
   }).catch((err) => {
     logHttpError(label ?? 'request', err);
     throw err;
-  }), 'requestWithDiag');
+  });
   const textMode = opts.textMode ?? 'markdown';
   const tableMode = resolveMarkdownTableMode({
     cfg,
@@ -468,7 +457,6 @@ async function editMessageTelegram(chatIdInput, messageIdInput, text, opts = {})
   logVerbose(`[telegram] Edited message ${messageId} in chat ${chatId}`);
   return { ok: true, messageId: String(messageId), chatId };
 }
-__name(editMessageTelegram, 'editMessageTelegram');
 function inferFilename(kind) {
   switch (kind) {
     case 'image':
@@ -481,7 +469,6 @@ function inferFilename(kind) {
       return 'file.bin';
   }
 }
-__name(inferFilename, 'inferFilename');
 async function sendStickerTelegram(to, fileId, opts = {}) {
   if (!fileId?.trim()) {
     throw new Error('Telegram sticker file_id is required');
@@ -510,11 +497,11 @@ async function sendStickerTelegram(to, fileId, opts = {}) {
     verbose: opts.verbose
   });
   const logHttpError = createTelegramHttpLogger(cfg);
-  const requestWithDiag = /* @__PURE__ */ __name((fn, label) => request(fn, label).catch((err) => {
+  const requestWithDiag = (fn, label) => request(fn, label).catch((err) => {
     logHttpError(label ?? 'request', err);
     throw err;
-  }), 'requestWithDiag');
-  const wrapChatNotFound = /* @__PURE__ */ __name((err) => {
+  });
+  const wrapChatNotFound = (err) => {
     if (!/400: Bad Request: chat not found/i.test(formatErrorMessage(err))) {
       return err;
     }
@@ -525,7 +512,7 @@ async function sendStickerTelegram(to, fileId, opts = {}) {
         `Input was: ${JSON.stringify(to)}.`
       ].join(' ')
     );
-  }, 'wrapChatNotFound');
+  };
   const stickerParams = hasThreadParams ? threadParams : void 0;
   const result = await requestWithDiag(
     () => api.sendSticker(chatId, fileId.trim(), stickerParams),
@@ -545,7 +532,6 @@ async function sendStickerTelegram(to, fileId, opts = {}) {
   });
   return { messageId, chatId: resolvedChatId };
 }
-__name(sendStickerTelegram, 'sendStickerTelegram');
 export {
   buildInlineKeyboard,
   deleteMessageTelegram,

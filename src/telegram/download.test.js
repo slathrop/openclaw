@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { downloadTelegramFile, getTelegramFile } from './download.js';
 describe('telegram download', () => {
@@ -19,14 +17,14 @@ describe('telegram download', () => {
       file_id: 'fid',
       file_path: 'photos/1.jpg'
     };
-    const arrayBuffer = /* @__PURE__ */ __name(async () => new Uint8Array([1, 2, 3, 4]).buffer, 'arrayBuffer');
+    const arrayBuffer = async () => new Uint8Array([1, 2, 3, 4]).buffer;
     vi.spyOn(global, 'fetch').mockResolvedValueOnce({
       ok: true,
       status: 200,
       statusText: 'OK',
       body: true,
       arrayBuffer,
-      headers: { get: /* @__PURE__ */ __name(() => 'image/jpeg', 'get') }
+      headers: { get: () => 'image/jpeg' }
     });
     const saved = await downloadTelegramFile('tok', info, 1024 * 1024);
     expect(saved.path).toBeTruthy();

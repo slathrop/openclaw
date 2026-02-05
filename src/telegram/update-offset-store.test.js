@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -20,7 +18,6 @@ async function withTempStateDir(fn) {
     await fs.rm(dir, { recursive: true, force: true });
   }
 }
-__name(withTempStateDir, 'withTempStateDir');
 describe('telegram update offset store', () => {
   it('persists and reloads the last update id', async () => {
     await withTempStateDir(async () => {

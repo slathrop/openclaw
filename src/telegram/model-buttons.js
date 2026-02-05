@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 const MODELS_PAGE_SIZE = 8;
 const MAX_CALLBACK_DATA_BYTES = 64;
 function parseModelCallbackData(data) {
@@ -34,7 +32,6 @@ function parseModelCallbackData(data) {
   }
   return null;
 }
-__name(parseModelCallbackData, 'parseModelCallbackData');
 function buildProviderKeyboard(providers) {
   if (providers.length === 0) {
     return [];
@@ -57,7 +54,6 @@ function buildProviderKeyboard(providers) {
   }
   return rows;
 }
-__name(buildProviderKeyboard, 'buildProviderKeyboard');
 function buildModelsKeyboard(params) {
   const { provider, models, currentModel, currentPage, totalPages } = params;
   const pageSize = params.pageSize ?? MODELS_PAGE_SIZE;
@@ -108,27 +104,22 @@ function buildModelsKeyboard(params) {
   rows.push([{ text: '<< Back', callback_data: 'mdl_back' }]);
   return rows;
 }
-__name(buildModelsKeyboard, 'buildModelsKeyboard');
 function buildBrowseProvidersButton() {
   return [[{ text: 'Browse providers', callback_data: 'mdl_prov' }]];
 }
-__name(buildBrowseProvidersButton, 'buildBrowseProvidersButton');
 function truncateModelId(modelId, maxLen) {
   if (modelId.length <= maxLen) {
     return modelId;
   }
   return `\u2026${modelId.slice(-(maxLen - 1))}`;
 }
-__name(truncateModelId, 'truncateModelId');
 function getModelsPageSize() {
   return MODELS_PAGE_SIZE;
 }
-__name(getModelsPageSize, 'getModelsPageSize');
 function calculateTotalPages(totalModels, pageSize) {
   const size = pageSize ?? MODELS_PAGE_SIZE;
   return size > 0 ? Math.ceil(totalModels / size) : 1;
 }
-__name(calculateTotalPages, 'calculateTotalPages');
 export {
   buildBrowseProvidersButton,
   buildModelsKeyboard,

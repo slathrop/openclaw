@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetInboundDedupe } from '../auto-reply/reply/inbound-dedupe.js';
 import { createTelegramBot } from './bot.js';
@@ -70,9 +68,6 @@ vi.mock('grammy', () => ({
       this.options = options;
       botCtorSpy(token, options);
     }
-    static {
-      __name(this, 'Bot');
-    }
     api = apiStub;
     use = middlewareUseSpy;
     on = onSpy;
@@ -81,22 +76,19 @@ vi.mock('grammy', () => ({
     catch = vi.fn();
   },
   InputFile: class {
-    static {
-      __name(this, 'InputFile');
-    }
   },
   webhookCallback: vi.fn()
 }));
 const sequentializeMiddleware = vi.fn();
 const sequentializeSpy = vi.fn(() => sequentializeMiddleware);
 vi.mock('@grammyjs/runner', () => ({
-  sequentialize: /* @__PURE__ */ __name(() => {
+  sequentialize: () => {
     return sequentializeSpy();
-  }, 'sequentialize')
+  }
 }));
 const throttlerSpy = vi.fn(() => 'throttler');
 vi.mock('@grammyjs/transformer-throttler', () => ({
-  apiThrottler: /* @__PURE__ */ __name(() => throttlerSpy(), 'apiThrottler')
+  apiThrottler: () => throttlerSpy()
 }));
 vi.mock('../auto-reply/reply.js', () => {
   const replySpy = vi.fn(async (_ctx, opts) => {
@@ -106,13 +98,13 @@ vi.mock('../auto-reply/reply.js', () => {
   return { getReplyFromConfig: replySpy, __replySpy: replySpy };
 });
 let replyModule;
-const getOnHandler = /* @__PURE__ */ __name((event) => {
+const getOnHandler = (event) => {
   const handler = onSpy.mock.calls.find((call) => call[0] === event)?.[1];
   if (!handler) {
     throw new Error(`Missing handler for event: ${event}`);
   }
   return handler;
-}, 'getOnHandler');
+};
 describe('createTelegramBot', () => {
   beforeAll(async () => {
     replyModule = await import('../auto-reply/reply.js');
@@ -158,7 +150,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     };
     await handler(ctx);
     await handler(ctx);
@@ -187,7 +179,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     });
     await handler({
       callbackQuery: {
@@ -201,7 +193,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     });
     expect(replySpy).toHaveBeenCalledTimes(2);
   });

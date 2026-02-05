@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveSlackAccount } from './accounts.js';
 import { createSlackWebClient } from './client.js';
 function resolveReadToken(params) {
@@ -7,11 +5,9 @@ function resolveReadToken(params) {
   const userToken = account.config.userToken?.trim() || void 0;
   return userToken ?? account.botToken?.trim();
 }
-__name(resolveReadToken, 'resolveReadToken');
 function normalizeQuery(value) {
   return value?.trim().toLowerCase() ?? '';
 }
-__name(normalizeQuery, 'normalizeQuery');
 function buildUserRank(user) {
   let rank = 0;
   if (!user.deleted) {
@@ -22,11 +18,9 @@ function buildUserRank(user) {
   }
   return rank;
 }
-__name(buildUserRank, 'buildUserRank');
 function buildChannelRank(channel) {
   return channel.is_archived ? 0 : 1;
 }
-__name(buildChannelRank, 'buildChannelRank');
 async function listSlackDirectoryPeersLive(params) {
   const token = resolveReadToken(params);
   if (!token) {
@@ -78,7 +72,6 @@ async function listSlackDirectoryPeersLive(params) {
   }
   return rows;
 }
-__name(listSlackDirectoryPeersLive, 'listSlackDirectoryPeersLive');
 async function listSlackDirectoryGroupsLive(params) {
   const token = resolveReadToken(params);
   if (!token) {
@@ -128,7 +121,6 @@ async function listSlackDirectoryGroupsLive(params) {
   }
   return rows;
 }
-__name(listSlackDirectoryGroupsLive, 'listSlackDirectoryGroupsLive');
 export {
   listSlackDirectoryGroupsLive,
   listSlackDirectoryPeersLive

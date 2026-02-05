@@ -1,10 +1,7 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { createSlackWebClient } from './client.js';
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
-__name(isRecord, 'isRecord');
 function collectScopes(value, into) {
   if (!value) {
     return;
@@ -39,11 +36,9 @@ function collectScopes(value, into) {
     }
   }
 }
-__name(collectScopes, 'collectScopes');
 function normalizeScopes(scopes) {
   return Array.from(new Set(scopes.map((scope) => scope.trim()).filter(Boolean))).toSorted();
 }
-__name(normalizeScopes, 'normalizeScopes');
 function extractScopes(payload) {
   if (!isRecord(payload)) {
     return [];
@@ -59,7 +54,6 @@ function extractScopes(payload) {
   }
   return normalizeScopes(scopes);
 }
-__name(extractScopes, 'extractScopes');
 function readError(payload) {
   if (!isRecord(payload)) {
     return void 0;
@@ -67,7 +61,6 @@ function readError(payload) {
   const error = payload.error;
   return typeof error === 'string' && error.trim() ? error.trim() : void 0;
 }
-__name(readError, 'readError');
 async function callSlack(client, method) {
   try {
     const result = await client.apiCall(method);
@@ -79,7 +72,6 @@ async function callSlack(client, method) {
     };
   }
 }
-__name(callSlack, 'callSlack');
 async function fetchSlackScopes(token, timeoutMs) {
   const client = createSlackWebClient(token, { timeout: timeoutMs });
   const attempts = ['auth.scopes', 'apps.permissions.info'];
@@ -100,7 +92,6 @@ async function fetchSlackScopes(token, timeoutMs) {
     error: errors.length > 0 ? errors.join(' | ') : 'no scopes returned'
   };
 }
-__name(fetchSlackScopes, 'fetchSlackScopes');
 export {
   fetchSlackScopes
 };

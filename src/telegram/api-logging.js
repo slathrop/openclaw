@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { danger } from '../globals.js';
 import { formatErrorMessage } from '../infra/errors.js';
 import { createSubsystemLogger } from '../logging/subsystem.js';
@@ -13,7 +11,6 @@ function resolveTelegramApiLogger(runtime, logger) {
   }
   return (message) => fallbackLogger.error(message);
 }
-__name(resolveTelegramApiLogger, 'resolveTelegramApiLogger');
 async function withTelegramApiErrorLogging({
   operation,
   fn,
@@ -32,7 +29,6 @@ async function withTelegramApiErrorLogging({
     throw err;
   }
 }
-__name(withTelegramApiErrorLogging, 'withTelegramApiErrorLogging');
 export {
   withTelegramApiErrorLogging
 };

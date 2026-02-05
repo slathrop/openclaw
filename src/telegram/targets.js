@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 function stripTelegramInternalPrefixes(to) {
   let trimmed = to.trim();
   let strippedTelegramPrefix = false;
@@ -20,7 +18,6 @@ function stripTelegramInternalPrefixes(to) {
     trimmed = next;
   }
 }
-__name(stripTelegramInternalPrefixes, 'stripTelegramInternalPrefixes');
 function parseTelegramTarget(to) {
   const normalized = stripTelegramInternalPrefixes(to);
   const topicMatch = /^(.+?):topic:(\d+)$/.exec(normalized);
@@ -39,7 +36,6 @@ function parseTelegramTarget(to) {
   }
   return { chatId: normalized };
 }
-__name(parseTelegramTarget, 'parseTelegramTarget');
 export {
   parseTelegramTarget,
   stripTelegramInternalPrefixes

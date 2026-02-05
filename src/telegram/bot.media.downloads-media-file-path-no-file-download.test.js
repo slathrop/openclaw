@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetInboundDedupe } from '../auto-reply/reply/inbound-dedupe.js';
 import * as ssrf from '../infra/net/ssrf.js';
@@ -36,9 +34,6 @@ vi.mock('grammy', () => ({
     constructor(token) {
       this.token = token;
     }
-    static {
-      __name(this, 'Bot');
-    }
     api = apiStub;
     use = middlewareUseSpy;
     on = onSpy;
@@ -47,18 +42,15 @@ vi.mock('grammy', () => ({
     catch = vi.fn();
   },
   InputFile: class {
-    static {
-      __name(this, 'InputFile');
-    }
   },
   webhookCallback: vi.fn()
 }));
 vi.mock('@grammyjs/runner', () => ({
-  sequentialize: /* @__PURE__ */ __name(() => vi.fn(), 'sequentialize')
+  sequentialize: () => vi.fn()
 }));
 const throttlerSpy = vi.fn(() => 'throttler');
 vi.mock('@grammyjs/transformer-throttler', () => ({
-  apiThrottler: /* @__PURE__ */ __name(() => throttlerSpy(), 'apiThrottler')
+  apiThrottler: () => throttlerSpy()
 }));
 vi.mock('../media/store.js', async (importOriginal) => {
   const actual = await importOriginal();
@@ -76,9 +68,9 @@ vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => ({
+    loadConfig: () => ({
       channels: { telegram: { dmPolicy: 'open', allowFrom: ['*'] } }
-    }), 'loadConfig')
+    })
   };
 });
 vi.mock('../config/sessions.js', async (importOriginal) => {
@@ -89,9 +81,9 @@ vi.mock('../config/sessions.js', async (importOriginal) => {
   };
 });
 vi.mock('./sticker-cache.js', () => ({
-  cacheSticker: /* @__PURE__ */ __name((...args) => cacheStickerSpy(...args), 'cacheSticker'),
-  getCachedSticker: /* @__PURE__ */ __name((...args) => getCachedStickerSpy(...args), 'getCachedSticker'),
-  describeStickerImage: /* @__PURE__ */ __name((...args) => describeStickerImageSpy(...args), 'describeStickerImage')
+  cacheSticker: (...args) => cacheStickerSpy(...args),
+  getCachedSticker: (...args) => getCachedStickerSpy(...args),
+  describeStickerImage: (...args) => describeStickerImageSpy(...args)
 }));
 vi.mock('../pairing/pairing-store.js', () => ({
   readChannelAllowFromStore: vi.fn(async () => []),
@@ -125,9 +117,9 @@ describe('telegram inbound media', () => {
         runtime: {
           log: runtimeLog,
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -136,8 +128,8 @@ describe('telegram inbound media', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: { get: /* @__PURE__ */ __name(() => 'image/jpeg', 'get') },
-        arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([255, 216, 255, 0]).buffer, 'arrayBuffer')
+        headers: { get: () => 'image/jpeg' },
+        arrayBuffer: async () => new Uint8Array([255, 216, 255, 0]).buffer
       });
       await handler({
         message: {
@@ -148,7 +140,7 @@ describe('telegram inbound media', () => {
           // 2025-01-09T00:00:00Z
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/1.jpg' }), 'getFile')
+        getFile: async () => ({ file_path: 'photos/1.jpg' })
       });
       expect(runtimeError).not.toHaveBeenCalled();
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -174,8 +166,8 @@ describe('telegram inbound media', () => {
       ok: true,
       status: 200,
       statusText: 'OK',
-      headers: { get: /* @__PURE__ */ __name(() => 'image/jpeg', 'get') },
-      arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([255, 216, 255]).buffer, 'arrayBuffer')
+      headers: { get: () => 'image/jpeg' },
+      arrayBuffer: async () => new Uint8Array([255, 216, 255]).buffer
     });
     createTelegramBot({
       token: 'tok',
@@ -183,9 +175,9 @@ describe('telegram inbound media', () => {
       runtime: {
         log: runtimeLog,
         error: runtimeError,
-        exit: /* @__PURE__ */ __name(() => {
+        exit: () => {
           throw new Error('exit');
-        }, 'exit')
+        }
       }
     });
     const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -197,7 +189,7 @@ describe('telegram inbound media', () => {
         photo: [{ file_id: 'fid' }]
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/2.jpg' }), 'getFile')
+      getFile: async () => ({ file_path: 'photos/2.jpg' })
     });
     expect(runtimeError).not.toHaveBeenCalled();
     expect(proxyFetch).toHaveBeenCalledWith(
@@ -220,9 +212,9 @@ describe('telegram inbound media', () => {
       runtime: {
         log: runtimeLog,
         error: runtimeError,
-        exit: /* @__PURE__ */ __name(() => {
+        exit: () => {
           throw new Error('exit');
-        }, 'exit')
+        }
       }
     });
     const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -234,7 +226,7 @@ describe('telegram inbound media', () => {
         photo: [{ file_id: 'fid' }]
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     });
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(replySpy).not.toHaveBeenCalled();
@@ -267,17 +259,17 @@ describe('telegram media groups', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: { get: /* @__PURE__ */ __name(() => 'image/png', 'get') },
-        arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([137, 80, 78, 71]).buffer, 'arrayBuffer')
+        headers: { get: () => 'image/png' },
+        arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer
       });
       createTelegramBot({
         token: 'tok',
         runtime: {
           log: vi.fn(),
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -292,7 +284,7 @@ describe('telegram media groups', () => {
           photo: [{ file_id: 'photo1' }]
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/photo1.jpg' }), 'getFile')
+        getFile: async () => ({ file_path: 'photos/photo1.jpg' })
       });
       const second = handler({
         message: {
@@ -303,7 +295,7 @@ describe('telegram media groups', () => {
           photo: [{ file_id: 'photo2' }]
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/photo2.jpg' }), 'getFile')
+        getFile: async () => ({ file_path: 'photos/photo2.jpg' })
       });
       await first;
       await second;
@@ -330,8 +322,8 @@ describe('telegram media groups', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: { get: /* @__PURE__ */ __name(() => 'image/png', 'get') },
-        arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([137, 80, 78, 71]).buffer, 'arrayBuffer')
+        headers: { get: () => 'image/png' },
+        arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer
       });
       createTelegramBot({ token: 'tok' });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -346,7 +338,7 @@ describe('telegram media groups', () => {
           photo: [{ file_id: 'photoA1' }]
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/photoA1.jpg' }), 'getFile')
+        getFile: async () => ({ file_path: 'photos/photoA1.jpg' })
       });
       const second = handler({
         message: {
@@ -358,7 +350,7 @@ describe('telegram media groups', () => {
           photo: [{ file_id: 'photoB1' }]
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'photos/photoB1.jpg' }), 'getFile')
+        getFile: async () => ({ file_path: 'photos/photoB1.jpg' })
       });
       await Promise.all([first, second]);
       expect(replySpy).not.toHaveBeenCalled();
@@ -392,9 +384,9 @@ describe('telegram stickers', () => {
         runtime: {
           log: runtimeLog,
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -403,8 +395,8 @@ describe('telegram stickers', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: { get: /* @__PURE__ */ __name(() => 'image/webp', 'get') },
-        arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([82, 73, 70, 70]).buffer, 'arrayBuffer')
+        headers: { get: () => 'image/webp' },
+        arrayBuffer: async () => new Uint8Array([82, 73, 70, 70]).buffer
         // RIFF header
       });
       await handler({
@@ -425,7 +417,7 @@ describe('telegram stickers', () => {
           date: 1736380800
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'stickers/sticker.webp' }), 'getFile')
+        getFile: async () => ({ file_path: 'stickers/sticker.webp' })
       });
       expect(runtimeError).not.toHaveBeenCalled();
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -465,9 +457,9 @@ describe('telegram stickers', () => {
         runtime: {
           log: vi.fn(),
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -476,8 +468,8 @@ describe('telegram stickers', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: { get: /* @__PURE__ */ __name(() => 'image/webp', 'get') },
-        arrayBuffer: /* @__PURE__ */ __name(async () => new Uint8Array([82, 73, 70, 70]).buffer, 'arrayBuffer')
+        headers: { get: () => 'image/webp' },
+        arrayBuffer: async () => new Uint8Array([82, 73, 70, 70]).buffer
       });
       await handler({
         message: {
@@ -497,7 +489,7 @@ describe('telegram stickers', () => {
           date: 1736380800
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'stickers/sticker.webp' }), 'getFile')
+        getFile: async () => ({ file_path: 'stickers/sticker.webp' })
       });
       expect(runtimeError).not.toHaveBeenCalled();
       expect(cacheStickerSpy).toHaveBeenCalledWith(
@@ -529,9 +521,9 @@ describe('telegram stickers', () => {
         runtime: {
           log: vi.fn(),
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -555,7 +547,7 @@ describe('telegram stickers', () => {
           date: 1736380800
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'stickers/animated.tgs' }), 'getFile')
+        getFile: async () => ({ file_path: 'stickers/animated.tgs' })
       });
       expect(fetchSpy).not.toHaveBeenCalled();
       expect(replySpy).not.toHaveBeenCalled();
@@ -579,9 +571,9 @@ describe('telegram stickers', () => {
         runtime: {
           log: vi.fn(),
           error: runtimeError,
-          exit: /* @__PURE__ */ __name(() => {
+          exit: () => {
             throw new Error('exit');
-          }, 'exit')
+          }
         }
       });
       const handler = onSpy.mock.calls.find((call) => call[0] === 'message')?.[1];
@@ -605,7 +597,7 @@ describe('telegram stickers', () => {
           date: 1736380800
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'stickers/video.webm' }), 'getFile')
+        getFile: async () => ({ file_path: 'stickers/video.webm' })
       });
       expect(fetchSpy).not.toHaveBeenCalled();
       expect(replySpy).not.toHaveBeenCalled();
@@ -645,7 +637,7 @@ describe('telegram text fragments', () => {
           text: part1
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+        getFile: async () => ({})
       });
       await handler({
         message: {
@@ -655,7 +647,7 @@ describe('telegram text fragments', () => {
           text: part2
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+        getFile: async () => ({})
       });
       expect(replySpy).not.toHaveBeenCalled();
       await vi.advanceTimersByTimeAsync(TEXT_FRAGMENT_FLUSH_MS);

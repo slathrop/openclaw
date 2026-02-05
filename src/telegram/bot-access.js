@@ -1,6 +1,4 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
-const normalizeAllowFrom = /* @__PURE__ */ __name((list) => {
+const normalizeAllowFrom = (list) => {
   const entries = (list ?? []).map((value) => String(value).trim()).filter(Boolean);
   const hasWildcard = entries.includes('*');
   const normalized = entries.filter((value) => value !== '*').map((value) => value.replace(/^(telegram|tg):/i, ''));
@@ -11,20 +9,20 @@ const normalizeAllowFrom = /* @__PURE__ */ __name((list) => {
     hasWildcard,
     hasEntries: entries.length > 0
   };
-}, 'normalizeAllowFrom');
-const normalizeAllowFromWithStore = /* @__PURE__ */ __name((params) => {
+};
+const normalizeAllowFromWithStore = (params) => {
   const combined = [...params.allowFrom ?? [], ...params.storeAllowFrom ?? []].map((value) => String(value).trim()).filter(Boolean);
   return normalizeAllowFrom(combined);
-}, 'normalizeAllowFromWithStore');
-const firstDefined = /* @__PURE__ */ __name((...values) => {
+};
+const firstDefined = (...values) => {
   for (const value of values) {
     if (typeof value !== 'undefined') {
       return value;
     }
   }
   return void 0;
-}, 'firstDefined');
-const isSenderAllowed = /* @__PURE__ */ __name((params) => {
+};
+const isSenderAllowed = (params) => {
   const { allow, senderId, senderUsername } = params;
   if (!allow.hasEntries) {
     return true;
@@ -40,8 +38,8 @@ const isSenderAllowed = /* @__PURE__ */ __name((params) => {
     return false;
   }
   return allow.entriesLower.some((entry) => entry === username || entry === `@${username}`);
-}, 'isSenderAllowed');
-const resolveSenderAllowMatch = /* @__PURE__ */ __name((params) => {
+};
+const resolveSenderAllowMatch = (params) => {
   const { allow, senderId, senderUsername } = params;
   if (allow.hasWildcard) {
     return { allowed: true, matchKey: '*', matchSource: 'wildcard' };
@@ -63,7 +61,7 @@ const resolveSenderAllowMatch = /* @__PURE__ */ __name((params) => {
     return { allowed: true, matchKey: entry, matchSource: 'username' };
   }
   return { allowed: false };
-}, 'resolveSenderAllowMatch');
+};
 export {
   firstDefined,
   isSenderAllowed,

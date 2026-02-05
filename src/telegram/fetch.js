@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import * as net from 'node:net';
 import { resolveFetch } from '../infra/fetch.js';
 import { createSubsystemLogger } from '../logging/subsystem.js';
@@ -22,7 +20,6 @@ function applyTelegramNetworkWorkarounds(network) {
     }
   }
 }
-__name(applyTelegramNetworkWorkarounds, 'applyTelegramNetworkWorkarounds');
 function resolveTelegramFetch(proxyFetch, options) {
   applyTelegramNetworkWorkarounds(options?.network);
   if (proxyFetch) {
@@ -34,7 +31,6 @@ function resolveTelegramFetch(proxyFetch, options) {
   }
   return fetchImpl;
 }
-__name(resolveTelegramFetch, 'resolveTelegramFetch');
 export {
   resolveTelegramFetch
 };

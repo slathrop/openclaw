@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,7 +6,6 @@ import { resolveTelegramToken } from './token.js';
 function withTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'openclaw-telegram-token-'));
 }
-__name(withTempDir, 'withTempDir');
 describe('resolveTelegramToken', () => {
   afterEach(() => {
     vi.unstubAllEnvs();

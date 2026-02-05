@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import {
   chunkMarkdownIR,
   markdownToIR
@@ -8,11 +6,9 @@ import { renderMarkdownWithMarkers } from '../markdown/render.js';
 function escapeHtml(text) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-__name(escapeHtml, 'escapeHtml');
 function escapeHtmlAttr(text) {
   return escapeHtml(text).replace(/"/g, '&quot;');
 }
-__name(escapeHtmlAttr, 'escapeHtmlAttr');
 // eslint-disable-next-line no-unused-vars
 function buildTelegramLink(link, _text) {
   const href = link.href.trim();
@@ -30,7 +26,6 @@ function buildTelegramLink(link, _text) {
     close: '</a>'
   };
 }
-__name(buildTelegramLink, 'buildTelegramLink');
 function renderTelegramHtml(ir) {
   return renderMarkdownWithMarkers(ir, {
     styleMarkers: {
@@ -44,7 +39,6 @@ function renderTelegramHtml(ir) {
     buildLink: buildTelegramLink
   });
 }
-__name(renderTelegramHtml, 'renderTelegramHtml');
 function markdownToTelegramHtml(markdown, options = {}) {
   const ir = markdownToIR(markdown ?? '', {
     linkify: true,
@@ -54,7 +48,6 @@ function markdownToTelegramHtml(markdown, options = {}) {
   });
   return renderTelegramHtml(ir);
 }
-__name(markdownToTelegramHtml, 'markdownToTelegramHtml');
 function renderTelegramHtmlText(text, options = {}) {
   const textMode = options.textMode ?? 'markdown';
   if (textMode === 'html') {
@@ -62,7 +55,6 @@ function renderTelegramHtmlText(text, options = {}) {
   }
   return markdownToTelegramHtml(text, { tableMode: options.tableMode });
 }
-__name(renderTelegramHtmlText, 'renderTelegramHtmlText');
 function markdownToTelegramChunks(markdown, limit, options = {}) {
   const ir = markdownToIR(markdown ?? '', {
     linkify: true,
@@ -76,11 +68,9 @@ function markdownToTelegramChunks(markdown, limit, options = {}) {
     text: chunk.text
   }));
 }
-__name(markdownToTelegramChunks, 'markdownToTelegramChunks');
 function markdownToTelegramHtmlChunks(markdown, limit) {
   return markdownToTelegramChunks(markdown, limit).map((chunk) => chunk.html);
 }
-__name(markdownToTelegramHtmlChunks, 'markdownToTelegramHtmlChunks');
 export {
   markdownToTelegramChunks,
   markdownToTelegramHtml,

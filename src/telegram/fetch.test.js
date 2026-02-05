@@ -1,9 +1,7 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { afterEach, describe, expect, it, vi } from 'vitest';
 describe('resolveTelegramFetch', () => {
   const originalFetch = globalThis.fetch;
-  const loadModule = /* @__PURE__ */ __name(async () => {
+  const loadModule = async () => {
     const setDefaultAutoSelectFamily = vi.fn();
     vi.resetModules();
     vi.doMock('node:net', () => ({
@@ -11,7 +9,7 @@ describe('resolveTelegramFetch', () => {
     }));
     const mod = await import('./fetch.js');
     return { resolveTelegramFetch: mod.resolveTelegramFetch, setDefaultAutoSelectFamily };
-  }, 'loadModule');
+  };
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();

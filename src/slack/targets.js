@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import {
   buildMessagingTarget,
   ensureTargetId,
@@ -49,12 +47,10 @@ function parseSlackTarget(raw, options = {}) {
   }
   return buildMessagingTarget('channel', trimmed, trimmed);
 }
-__name(parseSlackTarget, 'parseSlackTarget');
 function resolveSlackChannelId(raw) {
   const target = parseSlackTarget(raw, { defaultKind: 'channel' });
   return requireTargetKind({ platform: 'Slack', target, kind: 'channel' });
 }
-__name(resolveSlackChannelId, 'resolveSlackChannelId');
 export {
   parseSlackTarget,
   resolveSlackChannelId

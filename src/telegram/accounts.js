@@ -1,14 +1,12 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { isTruthyEnvValue } from '../infra/env.js';
 import { listBoundAccountIds, resolveDefaultAgentBoundAccountId } from '../routing/bindings.js';
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from '../routing/session-key.js';
 import { resolveTelegramToken } from './token.js';
-const debugAccounts = /* @__PURE__ */ __name((...args) => {
+const debugAccounts = (...args) => {
   if (isTruthyEnvValue(process.env.OPENCLAW_DEBUG_TELEGRAM_ACCOUNTS)) {
     console.warn('[telegram:accounts]', ...args);
   }
-}, 'debugAccounts');
+};
 function listConfiguredAccountIds(cfg) {
   const accounts = cfg.channels?.telegram?.accounts;
   if (!accounts || typeof accounts !== 'object') {
@@ -23,7 +21,6 @@ function listConfiguredAccountIds(cfg) {
   }
   return [...ids];
 }
-__name(listConfiguredAccountIds, 'listConfiguredAccountIds');
 function listTelegramAccountIds(cfg) {
   const ids = Array.from(
     /* @__PURE__ */ new Set([...listConfiguredAccountIds(cfg), ...listBoundAccountIds(cfg, 'telegram')])
@@ -34,7 +31,6 @@ function listTelegramAccountIds(cfg) {
   }
   return ids.toSorted((a, b) => a.localeCompare(b));
 }
-__name(listTelegramAccountIds, 'listTelegramAccountIds');
 function resolveDefaultTelegramAccountId(cfg) {
   const boundDefault = resolveDefaultAgentBoundAccountId(cfg, 'telegram');
   if (boundDefault) {
@@ -46,7 +42,6 @@ function resolveDefaultTelegramAccountId(cfg) {
   }
   return ids[0] ?? DEFAULT_ACCOUNT_ID;
 }
-__name(resolveDefaultTelegramAccountId, 'resolveDefaultTelegramAccountId');
 function resolveAccountConfig(cfg, accountId) {
   const accounts = cfg.channels?.telegram?.accounts;
   if (!accounts || typeof accounts !== 'object') {
@@ -60,18 +55,16 @@ function resolveAccountConfig(cfg, accountId) {
   const matchKey = Object.keys(accounts).find((key) => normalizeAccountId(key) === normalized);
   return matchKey ? accounts[matchKey] : void 0;
 }
-__name(resolveAccountConfig, 'resolveAccountConfig');
 function mergeTelegramAccountConfig(cfg, accountId) {
   // eslint-disable-next-line no-unused-vars
   const { accounts: _ignored, ...base } = cfg.channels?.telegram ?? {};
   const account = resolveAccountConfig(cfg, accountId) ?? {};
   return { ...base, ...account };
 }
-__name(mergeTelegramAccountConfig, 'mergeTelegramAccountConfig');
 function resolveTelegramAccount(params) {
   const hasExplicitAccountId = Boolean(params.accountId?.trim());
   const baseEnabled = params.cfg.channels?.telegram?.enabled !== false;
-  const resolve = /* @__PURE__ */ __name((accountId) => {
+  const resolve = (accountId) => {
     const merged = mergeTelegramAccountConfig(params.cfg, accountId);
     const accountEnabled = merged.enabled !== false;
     const enabled = baseEnabled && accountEnabled;
@@ -89,7 +82,7 @@ function resolveTelegramAccount(params) {
       tokenSource: tokenResolution.source,
       config: merged
     };
-  }, 'resolve');
+  };
   const normalized = normalizeAccountId(params.accountId);
   const primary = resolve(normalized);
   if (hasExplicitAccountId) {
@@ -108,11 +101,9 @@ function resolveTelegramAccount(params) {
   }
   return fallback;
 }
-__name(resolveTelegramAccount, 'resolveTelegramAccount');
 function listEnabledTelegramAccounts(cfg) {
   return listTelegramAccountIds(cfg).map((accountId) => resolveTelegramAccount({ cfg, accountId })).filter((account) => account.enabled);
 }
-__name(listEnabledTelegramAccounts, 'listEnabledTelegramAccounts');
 export {
   listEnabledTelegramAccounts,
   listTelegramAccountIds,

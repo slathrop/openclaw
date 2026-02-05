@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { registerSlackChannelEvents } from './events/channels.js';
 import { registerSlackMemberEvents } from './events/members.js';
 import { registerSlackMessageEvents } from './events/messages.js';
@@ -15,7 +13,6 @@ function registerSlackMonitorEvents(params) {
   registerSlackChannelEvents({ ctx: params.ctx });
   registerSlackPinEvents({ ctx: params.ctx });
 }
-__name(registerSlackMonitorEvents, 'registerSlackMonitorEvents');
 export {
   registerSlackMonitorEvents
 };

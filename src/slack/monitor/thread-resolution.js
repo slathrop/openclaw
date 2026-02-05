@@ -1,12 +1,10 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { logVerbose, shouldLogVerbose } from '../../globals.js';
 const DEFAULT_THREAD_TS_CACHE_TTL_MS = 6e4;
 const DEFAULT_THREAD_TS_CACHE_MAX = 500;
-const normalizeThreadTs = /* @__PURE__ */ __name((threadTs) => {
+const normalizeThreadTs = (threadTs) => {
   const trimmed = threadTs?.trim();
   return trimmed ? trimmed : void 0;
-}, 'normalizeThreadTs');
+};
 async function resolveThreadTsFromHistory(params) {
   try {
     const response = await params.client.conversations.history({
@@ -27,13 +25,12 @@ async function resolveThreadTsFromHistory(params) {
     return void 0;
   }
 }
-__name(resolveThreadTsFromHistory, 'resolveThreadTsFromHistory');
 function createSlackThreadTsResolver(params) {
   const ttlMs = Math.max(0, params.cacheTtlMs ?? DEFAULT_THREAD_TS_CACHE_TTL_MS);
   const maxSize = Math.max(0, params.maxSize ?? DEFAULT_THREAD_TS_CACHE_MAX);
   const cache = /* @__PURE__ */ new Map();
   const inflight = /* @__PURE__ */ new Map();
-  const getCached = /* @__PURE__ */ __name((key, now) => {
+  const getCached = (key, now) => {
     const entry = cache.get(key);
     if (!entry) {
       return void 0;
@@ -45,8 +42,8 @@ function createSlackThreadTsResolver(params) {
     cache.delete(key);
     cache.set(key, { ...entry, updatedAt: now });
     return entry.threadTs;
-  }, 'getCached');
-  const setCached = /* @__PURE__ */ __name((key, threadTs, now) => {
+  };
+  const setCached = (key, threadTs, now) => {
     cache.delete(key);
     cache.set(key, { threadTs, updatedAt: now });
     if (maxSize <= 0) {
@@ -60,9 +57,9 @@ function createSlackThreadTsResolver(params) {
       }
       cache.delete(oldestKey);
     }
-  }, 'setCached');
+  };
   return {
-    resolve: /* @__PURE__ */ __name(async (request) => {
+    resolve: async (request) => {
       const { message } = request;
       if (!message.parent_user_id || message.thread_ts || !message.ts) {
         return message;
@@ -108,10 +105,9 @@ function createSlackThreadTsResolver(params) {
         );
       }
       return message;
-    }, 'resolve')
+    }
   };
 }
-__name(createSlackThreadTsResolver, 'createSlackThreadTsResolver');
 export {
   createSlackThreadTsResolver
 };

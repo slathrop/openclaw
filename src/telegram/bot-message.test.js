@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const buildTelegramMessageContext = vi.hoisted(() => vi.fn());
 const dispatchTelegramMessage = vi.hoisted(() => vi.fn());
@@ -27,15 +25,15 @@ describe('telegram bot message processor', () => {
     groupAllowFrom: [],
     ackReactionScope: 'none',
     logger: {},
-    resolveGroupActivation: /* @__PURE__ */ __name(() => true, 'resolveGroupActivation'),
-    resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-    resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({}), 'resolveTelegramGroupConfig'),
+    resolveGroupActivation: () => true,
+    resolveGroupRequireMention: () => false,
+    resolveTelegramGroupConfig: () => ({}),
     runtime: {},
     replyToMode: 'auto',
     streamMode: 'auto',
     textLimit: 4096,
     opts: {},
-    resolveBotTopicsEnabled: /* @__PURE__ */ __name(() => false, 'resolveBotTopicsEnabled')
+    resolveBotTopicsEnabled: () => false
   };
   it('dispatches when context is available', async () => {
     buildTelegramMessageContext.mockResolvedValue({ route: { sessionKey: 'agent:main:main' } });

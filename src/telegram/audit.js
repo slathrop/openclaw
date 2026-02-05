@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { makeProxyFetch } from './proxy.js';
 const TELEGRAM_API_BASE = 'https://api.telegram.org';
 async function fetchWithTimeout(url, timeoutMs, fetcher) {
@@ -11,11 +9,9 @@ async function fetchWithTimeout(url, timeoutMs, fetcher) {
     clearTimeout(timer);
   }
 }
-__name(fetchWithTimeout, 'fetchWithTimeout');
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
-__name(isRecord, 'isRecord');
 function collectTelegramUnmentionedGroupIds(groups) {
   if (!groups || typeof groups !== 'object') {
     return {
@@ -53,7 +49,6 @@ function collectTelegramUnmentionedGroupIds(groups) {
   groupIds.sort((a, b) => a.localeCompare(b));
   return { groupIds, unresolvedGroups, hasWildcardUnmentionedGroups };
 }
-__name(collectTelegramUnmentionedGroupIds, 'collectTelegramUnmentionedGroupIds');
 async function auditTelegramGroupMembership(params) {
   const started = Date.now();
   const token = params.token?.trim() ?? '';
@@ -117,7 +112,6 @@ async function auditTelegramGroupMembership(params) {
     elapsedMs: Date.now() - started
   };
 }
-__name(auditTelegramGroupMembership, 'auditTelegramGroupMembership');
 export {
   auditTelegramGroupMembership,
   collectTelegramUnmentionedGroupIds

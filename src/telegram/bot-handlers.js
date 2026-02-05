@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveDefaultAgentId } from '../agents/agent-scope.js';
 import { hasControlCommand } from '../auto-reply/command-detection.js';
 import {
@@ -34,7 +32,7 @@ import {
   parseModelCallbackData
 } from './model-buttons.js';
 import { buildInlineKeyboard } from './send.js';
-const registerTelegramHandlers = /* @__PURE__ */ __name(({
+const registerTelegramHandlers = ({
   cfg,
   accountId,
   bot,
@@ -61,8 +59,8 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
   const debounceMs = resolveInboundDebounceMs({ cfg, channel: 'telegram' });
   const inboundDebouncer = createInboundDebouncer({
     debounceMs,
-    buildKey: /* @__PURE__ */ __name((entry) => entry.debounceKey, 'buildKey'),
-    shouldDebounce: /* @__PURE__ */ __name((entry) => {
+    buildKey: (entry) => entry.debounceKey,
+    shouldDebounce: (entry) => {
       if (entry.allMedia.length > 0) {
         return false;
       }
@@ -71,8 +69,8 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
         return false;
       }
       return !hasControlCommand(text, cfg, { botUsername: entry.botUsername });
-    }, 'shouldDebounce'),
-    onFlush: /* @__PURE__ */ __name(async (entries) => {
+    },
+    onFlush: async (entries) => {
       const last = entries.at(-1);
       if (!last) {
         return;
@@ -103,12 +101,12 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
         first.storeAllowFrom,
         messageIdOverride ? { messageIdOverride } : void 0
       );
-    }, 'onFlush'),
-    onError: /* @__PURE__ */ __name((err) => {
+    },
+    onError: (err) => {
       runtime.error?.(danger(`telegram debounce flush failed: ${String(err)}`));
-    }, 'onError')
+    }
   });
-  const resolveTelegramSessionModel = /* @__PURE__ */ __name((params) => {
+  const resolveTelegramSessionModel = (params) => {
     const resolvedThreadId = params.resolvedThreadId ?? resolveTelegramForumThreadId({
       isForum: params.isForum,
       messageThreadId: params.messageThreadId
@@ -145,8 +143,8 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
     }
     const modelCfg = cfg.agents?.defaults?.model;
     return typeof modelCfg === 'string' ? modelCfg : modelCfg?.primary;
-  }, 'resolveTelegramSessionModel');
-  const processMediaGroup = /* @__PURE__ */ __name(async (entry) => {
+  };
+  const processMediaGroup = async (entry) => {
     try {
       entry.messages.sort((a, b) => a.msg.message_id - b.msg.message_id);
       const captionMsg = entry.messages.find((m) => m.msg.caption || m.msg.text);
@@ -167,8 +165,8 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
     } catch (err) {
       runtime.error?.(danger(`media group handler failed: ${String(err)}`));
     }
-  }, 'processMediaGroup');
-  const flushTextFragments = /* @__PURE__ */ __name(async (entry) => {
+  };
+  const flushTextFragments = async (entry) => {
     try {
       entry.messages.sort((a, b) => a.msg.message_id - b.msg.message_id);
       const first = entry.messages[0];
@@ -200,8 +198,8 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
     } catch (err) {
       runtime.error?.(danger(`text fragment handler failed: ${String(err)}`));
     }
-  }, 'flushTextFragments');
-  const scheduleTextFragmentFlush = /* @__PURE__ */ __name((entry) => {
+  };
+  const scheduleTextFragmentFlush = (entry) => {
     clearTimeout(entry.timer);
     entry.timer = setTimeout(async () => {
       textFragmentBuffer.delete(entry.key);
@@ -210,7 +208,7 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
       }).catch(() => void 0);
       await textFragmentProcessing;
     }, TELEGRAM_TEXT_FRAGMENT_MAX_GAP_MS);
-  }, 'scheduleTextFragmentFlush');
+  };
   bot.on('callback_query', async (ctx) => {
     const callback = ctx.callbackQuery;
     if (!callback) {
@@ -222,7 +220,7 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
     await withTelegramApiErrorLogging({
       operation: 'answerCallbackQuery',
       runtime,
-      fn: /* @__PURE__ */ __name(() => bot.api.answerCallbackQuery(callback.id), 'fn')
+      fn: () => bot.api.answerCallbackQuery(callback.id)
     }).catch(() => {
     });
     try {
@@ -392,7 +390,7 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
       if (modelCallback) {
         const modelData = await buildModelsProviderData(cfg);
         const { byProvider, providers } = modelData;
-        const editMessageWithButtons = /* @__PURE__ */ __name(async (text, buttons) => {
+        const editMessageWithButtons = async (text, buttons) => {
           const keyboard = buildInlineKeyboard(buttons);
           try {
             await bot.api.editMessageText(
@@ -407,7 +405,7 @@ const registerTelegramHandlers = /* @__PURE__ */ __name(({
               throw editErr;
             }
           }
-        }, 'editMessageWithButtons');
+        };
         if (modelCallback.type === 'providers' || modelCallback.type === 'back') {
           if (providers.length === 0) {
             await editMessageWithButtons('No providers available.', []);
@@ -718,9 +716,9 @@ Select a provider:`,
           await withTelegramApiErrorLogging({
             operation: 'sendMessage',
             runtime,
-            fn: /* @__PURE__ */ __name(() => bot.api.sendMessage(chatId, `\u26A0\uFE0F File too large. Maximum size is ${limitMb}MB.`, {
+            fn: () => bot.api.sendMessage(chatId, `\u26A0\uFE0F File too large. Maximum size is ${limitMb}MB.`, {
               reply_to_message_id: msg.message_id
-            }), 'fn')
+            })
           }).catch(() => {
           });
           logger.warn({ chatId, error: errMsg }, 'media exceeds size limit');
@@ -755,7 +753,7 @@ Select a provider:`,
       runtime.error?.(danger(`handler failed: ${String(err)}`));
     }
   });
-}, 'registerTelegramHandlers');
+};
 export {
   registerTelegramHandlers
 };

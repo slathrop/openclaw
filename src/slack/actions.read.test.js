@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { readSlackMessages } from './actions.js';
 function createClient() {
@@ -10,7 +8,6 @@ function createClient() {
     }
   };
 }
-__name(createClient, 'createClient');
 describe('readSlackMessages', () => {
   it('uses conversations.replies and drops the parent message', async () => {
     const client = createClient();

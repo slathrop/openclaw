@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { fetchRemoteMedia } from '../../media/fetch.js';
 import { saveMediaBuffer } from '../../media/store.js';
 function normalizeHostname(hostname) {
@@ -9,7 +7,6 @@ function normalizeHostname(hostname) {
   }
   return normalized;
 }
-__name(normalizeHostname, 'normalizeHostname');
 function isSlackHostname(hostname) {
   const normalized = normalizeHostname(hostname);
   if (!normalized) {
@@ -20,7 +17,6 @@ function isSlackHostname(hostname) {
     (suffix) => normalized === suffix || normalized.endsWith(`.${suffix}`)
   );
 }
-__name(isSlackHostname, 'isSlackHostname');
 function assertSlackFileUrl(rawUrl) {
   let parsed;
   try {
@@ -38,7 +34,6 @@ function assertSlackFileUrl(rawUrl) {
   }
   return parsed;
 }
-__name(assertSlackFileUrl, 'assertSlackFileUrl');
 function resolveRequestUrl(input) {
   if (typeof input === 'string') {
     return input;
@@ -51,7 +46,6 @@ function resolveRequestUrl(input) {
   }
   throw new Error('Unsupported fetch input: expected string, URL, or Request');
 }
-__name(resolveRequestUrl, 'resolveRequestUrl');
 function createSlackMediaFetch(token) {
   let includeAuth = true;
   return async (input, init) => {
@@ -69,7 +63,6 @@ function createSlackMediaFetch(token) {
     return fetch(url, { ...rest, headers, redirect: 'manual' });
   };
 }
-__name(createSlackMediaFetch, 'createSlackMediaFetch');
 async function fetchWithSlackAuth(url, token) {
   const parsed = assertSlackFileUrl(url);
   const initialRes = await fetch(parsed.href, {
@@ -89,7 +82,6 @@ async function fetchWithSlackAuth(url, token) {
   }
   return fetch(resolvedUrl.toString(), { redirect: 'follow' });
 }
-__name(fetchWithSlackAuth, 'fetchWithSlackAuth');
 async function resolveSlackMedia(params) {
   const files = params.files ?? [];
   for (const file of files) {
@@ -126,7 +118,6 @@ async function resolveSlackMedia(params) {
   }
   return null;
 }
-__name(resolveSlackMedia, 'resolveSlackMedia');
 const THREAD_STARTER_CACHE = /* @__PURE__ */ new Map();
 async function resolveSlackThreadStarter(params) {
   const cacheKey = `${params.channelId}:${params.threadTs}`;
@@ -158,7 +149,6 @@ async function resolveSlackThreadStarter(params) {
     return null;
   }
 }
-__name(resolveSlackThreadStarter, 'resolveSlackThreadStarter');
 export {
   fetchWithSlackAuth,
   resolveSlackMedia,

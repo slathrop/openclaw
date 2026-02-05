@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveAckReaction } from '../../../agents/identity.js';
 import { hasControlCommand } from '../../../auto-reply/command-detection.js';
 import { shouldHandleTextCommands } from '../../../auto-reply/commands-registry.js';
@@ -275,7 +273,7 @@ async function prepareSlackMessage(params) {
   }
   const ackReaction = resolveAckReaction(cfg, route.agentId);
   const ackReactionValue = ackReaction ?? '';
-  const shouldAckReaction = /* @__PURE__ */ __name(() => Boolean(
+  const shouldAckReaction = () => Boolean(
     ackReaction && shouldAckReactionGate({
       scope: ctx.ackReactionScope,
       isDirect: isDirectMessage,
@@ -286,7 +284,7 @@ async function prepareSlackMessage(params) {
       effectiveWasMentioned,
       shouldBypassMention: mentionGate.shouldBypassMention
     })
-  ), 'shouldAckReaction');
+  );
   const ackReactionMessageTs = message.ts;
   const ackReactionPromise = shouldAckReaction() && ackReactionMessageTs && ackReactionValue ? reactSlackMessage(message.channel, ackReactionMessageTs, ackReactionValue, {
     token: ctx.botToken,
@@ -339,7 +337,7 @@ async function prepareSlackMessage(params) {
       historyKey,
       limit: ctx.historyLimit,
       currentMessage: combinedBody,
-      formatEntry: /* @__PURE__ */ __name((entry) => formatInboundEnvelope({
+      formatEntry: (entry) => formatInboundEnvelope({
         channel: 'Slack',
         from: roomLabel,
         timestamp: entry.timestamp,
@@ -347,7 +345,7 @@ async function prepareSlackMessage(params) {
         chatType: 'channel',
         senderLabel: entry.sender,
         envelope: envelopeOptions
-      }), 'formatEntry')
+      })
     });
   }
   const slackTo = isDirectMessage ? `user:${message.user}` : `channel:${message.channel}`;
@@ -443,7 +441,7 @@ async function prepareSlackMessage(params) {
       to: `user:${message.user}`,
       accountId: route.accountId
     } : void 0,
-    onRecordError: /* @__PURE__ */ __name((err) => {
+    onRecordError: (err) => {
       ctx.logger.warn(
         {
           error: String(err),
@@ -452,7 +450,7 @@ async function prepareSlackMessage(params) {
         },
         'failed updating session meta'
       );
-    }, 'onRecordError')
+    }
   });
   const replyTarget = ctxPayload.To ?? void 0;
   if (!replyTarget) {
@@ -478,7 +476,6 @@ async function prepareSlackMessage(params) {
     ackReactionPromise
   };
 }
-__name(prepareSlackMessage, 'prepareSlackMessage');
 export {
   prepareSlackMessage
 };

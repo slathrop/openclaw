@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { danger } from '../../../globals.js';
 import { enqueueSystemEvent } from '../../../infra/system-events.js';
 import { resolveSlackChannelLabel } from '../channel-config.js';
@@ -111,7 +109,6 @@ function registerSlackMessageEvents(params) {
     }
   });
 }
-__name(registerSlackMessageEvents, 'registerSlackMessageEvents');
 export {
   registerSlackMessageEvents
 };

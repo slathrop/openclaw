@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { createSlackWebClient } from './client.js';
 function withTimeout(promise, timeoutMs) {
   if (!timeoutMs || timeoutMs <= 0) {
@@ -15,7 +13,6 @@ function withTimeout(promise, timeoutMs) {
     }
   });
 }
-__name(withTimeout, 'withTimeout');
 async function probeSlack(token, timeoutMs = 2500) {
   const client = createSlackWebClient(token);
   const start = Date.now();
@@ -47,7 +44,6 @@ async function probeSlack(token, timeoutMs = 2500) {
     };
   }
 }
-__name(probeSlack, 'probeSlack');
 export {
   probeSlack
 };

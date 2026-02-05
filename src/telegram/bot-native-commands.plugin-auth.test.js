@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { registerTelegramNativeCommands } from './bot-native-commands.js';
 const getPluginCommandSpecs = vi.hoisted(() => vi.fn());
@@ -33,16 +31,16 @@ describe('registerTelegramNativeCommands (plugin auth)', () => {
         setMyCommands: vi.fn().mockResolvedValue(void 0),
         sendMessage: vi.fn()
       },
-      command: /* @__PURE__ */ __name((name, handler) => {
+      command: (name, handler) => {
         handlers[name] = handler;
-      }, 'command')
+      }
     };
     const cfg = {};
     const telegramCfg = {};
-    const resolveGroupPolicy = /* @__PURE__ */ __name(() => ({
+    const resolveGroupPolicy = () => ({
       allowlistEnabled: false,
       allowed: true
-    }), 'resolveGroupPolicy');
+    });
     registerTelegramNativeCommands({
       bot,
       cfg,
@@ -58,11 +56,11 @@ describe('registerTelegramNativeCommands (plugin auth)', () => {
       nativeSkillsEnabled: false,
       nativeDisabledExplicit: false,
       resolveGroupPolicy,
-      resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+      resolveTelegramGroupConfig: () => ({
         groupConfig: void 0,
         topicConfig: void 0
-      }), 'resolveTelegramGroupConfig'),
-      shouldSkipUpdate: /* @__PURE__ */ __name(() => false, 'shouldSkipUpdate'),
+      }),
+      shouldSkipUpdate: () => false,
       opts: { token: 'token' }
     });
     const ctx = {

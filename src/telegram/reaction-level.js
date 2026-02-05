@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveTelegramAccount } from './accounts.js';
 function resolveTelegramReactionLevel(params) {
   const account = resolveTelegramAccount({
@@ -42,7 +40,6 @@ function resolveTelegramReactionLevel(params) {
       };
   }
 }
-__name(resolveTelegramReactionLevel, 'resolveTelegramReactionLevel');
 export {
   resolveTelegramReactionLevel
 };

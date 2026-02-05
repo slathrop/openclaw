@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { createSlackWebClient } from './client.js';
 function parseSlackChannelMention(raw) {
   const trimmed = raw.trim();
@@ -19,7 +17,6 @@ function parseSlackChannelMention(raw) {
   const name = prefixed.replace(/^#/, '').trim();
   return name ? { name } : {};
 }
-__name(parseSlackChannelMention, 'parseSlackChannelMention');
 async function listSlackChannels(client) {
   const channels = [];
   let cursor;
@@ -48,7 +45,6 @@ async function listSlackChannels(client) {
   } while (cursor);
   return channels;
 }
-__name(listSlackChannels, 'listSlackChannels');
 function resolveByName(name, channels) {
   const target = name.trim().toLowerCase();
   if (!target) {
@@ -61,7 +57,6 @@ function resolveByName(name, channels) {
   const active = matches.find((channel) => !channel.archived);
   return active ?? matches[0];
 }
-__name(resolveByName, 'resolveByName');
 async function resolveSlackChannelAllowlist(params) {
   const client = params.client ?? createSlackWebClient(params.token);
   const channels = await listSlackChannels(client);
@@ -96,7 +91,6 @@ async function resolveSlackChannelAllowlist(params) {
   }
   return results;
 }
-__name(resolveSlackChannelAllowlist, 'resolveSlackChannelAllowlist');
 export {
   resolveSlackChannelAllowlist
 };

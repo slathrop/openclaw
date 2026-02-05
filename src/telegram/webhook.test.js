@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { startTelegramWebhook } from './webhook.js';
 const handlerSpy = vi.fn(
@@ -16,10 +14,10 @@ const createTelegramBotSpy = vi.fn(() => ({
 }));
 vi.mock('grammy', async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, webhookCallback: /* @__PURE__ */ __name(() => handlerSpy, 'webhookCallback') };
+  return { ...actual, webhookCallback: () => handlerSpy };
 });
 vi.mock('./bot.js', () => ({
-  createTelegramBot: /* @__PURE__ */ __name((...args) => createTelegramBotSpy(...args), 'createTelegramBot')
+  createTelegramBot: (...args) => createTelegramBotSpy(...args)
 }));
 describe('startTelegramWebhook', () => {
   it('starts server, registers webhook, and serves health', async () => {

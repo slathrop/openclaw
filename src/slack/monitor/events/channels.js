@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveChannelConfigWrites } from '../../../channels/plugins/config-writes.js';
 import { loadConfig, writeConfigFile } from '../../../config/config.js';
 import { danger, warn } from '../../../globals.js';
@@ -136,7 +134,6 @@ function registerSlackChannelEvents(params) {
     }
   );
 }
-__name(registerSlackChannelEvents, 'registerSlackChannelEvents');
 export {
   registerSlackChannelEvents
 };

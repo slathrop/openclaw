@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerTelegramNativeCommands } from './bot-native-commands.js';
 const { listSkillCommandsForAgents } = vi.hoisted(() => ({
@@ -12,7 +10,7 @@ describe('registerTelegramNativeCommands', () => {
   beforeEach(() => {
     listSkillCommandsForAgents.mockReset();
   });
-  const buildParams = /* @__PURE__ */ __name((cfg, accountId = 'default') => ({
+  const buildParams = (cfg, accountId = 'default') => ({
     bot: {
       api: {
         setMyCommands: vi.fn().mockResolvedValue(void 0),
@@ -32,14 +30,14 @@ describe('registerTelegramNativeCommands', () => {
     nativeEnabled: true,
     nativeSkillsEnabled: true,
     nativeDisabledExplicit: false,
-    resolveGroupPolicy: /* @__PURE__ */ __name(() => ({ allowlistEnabled: false, allowed: true }), 'resolveGroupPolicy'),
-    resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+    resolveGroupPolicy: () => ({ allowlistEnabled: false, allowed: true }),
+    resolveTelegramGroupConfig: () => ({
       groupConfig: void 0,
       topicConfig: void 0
-    }), 'resolveTelegramGroupConfig'),
-    shouldSkipUpdate: /* @__PURE__ */ __name(() => false, 'shouldSkipUpdate'),
+    }),
+    shouldSkipUpdate: () => false,
     opts: { token: 'token' }
-  }), 'buildParams');
+  });
   it('scopes skill commands when account binding exists', () => {
     const cfg = {
       agents: {

@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetInboundDedupe } from '../auto-reply/reply/inbound-dedupe.js';
 const useSpy = vi.fn();
@@ -20,9 +18,6 @@ vi.mock('grammy', () => ({
     constructor(token) {
       this.token = token;
     }
-    static {
-      __name(this, 'Bot');
-    }
     api = apiStub;
     use = middlewareUseSpy;
     on = onSpy;
@@ -31,18 +26,15 @@ vi.mock('grammy', () => ({
     catch = vi.fn();
   },
   InputFile: class {
-    static {
-      __name(this, 'InputFile');
-    }
   },
   webhookCallback: vi.fn()
 }));
 vi.mock('@grammyjs/runner', () => ({
-  sequentialize: /* @__PURE__ */ __name(() => vi.fn(), 'sequentialize')
+  sequentialize: () => vi.fn()
 }));
 const throttlerSpy = vi.fn(() => 'throttler');
 vi.mock('@grammyjs/transformer-throttler', () => ({
-  apiThrottler: /* @__PURE__ */ __name(() => throttlerSpy(), 'apiThrottler')
+  apiThrottler: () => throttlerSpy()
 }));
 vi.mock('../media/store.js', async (importOriginal) => {
   const actual = await importOriginal();
@@ -60,9 +52,9 @@ vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => ({
+    loadConfig: () => ({
       channels: { telegram: { dmPolicy: 'open', allowFrom: ['*'] } }
-    }), 'loadConfig')
+    })
   };
 });
 vi.mock('../config/sessions.js', async (importOriginal) => {
@@ -112,7 +104,7 @@ describe('telegram inbound media', () => {
           }
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'unused' }), 'getFile')
+        getFile: async () => ({ file_path: 'unused' })
       });
       expect(replySpy).toHaveBeenCalledTimes(1);
       const payload = replySpy.mock.calls[0][0];
@@ -148,7 +140,7 @@ describe('telegram inbound media', () => {
           }
         },
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ file_path: 'unused' }), 'getFile')
+        getFile: async () => ({ file_path: 'unused' })
       });
       expect(replySpy).toHaveBeenCalledTimes(1);
       const payload = replySpy.mock.calls[0][0];

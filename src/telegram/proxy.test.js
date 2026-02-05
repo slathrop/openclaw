@@ -1,13 +1,8 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 const { ProxyAgent, undiciFetch, proxyAgentSpy, getLastAgent } = vi.hoisted(() => {
   const undiciFetch2 = vi.fn();
   const proxyAgentSpy2 = vi.fn();
   class ProxyAgent2 {
-    static {
-      __name(this, 'ProxyAgent');
-    }
     static lastCreated;
     proxyUrl;
     constructor(proxyUrl) {
@@ -20,7 +15,7 @@ const { ProxyAgent, undiciFetch, proxyAgentSpy, getLastAgent } = vi.hoisted(() =
     ProxyAgent: ProxyAgent2,
     undiciFetch: undiciFetch2,
     proxyAgentSpy: proxyAgentSpy2,
-    getLastAgent: /* @__PURE__ */ __name(() => ProxyAgent2.lastCreated, 'getLastAgent')
+    getLastAgent: () => ProxyAgent2.lastCreated
   };
 });
 vi.mock('undici', () => ({

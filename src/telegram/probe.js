@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { makeProxyFetch } from './proxy.js';
 const TELEGRAM_API_BASE = 'https://api.telegram.org';
 async function fetchWithTimeout(url, timeoutMs, fetcher) {
@@ -11,7 +9,6 @@ async function fetchWithTimeout(url, timeoutMs, fetcher) {
     clearTimeout(timer);
   }
 }
-__name(fetchWithTimeout, 'fetchWithTimeout');
 async function probeTelegram(token, timeoutMs, proxyUrl) {
   const started = Date.now();
   const fetcher = proxyUrl ? makeProxyFetch(proxyUrl) : fetch;
@@ -63,7 +60,6 @@ async function probeTelegram(token, timeoutMs, proxyUrl) {
     };
   }
 }
-__name(probeTelegram, 'probeTelegram');
 export {
   probeTelegram
 };

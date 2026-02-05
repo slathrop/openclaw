@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { monitorTelegramProvider } from './monitor.js';
 const handlers = {};
@@ -15,7 +13,7 @@ const api = {
 const { initSpy, runSpy, loadConfig } = vi.hoisted(() => ({
   initSpy: vi.fn(async () => void 0),
   runSpy: vi.fn(() => ({
-    task: /* @__PURE__ */ __name(() => Promise.resolve(), 'task'),
+    task: () => Promise.resolve(),
     stop: vi.fn()
   })),
   loadConfig: vi.fn(() => ({
@@ -35,7 +33,7 @@ vi.mock('../config/config.js', async (importOriginal) => {
   };
 });
 vi.mock('./bot.js', () => ({
-  createTelegramBot: /* @__PURE__ */ __name(() => {
+  createTelegramBot: () => {
     handlers.message = async (ctx) => {
       const chatId = ctx.message.chat.id;
       const isGroup = ctx.message.chat.type !== 'private';
@@ -56,7 +54,7 @@ vi.mock('./bot.js', () => ({
       stop: vi.fn(),
       start: vi.fn()
     };
-  }, 'createTelegramBot'),
+  },
   createTelegramWebhookCallback: vi.fn()
 }));
 vi.mock('@grammyjs/runner', () => ({
@@ -67,9 +65,9 @@ vi.mock('../infra/backoff.js', () => ({
   sleepWithAbort
 }));
 vi.mock('../auto-reply/reply.js', () => ({
-  getReplyFromConfig: /* @__PURE__ */ __name(async (ctx) => ({
+  getReplyFromConfig: async (ctx) => ({
     text: `echo:${ctx.Body}`
-  }), 'getReplyFromConfig')
+  })
 }));
 describe('monitorTelegramProvider (grammY)', () => {
   beforeEach(() => {
@@ -139,10 +137,10 @@ describe('monitorTelegramProvider (grammY)', () => {
   it('retries on recoverable network errors', async () => {
     const networkError = Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' });
     runSpy.mockImplementationOnce(() => ({
-      task: /* @__PURE__ */ __name(() => Promise.reject(networkError), 'task'),
+      task: () => Promise.reject(networkError),
       stop: vi.fn()
     })).mockImplementationOnce(() => ({
-      task: /* @__PURE__ */ __name(() => Promise.resolve(), 'task'),
+      task: () => Promise.resolve(),
       stop: vi.fn()
     }));
     await monitorTelegramProvider({ token: 'tok' });
@@ -152,7 +150,7 @@ describe('monitorTelegramProvider (grammY)', () => {
   });
   it('surfaces non-recoverable errors', async () => {
     runSpy.mockImplementationOnce(() => ({
-      task: /* @__PURE__ */ __name(() => Promise.reject(new Error('bad token')), 'task'),
+      task: () => Promise.reject(new Error('bad token')),
       stop: vi.fn()
     }));
     await expect(monitorTelegramProvider({ token: 'tok' })).rejects.toThrow('bad token');

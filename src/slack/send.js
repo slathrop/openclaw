@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import {
   chunkMarkdownTextWithMode,
   resolveChunkMode,
@@ -33,7 +31,6 @@ function resolveToken(params) {
   }
   return fallback;
 }
-__name(resolveToken, 'resolveToken');
 function parseRecipient(raw) {
   const target = parseSlackTarget(raw);
   if (!target) {
@@ -41,7 +38,6 @@ function parseRecipient(raw) {
   }
   return { kind: target.kind, id: target.id };
 }
-__name(parseRecipient, 'parseRecipient');
 async function resolveChannelId(client, recipient) {
   if (recipient.kind === 'channel') {
     return { channelId: recipient.id };
@@ -53,7 +49,6 @@ async function resolveChannelId(client, recipient) {
   }
   return { channelId, isDm: true };
 }
-__name(resolveChannelId, 'resolveChannelId');
 async function uploadSlackFile(params) {
   const {
     buffer,
@@ -73,7 +68,6 @@ async function uploadSlackFile(params) {
   const fileId = parsed.files?.[0]?.id ?? parsed.file?.id ?? parsed.files?.[0]?.name ?? parsed.file?.name ?? 'unknown';
   return fileId;
 }
-__name(uploadSlackFile, 'uploadSlackFile');
 async function sendMessageSlack(to, message, opts = {}) {
   const trimmedMessage = message?.trim() ?? '';
   if (!trimmedMessage && !opts.mediaUrl) {
@@ -143,7 +137,6 @@ async function sendMessageSlack(to, message, opts = {}) {
     channelId
   };
 }
-__name(sendMessageSlack, 'sendMessageSlack');
 export {
   sendMessageSlack
 };

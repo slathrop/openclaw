@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { detectMime } from '../media/mime.js';
 import { saveMediaBuffer } from '../media/store.js';
 async function getTelegramFile(token, fileId, timeoutMs = 3e4) {
@@ -16,7 +14,6 @@ async function getTelegramFile(token, fileId, timeoutMs = 3e4) {
   }
   return json.result;
 }
-__name(getTelegramFile, 'getTelegramFile');
 async function downloadTelegramFile(token, info, maxBytes, timeoutMs = 6e4) {
   if (!info.file_path) {
     throw new Error('file_path missing');
@@ -38,7 +35,6 @@ async function downloadTelegramFile(token, info, maxBytes, timeoutMs = 6e4) {
   }
   return saved;
 }
-__name(downloadTelegramFile, 'downloadTelegramFile');
 export {
   downloadTelegramFile,
   getTelegramFile

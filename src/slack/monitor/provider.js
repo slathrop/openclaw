@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import SlackBolt from '@slack/bolt';
 import { resolveTextChunkLimit } from '../../auto-reply/chunk.js';
 import { DEFAULT_GROUP_HISTORY_LIMIT } from '../../auto-reply/reply/history.js';
@@ -30,7 +28,6 @@ function parseApiAppIdFromAppToken(raw) {
   const match = /^xapp-\d-([a-z0-9]+)-/i.exec(token);
   return match?.[1]?.toUpperCase();
 }
-__name(parseApiAppIdFromAppToken, 'parseApiAppIdFromAppToken');
 async function monitorSlackProvider(opts = {}) {
   const cfg = opts.config ?? loadConfig();
   const account = resolveSlackAccount({
@@ -61,9 +58,9 @@ async function monitorSlackProvider(opts = {}) {
   const runtime = opts.runtime ?? {
     log: console.log,
     error: console.error,
-    exit: /* @__PURE__ */ __name((code) => {
+    exit: (code) => {
       throw new Error(`exit ${code}`);
-    }, 'exit')
+    }
   };
   const slackCfg = account.config;
   const dmConfig = slackCfg.dm;
@@ -298,11 +295,11 @@ async function monitorSlackProvider(opts = {}) {
       }
     })();
   }
-  const stopOnAbort = /* @__PURE__ */ __name(() => {
+  const stopOnAbort = () => {
     if (opts.abortSignal?.aborted && slackMode === 'socket') {
       void app.stop();
     }
-  }, 'stopOnAbort');
+  };
   opts.abortSignal?.addEventListener('abort', stopOnAbort, { once: true });
   try {
     if (slackMode === 'socket') {
@@ -325,7 +322,6 @@ async function monitorSlackProvider(opts = {}) {
     await app.stop().catch(() => void 0);
   }
 }
-__name(monitorSlackProvider, 'monitorSlackProvider');
 export {
   monitorSlackProvider
 };

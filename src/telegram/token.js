@@ -1,11 +1,9 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from '../routing/session-key.js';
 function resolveTelegramToken(cfg, opts = {}) {
   const accountId = normalizeAccountId(opts.accountId);
   const telegramCfg = cfg?.channels?.telegram;
-  const resolveAccountCfg = /* @__PURE__ */ __name((id) => {
+  const resolveAccountCfg = (id) => {
     const accounts = telegramCfg?.accounts;
     if (!accounts || typeof accounts !== 'object' || Array.isArray(accounts)) {
       return void 0;
@@ -16,7 +14,7 @@ function resolveTelegramToken(cfg, opts = {}) {
     }
     const matchKey = Object.keys(accounts).find((key) => normalizeAccountId(key) === id);
     return matchKey ? accounts[matchKey] : void 0;
-  }, 'resolveAccountCfg');
+  };
   const accountCfg = resolveAccountCfg(
     accountId !== DEFAULT_ACCOUNT_ID ? accountId : DEFAULT_ACCOUNT_ID
   );
@@ -72,7 +70,6 @@ function resolveTelegramToken(cfg, opts = {}) {
   }
   return { token: '', source: 'none' };
 }
-__name(resolveTelegramToken, 'resolveTelegramToken');
 export {
   resolveTelegramToken
 };

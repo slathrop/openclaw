@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { prepareSlackMessage } from './prepare.js';
 describe('prepareSlackMessage sender prefix', () => {
@@ -15,9 +13,9 @@ describe('prepareSlackMessage sender prefix', () => {
       runtime: {
         log: vi.fn(),
         error: vi.fn(),
-        exit: /* @__PURE__ */ __name((code) => {
+        exit: (code) => {
           throw new Error(`exit ${code}`);
-        }, 'exit')
+        }
       },
       botUserId: 'BOT',
       teamId: 'T1',
@@ -45,16 +43,16 @@ describe('prepareSlackMessage sender prefix', () => {
       mediaMaxBytes: 1e3,
       removeAckAfterReply: false,
       logger: { info: vi.fn() },
-      markMessageSeen: /* @__PURE__ */ __name(() => false, 'markMessageSeen'),
-      shouldDropMismatchedSlackEvent: /* @__PURE__ */ __name(() => false, 'shouldDropMismatchedSlackEvent'),
-      resolveSlackSystemEventSessionKey: /* @__PURE__ */ __name(() => 'agent:main:slack:channel:c1', 'resolveSlackSystemEventSessionKey'),
-      isChannelAllowed: /* @__PURE__ */ __name(() => true, 'isChannelAllowed'),
-      resolveChannelName: /* @__PURE__ */ __name(async () => ({
+      markMessageSeen: () => false,
+      shouldDropMismatchedSlackEvent: () => false,
+      resolveSlackSystemEventSessionKey: () => 'agent:main:slack:channel:c1',
+      isChannelAllowed: () => true,
+      resolveChannelName: async () => ({
         name: 'general',
         type: 'channel'
-      }), 'resolveChannelName'),
-      resolveUserName: /* @__PURE__ */ __name(async () => ({ name: 'Alice' }), 'resolveUserName'),
-      setSlackThreadStatus: /* @__PURE__ */ __name(async () => void 0, 'setSlackThreadStatus')
+      }),
+      resolveUserName: async () => ({ name: 'Alice' }),
+      setSlackThreadStatus: async () => void 0
     };
     const result = await prepareSlackMessage({
       ctx,

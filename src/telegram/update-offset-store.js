@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -13,13 +11,11 @@ function normalizeAccountId(accountId) {
   }
   return trimmed.replace(/[^a-z0-9._-]+/gi, '_');
 }
-__name(normalizeAccountId, 'normalizeAccountId');
 function resolveTelegramUpdateOffsetPath(accountId, env = process.env) {
   const stateDir = resolveStateDir(env, os.homedir);
   const normalized = normalizeAccountId(accountId);
   return path.join(stateDir, 'telegram', `update-offset-${normalized}.json`);
 }
-__name(resolveTelegramUpdateOffsetPath, 'resolveTelegramUpdateOffsetPath');
 function safeParseState(raw) {
   try {
     const parsed = JSON.parse(raw);
@@ -34,7 +30,6 @@ function safeParseState(raw) {
     return null;
   }
 }
-__name(safeParseState, 'safeParseState');
 async function readTelegramUpdateOffset(params) {
   const filePath = resolveTelegramUpdateOffsetPath(params.accountId, params.env);
   try {
@@ -49,7 +44,6 @@ async function readTelegramUpdateOffset(params) {
     return null;
   }
 }
-__name(readTelegramUpdateOffset, 'readTelegramUpdateOffset');
 async function writeTelegramUpdateOffset(params) {
   const filePath = resolveTelegramUpdateOffsetPath(params.accountId, params.env);
   const dir = path.dirname(filePath);
@@ -66,7 +60,6 @@ async function writeTelegramUpdateOffset(params) {
   await fs.chmod(tmp, 384);
   await fs.rename(tmp, filePath);
 }
-__name(writeTelegramUpdateOffset, 'writeTelegramUpdateOffset');
 export {
   readTelegramUpdateOffset,
   writeTelegramUpdateOffset

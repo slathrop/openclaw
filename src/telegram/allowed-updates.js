@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { API_CONSTANTS } from 'grammy';
 function resolveTelegramAllowedUpdates() {
   const updates = [...API_CONSTANTS.DEFAULT_UPDATE_TYPES];
@@ -8,7 +6,6 @@ function resolveTelegramAllowedUpdates() {
   }
   return updates;
 }
-__name(resolveTelegramAllowedUpdates, 'resolveTelegramAllowedUpdates');
 export {
   resolveTelegramAllowedUpdates
 };

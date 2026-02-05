@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import process from 'node:process';
 import { isTruthyEnvValue } from '../infra/env.js';
 const TELEGRAM_DISABLE_AUTO_SELECT_FAMILY_ENV = 'OPENCLAW_TELEGRAM_DISABLE_AUTO_SELECT_FAMILY';
@@ -21,7 +19,6 @@ function resolveTelegramAutoSelectFamilyDecision(params) {
   }
   return { value: null };
 }
-__name(resolveTelegramAutoSelectFamilyDecision, 'resolveTelegramAutoSelectFamilyDecision');
 export {
   TELEGRAM_DISABLE_AUTO_SELECT_FAMILY_ENV,
   TELEGRAM_ENABLE_AUTO_SELECT_FAMILY_ENV,

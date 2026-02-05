@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { createSlackWebClient } from './client.js';
 function parseSlackUserInput(raw) {
   const trimmed = raw.trim();
@@ -20,7 +18,6 @@ function parseSlackUserInput(raw) {
   const name = trimmed.replace(/^@/, '').trim();
   return name ? { name } : {};
 }
-__name(parseSlackUserInput, 'parseSlackUserInput');
 async function listSlackUsers(client) {
   const users = [];
   let cursor;
@@ -52,7 +49,6 @@ async function listSlackUsers(client) {
   } while (cursor);
   return users;
 }
-__name(listSlackUsers, 'listSlackUsers');
 function scoreSlackUser(user, match) {
   let score = 0;
   if (!user.deleted) {
@@ -73,7 +69,6 @@ function scoreSlackUser(user, match) {
   }
   return score;
 }
-__name(scoreSlackUser, 'scoreSlackUser');
 async function resolveSlackUserAllowlist(params) {
   const client = params.client ?? createSlackWebClient(params.token);
   const users = await listSlackUsers(client);
@@ -137,7 +132,6 @@ async function resolveSlackUserAllowlist(params) {
   }
   return results;
 }
-__name(resolveSlackUserAllowlist, 'resolveSlackUserAllowlist');
 export {
   resolveSlackUserAllowlist
 };

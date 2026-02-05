@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { loadConfig } from '../config/config.js';
 import { logVerbose } from '../globals.js';
 import { resolveSlackAccount } from './accounts.js';
@@ -20,7 +18,6 @@ function resolveToken(explicit, accountId) {
   }
   return token;
 }
-__name(resolveToken, 'resolveToken');
 function normalizeEmoji(raw) {
   const trimmed = raw.trim();
   if (!trimmed) {
@@ -28,12 +25,10 @@ function normalizeEmoji(raw) {
   }
   return trimmed.replace(/^:+|:+$/g, '');
 }
-__name(normalizeEmoji, 'normalizeEmoji');
 async function getClient(opts = {}) {
   const token = resolveToken(opts.token, opts.accountId);
   return opts.client ?? createSlackWebClient(token);
 }
-__name(getClient, 'getClient');
 async function resolveBotUserId(client) {
   const auth = await client.auth.test();
   if (!auth?.user_id) {
@@ -41,7 +36,6 @@ async function resolveBotUserId(client) {
   }
   return auth.user_id;
 }
-__name(resolveBotUserId, 'resolveBotUserId');
 async function reactSlackMessage(channelId, messageId, emoji, opts = {}) {
   const client = await getClient(opts);
   await client.reactions.add({
@@ -50,7 +44,6 @@ async function reactSlackMessage(channelId, messageId, emoji, opts = {}) {
     name: normalizeEmoji(emoji)
   });
 }
-__name(reactSlackMessage, 'reactSlackMessage');
 async function removeSlackReaction(channelId, messageId, emoji, opts = {}) {
   const client = await getClient(opts);
   await client.reactions.remove({
@@ -59,7 +52,6 @@ async function removeSlackReaction(channelId, messageId, emoji, opts = {}) {
     name: normalizeEmoji(emoji)
   });
 }
-__name(removeSlackReaction, 'removeSlackReaction');
 async function removeOwnSlackReactions(channelId, messageId, opts = {}) {
   const client = await getClient(opts);
   const userId = await resolveBotUserId(client);
@@ -90,7 +82,6 @@ async function removeOwnSlackReactions(channelId, messageId, opts = {}) {
   );
   return Array.from(toRemove);
 }
-__name(removeOwnSlackReactions, 'removeOwnSlackReactions');
 async function listSlackReactions(channelId, messageId, opts = {}) {
   const client = await getClient(opts);
   const result = await client.reactions.get({
@@ -101,7 +92,6 @@ async function listSlackReactions(channelId, messageId, opts = {}) {
   const message = result.message;
   return message?.reactions ?? [];
 }
-__name(listSlackReactions, 'listSlackReactions');
 async function sendSlackMessage(to, content, opts = {}) {
   return await sendMessageSlack(to, content, {
     accountId: opts.accountId,
@@ -111,7 +101,6 @@ async function sendSlackMessage(to, content, opts = {}) {
     threadTs: opts.threadTs
   });
 }
-__name(sendSlackMessage, 'sendSlackMessage');
 async function editSlackMessage(channelId, messageId, content, opts = {}) {
   const client = await getClient(opts);
   await client.chat.update({
@@ -120,7 +109,6 @@ async function editSlackMessage(channelId, messageId, content, opts = {}) {
     text: content
   });
 }
-__name(editSlackMessage, 'editSlackMessage');
 async function deleteSlackMessage(channelId, messageId, opts = {}) {
   const client = await getClient(opts);
   await client.chat.delete({
@@ -128,7 +116,6 @@ async function deleteSlackMessage(channelId, messageId, opts = {}) {
     ts: messageId
   });
 }
-__name(deleteSlackMessage, 'deleteSlackMessage');
 async function readSlackMessages(channelId, opts = {}) {
   const client = await getClient(opts);
   if (opts.threadId) {
@@ -158,33 +145,27 @@ async function readSlackMessages(channelId, opts = {}) {
     hasMore: Boolean(result.has_more)
   };
 }
-__name(readSlackMessages, 'readSlackMessages');
 async function getSlackMemberInfo(userId, opts = {}) {
   const client = await getClient(opts);
   return await client.users.info({ user: userId });
 }
-__name(getSlackMemberInfo, 'getSlackMemberInfo');
 async function listSlackEmojis(opts = {}) {
   const client = await getClient(opts);
   return await client.emoji.list();
 }
-__name(listSlackEmojis, 'listSlackEmojis');
 async function pinSlackMessage(channelId, messageId, opts = {}) {
   const client = await getClient(opts);
   await client.pins.add({ channel: channelId, timestamp: messageId });
 }
-__name(pinSlackMessage, 'pinSlackMessage');
 async function unpinSlackMessage(channelId, messageId, opts = {}) {
   const client = await getClient(opts);
   await client.pins.remove({ channel: channelId, timestamp: messageId });
 }
-__name(unpinSlackMessage, 'unpinSlackMessage');
 async function listSlackPins(channelId, opts = {}) {
   const client = await getClient(opts);
   const result = await client.pins.list({ channel: channelId });
   return result.items ?? [];
 }
-__name(listSlackPins, 'listSlackPins');
 export {
   deleteSlackMessage,
   editSlackMessage,

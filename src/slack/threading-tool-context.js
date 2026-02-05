@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveSlackAccount, resolveSlackReplyToMode } from './accounts.js';
 function buildSlackThreadingToolContext(params) {
   const account = resolveSlackAccount({
@@ -16,7 +14,6 @@ function buildSlackThreadingToolContext(params) {
     hasRepliedRef: params.hasRepliedRef
   };
 }
-__name(buildSlackThreadingToolContext, 'buildSlackThreadingToolContext');
 export {
   buildSlackThreadingToolContext
 };

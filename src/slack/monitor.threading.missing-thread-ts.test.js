@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetInboundDedupe } from '../auto-reply/reply/inbound-dedupe.js';
 const { monitorSlackProvider } = await import('./monitor.js');
@@ -10,34 +8,34 @@ const reactMock = vi.fn();
 let config = {};
 const readAllowFromStoreMock = vi.fn();
 const upsertPairingRequestMock = vi.fn();
-const getSlackHandlers = /* @__PURE__ */ __name(() => globalThis.__slackHandlers, 'getSlackHandlers');
-const getSlackClient = /* @__PURE__ */ __name(() => globalThis.__slackClient, 'getSlackClient');
+const getSlackHandlers = () => globalThis.__slackHandlers;
+const getSlackClient = () => globalThis.__slackClient;
 vi.mock('../config/config.js', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadConfig: /* @__PURE__ */ __name(() => config, 'loadConfig')
+    loadConfig: () => config
   };
 });
 vi.mock('../auto-reply/reply.js', () => ({
-  getReplyFromConfig: /* @__PURE__ */ __name((...args) => replyMock(...args), 'getReplyFromConfig')
+  getReplyFromConfig: (...args) => replyMock(...args)
 }));
 vi.mock('./resolve-channels.js', () => ({
-  resolveSlackChannelAllowlist: /* @__PURE__ */ __name(async ({ entries }) => entries.map((input) => ({ input, resolved: false })), 'resolveSlackChannelAllowlist')
+  resolveSlackChannelAllowlist: async ({ entries }) => entries.map((input) => ({ input, resolved: false }))
 }));
 vi.mock('./resolve-users.js', () => ({
-  resolveSlackUserAllowlist: /* @__PURE__ */ __name(async ({ entries }) => entries.map((input) => ({ input, resolved: false })), 'resolveSlackUserAllowlist')
+  resolveSlackUserAllowlist: async ({ entries }) => entries.map((input) => ({ input, resolved: false }))
 }));
 vi.mock('./send.js', () => ({
-  sendMessageSlack: /* @__PURE__ */ __name((...args) => sendMock(...args), 'sendMessageSlack')
+  sendMessageSlack: (...args) => sendMock(...args)
 }));
 vi.mock('../pairing/pairing-store.js', () => ({
-  readChannelAllowFromStore: /* @__PURE__ */ __name((...args) => readAllowFromStoreMock(...args), 'readChannelAllowFromStore'),
-  upsertChannelPairingRequest: /* @__PURE__ */ __name((...args) => upsertPairingRequestMock(...args), 'upsertChannelPairingRequest')
+  readChannelAllowFromStore: (...args) => readAllowFromStoreMock(...args),
+  upsertChannelPairingRequest: (...args) => upsertPairingRequestMock(...args)
 }));
 vi.mock('../config/sessions.js', () => ({
   resolveStorePath: vi.fn(() => '/tmp/openclaw-sessions.json'),
-  updateLastRoute: /* @__PURE__ */ __name((...args) => updateLastRouteMock(...args), 'updateLastRoute'),
+  updateLastRoute: (...args) => updateLastRouteMock(...args),
   resolveSessionKey: vi.fn(),
   readSessionUpdatedAt: vi.fn(() => void 0),
   recordSessionMetaFromInbound: vi.fn().mockResolvedValue(void 0)
@@ -65,14 +63,11 @@ vi.mock('@slack/bolt', () => {
       }
     },
     reactions: {
-      add: /* @__PURE__ */ __name((...args) => reactMock(...args), 'add')
+      add: (...args) => reactMock(...args)
     }
   };
   globalThis.__slackClient = client;
   class App {
-    static {
-      __name(this, 'App');
-    }
     client = client;
     event(name, handler) {
       handlers.set(name, handler);
@@ -83,14 +78,11 @@ vi.mock('@slack/bolt', () => {
     stop = vi.fn().mockResolvedValue(void 0);
   }
   class HTTPReceiver {
-    static {
-      __name(this, 'HTTPReceiver');
-    }
     requestListener = vi.fn();
   }
   return { App, HTTPReceiver, default: { App, HTTPReceiver } };
 });
-const flush = /* @__PURE__ */ __name(() => new Promise((resolve) => setTimeout(resolve, 0)), 'flush');
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 async function waitForEvent(name) {
   for (let i = 0; i < 10; i += 1) {
     if (getSlackHandlers()?.has(name)) {
@@ -99,7 +91,6 @@ async function waitForEvent(name) {
     await flush();
   }
 }
-__name(waitForEvent, 'waitForEvent');
 beforeEach(() => {
   resetInboundDedupe();
   getSlackHandlers()?.clear();

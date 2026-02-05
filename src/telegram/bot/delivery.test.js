@@ -1,10 +1,8 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { deliverReplies } from './delivery.js';
 const loadWebMedia = vi.fn();
 vi.mock('../../web/media.js', () => ({
-  loadWebMedia: /* @__PURE__ */ __name((...args) => loadWebMedia(...args), 'loadWebMedia')
+  loadWebMedia: (...args) => loadWebMedia(...args)
 }));
 vi.mock('grammy', () => ({
   InputFile: class {
@@ -12,14 +10,8 @@ vi.mock('grammy', () => ({
       this.buffer = buffer;
       this.fileName = fileName;
     }
-    static {
-      __name(this, 'InputFile');
-    }
   },
   GrammyError: class GrammyError extends Error {
-    static {
-      __name(this, 'GrammyError');
-    }
     description = '';
   }
 }));

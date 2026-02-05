@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { extractErrorCode, formatErrorMessage } from '../infra/errors.js';
 const RECOVERABLE_ERROR_CODES = /* @__PURE__ */ new Set([
   'ECONNRESET',
@@ -43,14 +41,12 @@ const RECOVERABLE_MESSAGE_SNIPPETS = [
 function normalizeCode(code) {
   return code?.trim().toUpperCase() ?? '';
 }
-__name(normalizeCode, 'normalizeCode');
 function getErrorName(err) {
   if (!err || typeof err !== 'object') {
     return '';
   }
   return 'name' in err ? String(err.name) : '';
 }
-__name(getErrorName, 'getErrorName');
 function getErrorCode(err) {
   const direct = extractErrorCode(err);
   if (direct) {
@@ -68,7 +64,6 @@ function getErrorCode(err) {
   }
   return void 0;
 }
-__name(getErrorCode, 'getErrorCode');
 function collectErrorCandidates(err) {
   const queue = [err];
   const seen = /* @__PURE__ */ new Set();
@@ -107,7 +102,6 @@ function collectErrorCandidates(err) {
   }
   return candidates;
 }
-__name(collectErrorCandidates, 'collectErrorCandidates');
 function isRecoverableTelegramNetworkError(err, options = {}) {
   if (!err) {
     return false;
@@ -131,7 +125,6 @@ function isRecoverableTelegramNetworkError(err, options = {}) {
   }
   return false;
 }
-__name(isRecoverableTelegramNetworkError, 'isRecoverableTelegramNetworkError');
 export {
   isRecoverableTelegramNetworkError
 };

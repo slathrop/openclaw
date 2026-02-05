@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveAgentDir } from '../agents/agent-scope.js';
 import {
   findModelInCatalog,
@@ -35,8 +33,7 @@ async function resolveStickerVisionSupport(cfg, agentId) {
     return false;
   }
 }
-__name(resolveStickerVisionSupport, 'resolveStickerVisionSupport');
-const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
+const dispatchTelegramMessage = async ({
   context,
   bot,
   cfg,
@@ -83,7 +80,7 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
   const draftChunker = draftChunking ? new EmbeddedBlockChunker(draftChunking) : void 0;
   let lastPartialText = '';
   let draftText = '';
-  const updateDraftFromPartial = /* @__PURE__ */ __name((text) => {
+  const updateDraftFromPartial = (text) => {
     if (!draftStream || !text) {
       return;
     }
@@ -114,22 +111,22 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
     draftChunker.append(delta);
     draftChunker.drain({
       force: false,
-      emit: /* @__PURE__ */ __name((chunk) => {
+      emit: (chunk) => {
         draftText += chunk;
         draftStream.update(draftText);
-      }, 'emit')
+      }
     });
-  }, 'updateDraftFromPartial');
-  const flushDraft = /* @__PURE__ */ __name(async () => {
+  };
+  const flushDraft = async () => {
     if (!draftStream) {
       return;
     }
     if (draftChunker?.hasBuffered()) {
       draftChunker.drain({
         force: true,
-        emit: /* @__PURE__ */ __name((chunk) => {
+        emit: (chunk) => {
           draftText += chunk;
-        }, 'emit')
+        }
       });
       draftChunker.reset();
       if (draftText) {
@@ -137,7 +134,7 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
       }
     }
     await draftStream.flush();
-  }, 'flushDraft');
+  };
   const disableBlockStreaming = Boolean(draftStream) || (typeof telegramCfg.blockStreaming === 'boolean' ? !telegramCfg.blockStreaming : void 0);
   const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
     cfg,
@@ -204,7 +201,7 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
     cfg,
     dispatcherOptions: {
       ...prefixOptions,
-      deliver: /* @__PURE__ */ __name(async (payload, info) => {
+      deliver: async (payload, info) => {
         if (info.kind === 'final') {
           await flushDraft();
           draftStream?.stop();
@@ -227,25 +224,25 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
         if (result.delivered) {
           deliveryState.delivered = true;
         }
-      }, 'deliver'),
-      onSkip: /* @__PURE__ */ __name((_payload, info) => {
+      },
+      onSkip: (_payload, info) => {
         if (info.reason !== 'silent') {
           deliveryState.skippedNonSilent += 1;
         }
-      }, 'onSkip'),
-      onError: /* @__PURE__ */ __name((err, info) => {
+      },
+      onError: (err, info) => {
         runtime.error?.(danger(`telegram ${info.kind} reply failed: ${String(err)}`));
-      }, 'onError'),
+      },
       onReplyStart: createTypingCallbacks({
         start: sendTyping,
-        onStartError: /* @__PURE__ */ __name((err) => {
+        onStartError: (err) => {
           logTypingFailure({
             log: logVerbose,
             channel: 'telegram',
             target: String(chatId),
             error: err
           });
-        }, 'onStartError')
+        }
       }).onReplyStart
     },
     replyOptions: {
@@ -285,8 +282,8 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
     removeAfterReply: removeAckAfterReply,
     ackReactionPromise,
     ackReactionValue: ackReactionPromise ? 'ack' : null,
-    remove: /* @__PURE__ */ __name(() => reactionApi?.(chatId, msg.message_id ?? 0, []) ?? Promise.resolve(), 'remove'),
-    onError: /* @__PURE__ */ __name((err) => {
+    remove: () => reactionApi?.(chatId, msg.message_id ?? 0, []) ?? Promise.resolve(),
+    onError: (err) => {
       if (!msg.message_id) {
         return;
       }
@@ -296,12 +293,12 @@ const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
         target: `${chatId}/${msg.message_id}`,
         error: err
       });
-    }, 'onError')
+    }
   });
   if (isGroup && historyKey) {
     clearHistoryEntriesIfEnabled({ historyMap: groupHistories, historyKey, limit: historyLimit });
   }
-}, 'dispatchTelegramMessage');
+};
 export {
   dispatchTelegramMessage
 };

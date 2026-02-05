@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -26,7 +24,6 @@ const { sessionStorePath } = vi.hoisted(() => ({
 function resolveSkillCommands(config) {
   return listSkillCommandsForAgents({ cfg: config });
 }
-__name(resolveSkillCommands, 'resolveSkillCommands');
 const { loadWebMedia } = vi.hoisted(() => ({
   loadWebMedia: vi.fn()
 }));
@@ -107,9 +104,6 @@ vi.mock('grammy', () => ({
       this.options = options;
       botCtorSpy(token, options);
     }
-    static {
-      __name(this, 'Bot');
-    }
     api = apiStub;
     use = middlewareUseSpy;
     on = onSpy;
@@ -118,9 +112,6 @@ vi.mock('grammy', () => ({
     catch = vi.fn();
   },
   InputFile: class {
-    static {
-      __name(this, 'InputFile');
-    }
   },
   webhookCallback: vi.fn()
 }));
@@ -128,14 +119,14 @@ const sequentializeMiddleware = vi.fn();
 const sequentializeSpy = vi.fn(() => sequentializeMiddleware);
 let sequentializeKey;
 vi.mock('@grammyjs/runner', () => ({
-  sequentialize: /* @__PURE__ */ __name((keyFn) => {
+  sequentialize: (keyFn) => {
     sequentializeKey = keyFn;
     return sequentializeSpy();
-  }, 'sequentialize')
+  }
 }));
 const throttlerSpy = vi.fn(() => 'throttler');
 vi.mock('@grammyjs/transformer-throttler', () => ({
-  apiThrottler: /* @__PURE__ */ __name(() => throttlerSpy(), 'apiThrottler')
+  apiThrottler: () => throttlerSpy()
 }));
 vi.mock('../auto-reply/reply.js', () => {
   const replySpy = vi.fn(async (_ctx, opts) => {
@@ -144,13 +135,13 @@ vi.mock('../auto-reply/reply.js', () => {
   });
   return { getReplyFromConfig: replySpy, __replySpy: replySpy };
 });
-const getOnHandler = /* @__PURE__ */ __name((event) => {
+const getOnHandler = (event) => {
   const handler = onSpy.mock.calls.find((call) => call[0] === event)?.[1];
   if (!handler) {
     throw new Error(`Missing handler for event: ${event}`);
   }
   return handler;
-}, 'getOnHandler');
+};
 const ORIGINAL_TZ = process.env.TZ;
 describe('createTelegramBot', () => {
   beforeAll(async () => {
@@ -233,9 +224,9 @@ describe('createTelegramBot', () => {
       runtime: {
         log: vi.fn(),
         error: errorSpy,
-        exit: /* @__PURE__ */ __name(((code) => {
+        exit: ((code) => {
           throw new Error(`exit ${code}`);
-        }), 'exit')
+        })
       }
     });
     const registered = setMyCommandsSpy.mock.calls[0]?.[0];
@@ -335,7 +326,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -372,7 +363,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
     expect(answerCallbackQuerySpy).toHaveBeenCalledWith('cbq-2');
@@ -395,7 +386,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(listSkillCommandsForAgents).toHaveBeenCalledWith({
       cfg: expect.any(Object),
@@ -441,7 +432,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(editMessageTextSpy).not.toHaveBeenCalled();
     expect(answerCallbackQuerySpy).toHaveBeenCalledWith('cbq-4');
@@ -470,7 +461,7 @@ describe('createTelegramBot', () => {
       await handler({
         message,
         me: { username: 'openclaw_bot' },
-        getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+        getFile: async () => ({ download: async () => new Uint8Array() })
       });
       expect(replySpy).toHaveBeenCalledTimes(1);
       const payload = replySpy.mock.calls[0][0];
@@ -509,7 +500,7 @@ describe('createTelegramBot', () => {
         from: { id: 999, username: 'random' }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledTimes(1);
@@ -539,12 +530,12 @@ describe('createTelegramBot', () => {
     await handler({
       message,
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     await handler({
       message: { ...message, text: 'hello again' },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledTimes(1);
@@ -557,7 +548,7 @@ describe('createTelegramBot', () => {
     await handler({
       message: { chat: { id: 42, type: 'private' }, text: 'hi' },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendChatActionSpy).toHaveBeenCalledWith(42, 'typing', void 0);
   });
@@ -591,7 +582,7 @@ describe('createTelegramBot', () => {
         from: { id: 9, first_name: 'Ada' }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -638,7 +629,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -681,7 +672,7 @@ describe('createTelegramBot', () => {
         from: { id: 9, first_name: 'Ada' }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(setMessageReactionSpy).toHaveBeenCalledWith(7, 123, [{ type: 'emoji', emoji: '\u{1F440}' }]);
   });
@@ -716,7 +707,7 @@ describe('createTelegramBot', () => {
         from: { id: 9, first_name: 'Ada' }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -744,7 +735,7 @@ describe('createTelegramBot', () => {
         from: { id: 9, first_name: 'Ada' }
       },
       me: {},
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -769,7 +760,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -801,7 +792,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -828,7 +819,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -854,7 +845,7 @@ describe('createTelegramBot', () => {
         message_id: 101
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy.mock.calls.length).toBeGreaterThan(1);
     for (const call of sendMessageSpy.mock.calls) {
@@ -880,7 +871,7 @@ describe('createTelegramBot', () => {
         message_id: 101
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy.mock.calls.length).toBeGreaterThan(1);
     const [first, ...rest] = sendMessageSpy.mock.calls;
@@ -910,7 +901,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy.mock.calls[0][1]).toBe('PFX final reply');
@@ -934,7 +925,7 @@ describe('createTelegramBot', () => {
         message_id: 101
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy.mock.calls.length).toBeGreaterThan(1);
     for (const call of sendMessageSpy.mock.calls) {
@@ -963,7 +954,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -985,7 +976,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -1012,7 +1003,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { id: 999, username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -1058,7 +1049,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1095,7 +1086,7 @@ describe('createTelegramBot', () => {
         message_id: 42
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -1126,7 +1117,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1165,7 +1156,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1205,7 +1196,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1244,7 +1235,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(0);
   });
@@ -1269,7 +1260,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1293,7 +1284,7 @@ describe('createTelegramBot', () => {
         text: 'hello',
         date: 1736380800
       },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1321,7 +1312,7 @@ describe('createTelegramBot', () => {
         from: { first_name: 'Ada' }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendAnimationSpy).toHaveBeenCalledTimes(1);
     expect(sendAnimationSpy).toHaveBeenCalledWith('1234', expect.anything(), {
@@ -1353,7 +1344,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -1381,7 +1372,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -1410,7 +1401,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1439,7 +1430,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1466,7 +1457,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1493,7 +1484,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1520,7 +1511,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1549,7 +1540,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1577,7 +1568,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1603,7 +1594,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1628,7 +1619,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1657,7 +1648,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1683,7 +1674,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -1712,7 +1703,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalled();
   });
@@ -1741,7 +1732,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalled();
   });
@@ -1767,7 +1758,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).not.toHaveBeenCalled();
   });
@@ -1794,7 +1785,7 @@ describe('createTelegramBot', () => {
         date: 1736380800
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
@@ -1828,7 +1819,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -1869,7 +1860,7 @@ describe('createTelegramBot', () => {
         message_id: 42
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     expect(sendChatActionSpy).toHaveBeenCalledWith(-1001234567890, 'typing', {
@@ -1906,7 +1897,7 @@ describe('createTelegramBot', () => {
         message_id: 42
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy).toHaveBeenCalledTimes(1);
     const sendParams = sendMessageSpy.mock.calls[0]?.[2];
@@ -1953,7 +1944,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
@@ -1993,7 +1984,7 @@ describe('createTelegramBot', () => {
         message_thread_id: 99
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     });
     expect(sendMessageSpy).toHaveBeenCalledWith(
       '-1001234567890',
@@ -2211,7 +2202,7 @@ describe('createTelegramBot', () => {
         message_id: 42
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({ download: /* @__PURE__ */ __name(async () => new Uint8Array(), 'download') }), 'getFile')
+      getFile: async () => ({ download: async () => new Uint8Array() })
     };
     await handler(ctx);
     await handler(ctx);
@@ -2241,7 +2232,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     };
     await handler(ctx);
     await handler(ctx);
@@ -2270,7 +2261,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     });
     await handler({
       callbackQuery: {
@@ -2284,7 +2275,7 @@ describe('createTelegramBot', () => {
         }
       },
       me: { username: 'openclaw_bot' },
-      getFile: /* @__PURE__ */ __name(async () => ({}), 'getFile')
+      getFile: async () => ({})
     });
     expect(replySpy).toHaveBeenCalledTimes(2);
   });

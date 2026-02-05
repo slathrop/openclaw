@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveChunkMode } from '../../auto-reply/chunk.js';
 import {
   buildCommandTextFromArgs,
@@ -48,7 +46,6 @@ function chunkItems(items, size) {
   }
   return rows;
 }
-__name(chunkItems, 'chunkItems');
 function encodeSlackCommandArgValue(parts) {
   return [
     SLACK_COMMAND_ARG_VALUE_PREFIX,
@@ -58,7 +55,6 @@ function encodeSlackCommandArgValue(parts) {
     encodeURIComponent(parts.userId)
   ].join('|');
 }
-__name(encodeSlackCommandArgValue, 'encodeSlackCommandArgValue');
 function parseSlackCommandArgValue(raw) {
   if (!raw) {
     return null;
@@ -71,13 +67,13 @@ function parseSlackCommandArgValue(raw) {
   if (!command || !arg || !value || !userId) {
     return null;
   }
-  const decode = /* @__PURE__ */ __name((text) => {
+  const decode = (text) => {
     try {
       return decodeURIComponent(text);
     } catch {
       return null;
     }
-  }, 'decode');
+  };
   const decodedCommand = decode(command);
   const decodedArg = decode(arg);
   const decodedValue = decode(value);
@@ -92,7 +88,6 @@ function parseSlackCommandArgValue(raw) {
     userId: decodedUserId
   };
 }
-__name(parseSlackCommandArgValue, 'parseSlackCommandArgValue');
 function buildSlackCommandArgMenuBlocks(params) {
   const rows = chunkItems(params.choices, 5).map((choices) => ({
     type: 'actions',
@@ -116,7 +111,6 @@ function buildSlackCommandArgMenuBlocks(params) {
     ...rows
   ];
 }
-__name(buildSlackCommandArgMenuBlocks, 'buildSlackCommandArgMenuBlocks');
 function registerSlackMonitorSlashCommands(params) {
   const { ctx, account } = params;
   const cfg = ctx.cfg;
@@ -125,7 +119,7 @@ function registerSlackMonitorSlashCommands(params) {
   const slashCommand = resolveSlackSlashCommandConfig(
     ctx.slashCommand ?? account.config.slashCommand
   );
-  const handleSlashCommand = /* @__PURE__ */ __name(async (p) => {
+  const handleSlashCommand = async (p) => {
     const { command, ack, respond, prompt, commandArgs, commandDefinition } = p;
     try {
       if (!prompt.trim()) {
@@ -368,7 +362,7 @@ function registerSlackMonitorSlashCommands(params) {
         cfg,
         dispatcherOptions: {
           ...prefixOptions,
-          deliver: /* @__PURE__ */ __name(async (payload) => {
+          deliver: async (payload) => {
             await deliverSlackSlashReplies({
               replies: [payload],
               respond,
@@ -381,10 +375,10 @@ function registerSlackMonitorSlashCommands(params) {
                 accountId: route.accountId
               })
             });
-          }, 'deliver'),
-          onError: /* @__PURE__ */ __name((err, info) => {
+          },
+          onError: (err, info) => {
             runtime.error?.(danger(`slack slash ${info.kind} reply failed: ${String(err)}`));
-          }, 'onError')
+          }
         },
         replyOptions: {
           skillFilter: channelConfig?.skills,
@@ -412,7 +406,7 @@ function registerSlackMonitorSlashCommands(params) {
         response_type: 'ephemeral'
       });
     }
-  }, 'handleSlashCommand');
+  };
   const nativeEnabled = resolveNativeCommandsEnabled({
     providerId: 'slack',
     providerSetting: account.config.commands?.native,
@@ -463,7 +457,7 @@ function registerSlackMonitorSlashCommands(params) {
   if (nativeCommands.length === 0 || !supportsInteractiveArgMenus) {
     return;
   }
-  const registerArgAction = /* @__PURE__ */ __name((actionId) => {
+  const registerArgAction = (actionId) => {
     ctx.app.action(actionId, async (args) => {
       const { ack, body, respond } = args;
       const action = args.action;
@@ -512,18 +506,17 @@ function registerSlackMonitorSlashCommands(params) {
       };
       await handleSlashCommand({
         command: commandPayload,
-        ack: /* @__PURE__ */ __name(async () => {
-        }, 'ack'),
+        ack: async () => {
+        },
         respond: respondFn,
         prompt,
         commandArgs,
         commandDefinition: commandDefinition ?? void 0
       });
     });
-  }, 'registerArgAction');
+  };
   registerArgAction(SLACK_COMMAND_ARG_ACTION_ID);
 }
-__name(registerSlackMonitorSlashCommands, 'registerSlackMonitorSlashCommands');
 export {
   registerSlackMonitorSlashCommands
 };

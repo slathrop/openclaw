@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { run } from '@grammyjs/runner';
 import { resolveAgentMaxConcurrent } from '../config/agent-limits.js';
 import { loadConfig } from '../config/config.js';
@@ -34,14 +32,13 @@ function createTelegramRunnerOptions(cfg) {
     }
   };
 }
-__name(createTelegramRunnerOptions, 'createTelegramRunnerOptions');
 const TELEGRAM_POLL_RESTART_POLICY = {
   initialMs: 2e3,
   maxMs: 3e4,
   factor: 1.8,
   jitter: 0.25
 };
-const isGetUpdatesConflict = /* @__PURE__ */ __name((err) => {
+const isGetUpdatesConflict = (err) => {
   if (!err || typeof err !== 'object') {
     return false;
   }
@@ -52,13 +49,13 @@ const isGetUpdatesConflict = /* @__PURE__ */ __name((err) => {
   }
   const haystack = [typed.method, typed.description, typed.message].filter((value) => typeof value === 'string').join(' ').toLowerCase();
   return haystack.includes('getupdates');
-}, 'isGetUpdatesConflict');
-const isGrammyHttpError = /* @__PURE__ */ __name((err) => {
+};
+const isGrammyHttpError = (err) => {
   if (!err || typeof err !== 'object') {
     return false;
   }
   return err.name === 'HttpError';
-}, 'isGrammyHttpError');
+};
 async function monitorTelegramProvider(opts = {}) {
   const log = opts.runtime?.error ?? console.error;
   const unregisterHandler = registerUnhandledRejectionHandler((err) => {
@@ -84,7 +81,7 @@ async function monitorTelegramProvider(opts = {}) {
     let lastUpdateId = await readTelegramUpdateOffset({
       accountId: account.accountId
     });
-    const persistUpdateId = /* @__PURE__ */ __name(async (updateId) => {
+    const persistUpdateId = async (updateId) => {
       if (lastUpdateId !== null && updateId <= lastUpdateId) {
         return;
       }
@@ -99,7 +96,7 @@ async function monitorTelegramProvider(opts = {}) {
           `telegram: failed to persist update offset: ${String(err)}`
         );
       }
-    }, 'persistUpdateId');
+    };
     const bot = createTelegramBot({
       token,
       runtime: opts.runtime,
@@ -129,11 +126,11 @@ async function monitorTelegramProvider(opts = {}) {
     let restartAttempts = 0;
     while (!opts.abortSignal?.aborted) {
       const runner = run(bot, createTelegramRunnerOptions(cfg));
-      const stopOnAbort = /* @__PURE__ */ __name(() => {
+      const stopOnAbort = () => {
         if (opts.abortSignal?.aborted) {
           void runner.stop();
         }
-      }, 'stopOnAbort');
+      };
       opts.abortSignal?.addEventListener('abort', stopOnAbort, { once: true });
       try {
         await runner.task();
@@ -170,7 +167,6 @@ async function monitorTelegramProvider(opts = {}) {
     unregisterHandler();
   }
 }
-__name(monitorTelegramProvider, 'monitorTelegramProvider');
 export {
   createTelegramRunnerOptions,
   monitorTelegramProvider

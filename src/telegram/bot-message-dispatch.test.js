@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const createTelegramDraftStream = vi.hoisted(() => vi.fn());
 const dispatchReplyWithBufferedBlockDispatcher = vi.hoisted(() => vi.fn());
@@ -68,9 +66,9 @@ describe('dispatchTelegramMessage draft streaming', () => {
     const runtime = {
       log: vi.fn(),
       error: vi.fn(),
-      exit: /* @__PURE__ */ __name(() => {
+      exit: () => {
         throw new Error('exit');
-      }, 'exit')
+      }
     };
     await dispatchTelegramMessage({
       context,

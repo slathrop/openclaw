@@ -1,11 +1,9 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 vi.mock('@slack/web-api', () => {
-  const WebClient2 = vi.fn(/* @__PURE__ */ __name(function WebClientMock(token, options) {
+  const WebClient2 = vi.fn(function WebClientMock(token, options) {
     this.token = token;
     this.options = options;
-  }, 'WebClientMock'));
+  });
   return { WebClient: WebClient2 };
 });
 const slackWebApi = await import('@slack/web-api');

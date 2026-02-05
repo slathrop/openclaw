@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { normalizeChatType } from '../channels/chat-type.js';
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from '../routing/session-key.js';
 import { resolveSlackAppToken, resolveSlackBotToken } from './token.js';
@@ -10,7 +8,6 @@ function listConfiguredAccountIds(cfg) {
   }
   return Object.keys(accounts).filter(Boolean);
 }
-__name(listConfiguredAccountIds, 'listConfiguredAccountIds');
 function listSlackAccountIds(cfg) {
   const ids = listConfiguredAccountIds(cfg);
   if (ids.length === 0) {
@@ -18,7 +15,6 @@ function listSlackAccountIds(cfg) {
   }
   return ids.toSorted((a, b) => a.localeCompare(b));
 }
-__name(listSlackAccountIds, 'listSlackAccountIds');
 function resolveDefaultSlackAccountId(cfg) {
   const ids = listSlackAccountIds(cfg);
   if (ids.includes(DEFAULT_ACCOUNT_ID)) {
@@ -26,7 +22,6 @@ function resolveDefaultSlackAccountId(cfg) {
   }
   return ids[0] ?? DEFAULT_ACCOUNT_ID;
 }
-__name(resolveDefaultSlackAccountId, 'resolveDefaultSlackAccountId');
 function resolveAccountConfig(cfg, accountId) {
   const accounts = cfg.channels?.slack?.accounts;
   if (!accounts || typeof accounts !== 'object') {
@@ -34,14 +29,12 @@ function resolveAccountConfig(cfg, accountId) {
   }
   return accounts[accountId];
 }
-__name(resolveAccountConfig, 'resolveAccountConfig');
 function mergeSlackAccountConfig(cfg, accountId) {
   // eslint-disable-next-line no-unused-vars
   const { accounts: _ignored, ...base } = cfg.channels?.slack ?? {};
   const account = resolveAccountConfig(cfg, accountId) ?? {};
   return { ...base, ...account };
 }
-__name(mergeSlackAccountConfig, 'mergeSlackAccountConfig');
 function resolveSlackAccount(params) {
   const accountId = normalizeAccountId(params.accountId);
   const baseEnabled = params.cfg.channels?.slack?.enabled !== false;
@@ -79,11 +72,9 @@ function resolveSlackAccount(params) {
     channels: merged.channels
   };
 }
-__name(resolveSlackAccount, 'resolveSlackAccount');
 function listEnabledSlackAccounts(cfg) {
   return listSlackAccountIds(cfg).map((accountId) => resolveSlackAccount({ cfg, accountId })).filter((account) => account.enabled);
 }
-__name(listEnabledSlackAccounts, 'listEnabledSlackAccounts');
 function resolveSlackReplyToMode(account, chatType) {
   const normalized = normalizeChatType(chatType ?? void 0);
   if (normalized && account.replyToModeByChatType?.[normalized] !== void 0) {
@@ -94,7 +85,6 @@ function resolveSlackReplyToMode(account, chatType) {
   }
   return account.replyToMode ?? 'off';
 }
-__name(resolveSlackReplyToMode, 'resolveSlackReplyToMode');
 export {
   listEnabledSlackAccounts,
   listSlackAccountIds,

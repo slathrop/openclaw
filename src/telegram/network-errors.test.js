@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it } from 'vitest';
 import { isRecoverableTelegramNetworkError } from './network-errors.js';
 describe('isRecoverableTelegramNetworkError', () => {
@@ -44,9 +42,6 @@ describe('isRecoverableTelegramNetworkError', () => {
         super(message);
         this.error = error;
         this.name = 'HttpError';
-      }
-      static {
-        __name(this, 'MockHttpError');
       }
     }
     it('detects network error wrapped in HttpError', () => {

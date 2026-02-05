@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import {
   applyChannelMatchMeta,
   buildChannelKeyCandidates,
@@ -14,7 +12,6 @@ function firstDefined(...values) {
   }
   return void 0;
 }
-__name(firstDefined, 'firstDefined');
 function shouldEmitSlackReactionNotification(params) {
   const { mode, botId, messageAuthorId, userId, userName, allowlist } = params;
   const effectiveMode = mode ?? 'own';
@@ -40,7 +37,6 @@ function shouldEmitSlackReactionNotification(params) {
   }
   return true;
 }
-__name(shouldEmitSlackReactionNotification, 'shouldEmitSlackReactionNotification');
 function resolveSlackChannelLabel(params) {
   const channelName = params.channelName?.trim();
   if (channelName) {
@@ -50,7 +46,6 @@ function resolveSlackChannelLabel(params) {
   const channelId = params.channelId?.trim();
   return channelId ? `#${channelId}` : 'unknown channel';
 }
-__name(resolveSlackChannelLabel, 'resolveSlackChannelLabel');
 function resolveSlackChannelConfig(params) {
   const { channelId, channelName, channels, defaultRequireMention } = params;
   const entries = channels ?? {};
@@ -93,7 +88,6 @@ function resolveSlackChannelConfig(params) {
   };
   return applyChannelMatchMeta(result, match);
 }
-__name(resolveSlackChannelConfig, 'resolveSlackChannelConfig');
 export {
   resolveSlackChannelConfig,
   resolveSlackChannelLabel,

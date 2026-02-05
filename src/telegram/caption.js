@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 const TELEGRAM_MAX_CAPTION_LENGTH = 1024;
 function splitTelegramCaption(text) {
   const trimmed = text?.trim() ?? '';
@@ -11,7 +9,6 @@ function splitTelegramCaption(text) {
   }
   return { caption: trimmed, followUpText: void 0 };
 }
-__name(splitTelegramCaption, 'splitTelegramCaption');
 export {
   TELEGRAM_MAX_CAPTION_LENGTH,
   splitTelegramCaption

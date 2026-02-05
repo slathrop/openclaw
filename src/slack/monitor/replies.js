@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { chunkMarkdownTextWithMode } from '../../auto-reply/chunk.js';
 import { createReplyReferencePlanner } from '../../auto-reply/reply/reply-reference.js';
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from '../../auto-reply/tokens.js';
@@ -39,7 +37,6 @@ async function deliverReplies(params) {
     params.runtime.log?.(`delivered reply to ${params.target}`);
   }
 }
-__name(deliverReplies, 'deliverReplies');
 function resolveSlackThreadTs(params) {
   const planner = createSlackReplyReferencePlanner({
     replyToMode: params.replyToMode,
@@ -49,7 +46,6 @@ function resolveSlackThreadTs(params) {
   });
   return planner.use();
 }
-__name(resolveSlackThreadTs, 'resolveSlackThreadTs');
 function createSlackReplyReferencePlanner(params) {
   return createReplyReferencePlanner({
     replyToMode: params.replyToMode,
@@ -58,7 +54,6 @@ function createSlackReplyReferencePlanner(params) {
     hasReplied: params.hasReplied
   });
 }
-__name(createSlackReplyReferencePlanner, 'createSlackReplyReferencePlanner');
 function createSlackReplyDeliveryPlan(params) {
   const replyReference = createSlackReplyReferencePlanner({
     replyToMode: params.replyToMode,
@@ -67,14 +62,13 @@ function createSlackReplyDeliveryPlan(params) {
     hasReplied: params.hasRepliedRef.value
   });
   return {
-    nextThreadTs: /* @__PURE__ */ __name(() => replyReference.use(), 'nextThreadTs'),
-    markSent: /* @__PURE__ */ __name(() => {
+    nextThreadTs: () => replyReference.use(),
+    markSent: () => {
       replyReference.markSent();
       params.hasRepliedRef.value = replyReference.hasReplied();
-    }, 'markSent')
+    }
   };
 }
-__name(createSlackReplyDeliveryPlan, 'createSlackReplyDeliveryPlan');
 async function deliverSlackSlashReplies(params) {
   const messages = [];
   const chunkLimit = Math.min(params.textLimit, 4e3);
@@ -106,7 +100,6 @@ async function deliverSlackSlashReplies(params) {
     await params.respond({ text, response_type: responseType });
   }
 }
-__name(deliverSlackSlashReplies, 'deliverSlackSlashReplies');
 export {
   createSlackReplyDeliveryPlan,
   deliverReplies,

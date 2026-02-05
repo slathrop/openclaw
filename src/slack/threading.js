@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 function resolveSlackThreadContext(params) {
   const incomingThreadTs = params.message.thread_ts;
   const eventTs = params.message.event_ts;
@@ -16,14 +14,12 @@ function resolveSlackThreadContext(params) {
     messageThreadId
   };
 }
-__name(resolveSlackThreadContext, 'resolveSlackThreadContext');
 function resolveSlackThreadTargets(params) {
   const { incomingThreadTs, messageTs } = resolveSlackThreadContext(params);
   const replyThreadTs = incomingThreadTs ?? (params.replyToMode === 'all' ? messageTs : void 0);
   const statusThreadTs = replyThreadTs ?? messageTs;
   return { replyThreadTs, statusThreadTs };
 }
-__name(resolveSlackThreadTargets, 'resolveSlackThreadTargets');
 export {
   resolveSlackThreadContext,
   resolveSlackThreadTargets

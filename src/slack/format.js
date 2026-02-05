@@ -1,11 +1,8 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { chunkMarkdownIR, markdownToIR } from '../markdown/ir.js';
 import { renderMarkdownWithMarkers } from '../markdown/render.js';
 function escapeSlackMrkdwnSegment(text) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-__name(escapeSlackMrkdwnSegment, 'escapeSlackMrkdwnSegment');
 const SLACK_ANGLE_TOKEN_RE = /<[^>\n]+>/g;
 function isAllowedSlackAngleToken(token) {
   if (!token.startsWith('<') || !token.endsWith('>')) {
@@ -14,7 +11,6 @@ function isAllowedSlackAngleToken(token) {
   const inner = token.slice(1, -1);
   return inner.startsWith('@') || inner.startsWith('#') || inner.startsWith('!') || inner.startsWith('mailto:') || inner.startsWith('tel:') || inner.startsWith('http://') || inner.startsWith('https://') || inner.startsWith('slack://');
 }
-__name(isAllowedSlackAngleToken, 'isAllowedSlackAngleToken');
 function escapeSlackMrkdwnContent(text) {
   if (!text.includes('&') && !text.includes('<') && !text.includes('>')) {
     return text;
@@ -32,7 +28,6 @@ function escapeSlackMrkdwnContent(text) {
   out.push(escapeSlackMrkdwnSegment(text.slice(lastIndex)));
   return out.join('');
 }
-__name(escapeSlackMrkdwnContent, 'escapeSlackMrkdwnContent');
 function escapeSlackMrkdwnText(text) {
   if (!text.includes('&') && !text.includes('<') && !text.includes('>')) {
     return text;
@@ -44,7 +39,6 @@ function escapeSlackMrkdwnText(text) {
     return escapeSlackMrkdwnContent(line);
   }).join('\n');
 }
-__name(escapeSlackMrkdwnText, 'escapeSlackMrkdwnText');
 function buildSlackLink(link, text) {
   const href = link.href.trim();
   if (!href) {
@@ -65,7 +59,6 @@ function buildSlackLink(link, text) {
     close: '>'
   };
 }
-__name(buildSlackLink, 'buildSlackLink');
 function markdownToSlackMrkdwn(markdown, options = {}) {
   const ir = markdownToIR(markdown ?? '', {
     linkify: false,
@@ -86,7 +79,6 @@ function markdownToSlackMrkdwn(markdown, options = {}) {
     buildLink: buildSlackLink
   });
 }
-__name(markdownToSlackMrkdwn, 'markdownToSlackMrkdwn');
 function markdownToSlackMrkdwnChunks(markdown, limit, options = {}) {
   const ir = markdownToIR(markdown ?? '', {
     linkify: false,
@@ -110,7 +102,6 @@ function markdownToSlackMrkdwnChunks(markdown, limit, options = {}) {
     })
   );
 }
-__name(markdownToSlackMrkdwnChunks, 'markdownToSlackMrkdwnChunks');
 export {
   markdownToSlackMrkdwn,
   markdownToSlackMrkdwnChunks

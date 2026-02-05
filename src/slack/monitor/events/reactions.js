@@ -1,11 +1,9 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { danger } from '../../../globals.js';
 import { enqueueSystemEvent } from '../../../infra/system-events.js';
 import { resolveSlackChannelLabel } from '../channel-config.js';
 function registerSlackReactionEvents(params) {
   const { ctx } = params;
-  const handleReactionEvent = /* @__PURE__ */ __name(async (event, action) => {
+  const handleReactionEvent = async (event, action) => {
     try {
       const item = event.item;
       if (!item || item.type !== 'message') {
@@ -42,7 +40,7 @@ function registerSlackReactionEvents(params) {
     } catch (err) {
       ctx.runtime.error?.(danger(`slack reaction handler failed: ${String(err)}`));
     }
-  }, 'handleReactionEvent');
+  };
   ctx.app.event(
     'reaction_added',
     async ({ event, body }) => {
@@ -62,7 +60,6 @@ function registerSlackReactionEvents(params) {
     }
   );
 }
-__name(registerSlackReactionEvents, 'registerSlackReactionEvents');
 export {
   registerSlackReactionEvents
 };

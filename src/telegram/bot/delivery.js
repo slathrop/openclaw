@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { GrammyError, InputFile } from 'grammy';
 import { chunkMarkdownTextWithMode } from '../../auto-reply/chunk.js';
 import { danger, logVerbose } from '../../globals.js';
@@ -40,10 +38,10 @@ async function deliverReplies(params) {
   const chunkMode = params.chunkMode ?? 'length';
   let hasReplied = false;
   let hasDelivered = false;
-  const markDelivered = /* @__PURE__ */ __name(() => {
+  const markDelivered = () => {
     hasDelivered = true;
-  }, 'markDelivered');
-  const chunkText = /* @__PURE__ */ __name((markdown) => {
+  };
+  const chunkText = (markdown) => {
     const markdownChunks = chunkMode === 'newline' ? chunkMarkdownTextWithMode(markdown, textLimit, chunkMode) : [markdown];
     const chunks = [];
     for (const chunk of markdownChunks) {
@@ -58,7 +56,7 @@ async function deliverReplies(params) {
       chunks.push(...nested);
     }
     return chunks;
-  }, 'chunkText');
+  };
   for (const reply of replies) {
     const hasMedia = Boolean(reply?.mediaUrl) || (reply?.mediaUrls?.length ?? 0) > 0;
     if (!reply?.text && !hasMedia) {
@@ -133,21 +131,21 @@ async function deliverReplies(params) {
         await withTelegramApiErrorLogging({
           operation: 'sendAnimation',
           runtime,
-          fn: /* @__PURE__ */ __name(() => bot.api.sendAnimation(chatId, file, { ...mediaParams }), 'fn')
+          fn: () => bot.api.sendAnimation(chatId, file, { ...mediaParams })
         });
         markDelivered();
       } else if (kind === 'image') {
         await withTelegramApiErrorLogging({
           operation: 'sendPhoto',
           runtime,
-          fn: /* @__PURE__ */ __name(() => bot.api.sendPhoto(chatId, file, { ...mediaParams }), 'fn')
+          fn: () => bot.api.sendPhoto(chatId, file, { ...mediaParams })
         });
         markDelivered();
       } else if (kind === 'video') {
         await withTelegramApiErrorLogging({
           operation: 'sendVideo',
           runtime,
-          fn: /* @__PURE__ */ __name(() => bot.api.sendVideo(chatId, file, { ...mediaParams }), 'fn')
+          fn: () => bot.api.sendVideo(chatId, file, { ...mediaParams })
         });
         markDelivered();
       } else if (kind === 'audio') {
@@ -164,8 +162,8 @@ async function deliverReplies(params) {
             await withTelegramApiErrorLogging({
               operation: 'sendVoice',
               runtime,
-              shouldLog: /* @__PURE__ */ __name((err) => !isVoiceMessagesForbidden(err), 'shouldLog'),
-              fn: /* @__PURE__ */ __name(() => bot.api.sendVoice(chatId, file, { ...mediaParams }), 'fn')
+              shouldLog: (err) => !isVoiceMessagesForbidden(err),
+              fn: () => bot.api.sendVoice(chatId, file, { ...mediaParams })
             });
             markDelivered();
           } catch (voiceErr) {
@@ -200,7 +198,7 @@ async function deliverReplies(params) {
           await withTelegramApiErrorLogging({
             operation: 'sendAudio',
             runtime,
-            fn: /* @__PURE__ */ __name(() => bot.api.sendAudio(chatId, file, { ...mediaParams }), 'fn')
+            fn: () => bot.api.sendAudio(chatId, file, { ...mediaParams })
           });
           markDelivered();
         }
@@ -208,7 +206,7 @@ async function deliverReplies(params) {
         await withTelegramApiErrorLogging({
           operation: 'sendDocument',
           runtime,
-          fn: /* @__PURE__ */ __name(() => bot.api.sendDocument(chatId, file, { ...mediaParams }), 'fn')
+          fn: () => bot.api.sendDocument(chatId, file, { ...mediaParams })
         });
         markDelivered();
       }
@@ -239,7 +237,6 @@ async function deliverReplies(params) {
   }
   return { delivered: hasDelivered };
 }
-__name(deliverReplies, 'deliverReplies');
 async function resolveMedia(ctx, maxBytes, token, proxyFetch) {
   const msg = ctx.message;
   if (msg.sticker) {
@@ -357,14 +354,12 @@ async function resolveMedia(ctx, maxBytes, token, proxyFetch) {
   }
   return { path: saved.path, contentType: saved.contentType, placeholder };
 }
-__name(resolveMedia, 'resolveMedia');
 function isVoiceMessagesForbidden(err) {
   if (err instanceof GrammyError) {
     return VOICE_FORBIDDEN_RE.test(err.description);
   }
   return VOICE_FORBIDDEN_RE.test(formatErrorMessage(err));
 }
-__name(isVoiceMessagesForbidden, 'isVoiceMessagesForbidden');
 async function sendTelegramVoiceFallbackText(opts) {
   const chunks = opts.chunkText(opts.text);
   let hasReplied = opts.hasReplied;
@@ -385,7 +380,6 @@ async function sendTelegramVoiceFallbackText(opts) {
   }
   return hasReplied;
 }
-__name(sendTelegramVoiceFallbackText, 'sendTelegramVoiceFallbackText');
 function buildTelegramSendParams(opts) {
   const threadParams = buildTelegramThreadParams(opts?.thread);
   const params = {};
@@ -405,7 +399,6 @@ function buildTelegramSendParams(opts) {
   }
   return params;
 }
-__name(buildTelegramSendParams, 'buildTelegramSendParams');
 async function sendTelegramText(bot, chatId, text, runtime, opts) {
   const baseParams = buildTelegramSendParams({
     replyToMessageId: opts?.replyToMessageId,
@@ -420,13 +413,13 @@ async function sendTelegramText(bot, chatId, text, runtime, opts) {
     const res = await withTelegramApiErrorLogging({
       operation: 'sendMessage',
       runtime,
-      shouldLog: /* @__PURE__ */ __name((err) => !PARSE_ERR_RE.test(formatErrorMessage(err)), 'shouldLog'),
-      fn: /* @__PURE__ */ __name(() => bot.api.sendMessage(chatId, htmlText, {
+      shouldLog: (err) => !PARSE_ERR_RE.test(formatErrorMessage(err)),
+      fn: () => bot.api.sendMessage(chatId, htmlText, {
         parse_mode: 'HTML',
         ...linkPreviewOptions ? { link_preview_options: linkPreviewOptions } : {},
         ...opts?.replyMarkup ? { reply_markup: opts.replyMarkup } : {},
         ...baseParams
-      }), 'fn')
+      })
     });
     return res.message_id;
   } catch (err) {
@@ -437,18 +430,17 @@ async function sendTelegramText(bot, chatId, text, runtime, opts) {
       const res = await withTelegramApiErrorLogging({
         operation: 'sendMessage',
         runtime,
-        fn: /* @__PURE__ */ __name(() => bot.api.sendMessage(chatId, fallbackText, {
+        fn: () => bot.api.sendMessage(chatId, fallbackText, {
           ...linkPreviewOptions ? { link_preview_options: linkPreviewOptions } : {},
           ...opts?.replyMarkup ? { reply_markup: opts.replyMarkup } : {},
           ...baseParams
-        }), 'fn')
+        })
       });
       return res.message_id;
     }
     throw err;
   }
 }
-__name(sendTelegramText, 'sendTelegramText');
 export {
   deliverReplies,
   resolveMedia

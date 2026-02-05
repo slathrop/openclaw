@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { normalizeAccountId } from '../routing/session-key.js';
 function resolveAccountChannels(cfg, accountId) {
   if (!accountId) {
@@ -19,7 +17,6 @@ function resolveAccountChannels(cfg, accountId) {
   );
   return { channels: matchKey ? accounts[matchKey]?.channels : void 0 };
 }
-__name(resolveAccountChannels, 'resolveAccountChannels');
 function migrateSlackChannelsInPlace(channels, oldChannelId, newChannelId) {
   if (!channels) {
     return { migrated: false, skippedExisting: false };
@@ -37,7 +34,6 @@ function migrateSlackChannelsInPlace(channels, oldChannelId, newChannelId) {
   delete channels[oldChannelId];
   return { migrated: true, skippedExisting: false };
 }
-__name(migrateSlackChannelsInPlace, 'migrateSlackChannelsInPlace');
 function migrateSlackChannelConfig(params) {
   const scopes = [];
   let migrated = false;
@@ -74,7 +70,6 @@ function migrateSlackChannelConfig(params) {
   }
   return { migrated, skippedExisting, scopes };
 }
-__name(migrateSlackChannelConfig, 'migrateSlackChannelConfig');
 export {
   migrateSlackChannelConfig,
   migrateSlackChannelsInPlace

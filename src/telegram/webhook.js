@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { webhookCallback } from 'grammy';
 import { createServer } from 'node:http';
 import { isDiagnosticsEnabled } from '../infra/diagnostic-events.js';
@@ -81,26 +79,25 @@ async function startTelegramWebhook(opts) {
   await withTelegramApiErrorLogging({
     operation: 'setWebhook',
     runtime,
-    fn: /* @__PURE__ */ __name(() => bot.api.setWebhook(publicUrl, {
+    fn: () => bot.api.setWebhook(publicUrl, {
       secret_token: opts.secret,
       allowed_updates: resolveTelegramAllowedUpdates()
-    }), 'fn')
+    })
   });
   await new Promise((resolve) => server.listen(port, host, resolve));
   runtime.log?.(`webhook listening on ${publicUrl}`);
-  const shutdown = /* @__PURE__ */ __name(() => {
+  const shutdown = () => {
     server.close();
     void bot.stop();
     if (diagnosticsEnabled) {
       stopDiagnosticHeartbeat();
     }
-  }, 'shutdown');
+  };
   if (opts.abortSignal) {
     opts.abortSignal.addEventListener('abort', shutdown, { once: true });
   }
   return { server, bot, stop: shutdown };
 }
-__name(startTelegramWebhook, 'startTelegramWebhook');
 export {
   startTelegramWebhook
 };

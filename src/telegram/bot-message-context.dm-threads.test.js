@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { describe, expect, it, vi } from 'vitest';
 import { buildTelegramMessageContext } from './bot-message-context.js';
 describe('buildTelegramMessageContext dm thread sessions', () => {
@@ -8,7 +6,7 @@ describe('buildTelegramMessageContext dm thread sessions', () => {
     channels: { telegram: {} },
     messages: { groupChat: { mentionPatterns: [] } }
   };
-  const buildContext = /* @__PURE__ */ __name(async (message) => await buildTelegramMessageContext({
+  const buildContext = async (message) => await buildTelegramMessageContext({
     primaryCtx: {
       message,
       me: { id: 7, username: 'bot' }
@@ -31,13 +29,13 @@ describe('buildTelegramMessageContext dm thread sessions', () => {
     groupAllowFrom: [],
     ackReactionScope: 'off',
     logger: { info: vi.fn() },
-    resolveGroupActivation: /* @__PURE__ */ __name(() => void 0, 'resolveGroupActivation'),
-    resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-    resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+    resolveGroupActivation: () => void 0,
+    resolveGroupRequireMention: () => false,
+    resolveTelegramGroupConfig: () => ({
       groupConfig: { requireMention: false },
       topicConfig: void 0
-    }), 'resolveTelegramGroupConfig')
-  }), 'buildContext');
+    })
+  });
   it('uses thread session key for dm topics', async () => {
     const ctx = await buildContext({
       message_id: 1,
@@ -70,7 +68,7 @@ describe('buildTelegramMessageContext group sessions without forum', () => {
     channels: { telegram: {} },
     messages: { groupChat: { mentionPatterns: [] } }
   };
-  const buildContext = /* @__PURE__ */ __name(async (message) => await buildTelegramMessageContext({
+  const buildContext = async (message) => await buildTelegramMessageContext({
     primaryCtx: {
       message,
       me: { id: 7, username: 'bot' }
@@ -93,13 +91,13 @@ describe('buildTelegramMessageContext group sessions without forum', () => {
     groupAllowFrom: [],
     ackReactionScope: 'off',
     logger: { info: vi.fn() },
-    resolveGroupActivation: /* @__PURE__ */ __name(() => true, 'resolveGroupActivation'),
-    resolveGroupRequireMention: /* @__PURE__ */ __name(() => false, 'resolveGroupRequireMention'),
-    resolveTelegramGroupConfig: /* @__PURE__ */ __name(() => ({
+    resolveGroupActivation: () => true,
+    resolveGroupRequireMention: () => false,
+    resolveTelegramGroupConfig: () => ({
       groupConfig: { requireMention: false },
       topicConfig: void 0
-    }), 'resolveTelegramGroupConfig')
-  }), 'buildContext');
+    })
+  });
   it('ignores message_thread_id for regular groups (not forums)', async () => {
     const ctx = await buildContext({
       message_id: 1,

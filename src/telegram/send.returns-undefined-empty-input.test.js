@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { botApi, botCtorSpy } = vi.hoisted(() => ({
   botApi: {
@@ -22,16 +20,10 @@ vi.mock('grammy', () => ({
       this.options = options;
       botCtorSpy(token, options);
     }
-    static {
-      __name(this, 'Bot');
-    }
     api = botApi;
     catch = vi.fn();
   },
   InputFile: class {
-    static {
-      __name(this, 'InputFile');
-    }
   }
 }));
 const { loadConfig } = vi.hoisted(() => ({

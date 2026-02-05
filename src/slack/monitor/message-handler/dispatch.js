@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { resolveHumanDelayConfig } from '../../../agents/identity.js';
 import { dispatchInboundMessage } from '../../../auto-reply/dispatch.js';
 import { clearHistoryEntriesIfEnabled } from '../../../auto-reply/reply/history.js';
@@ -49,15 +47,15 @@ async function dispatchPreparedSlackMessage(prepared) {
   });
   const typingTarget = statusThreadTs ? `${message.channel}/${statusThreadTs}` : message.channel;
   const typingCallbacks = createTypingCallbacks({
-    start: /* @__PURE__ */ __name(async () => {
+    start: async () => {
       didSetStatus = true;
       await ctx.setSlackThreadStatus({
         channelId: message.channel,
         threadTs: statusThreadTs,
         status: 'is typing...'
       });
-    }, 'start'),
-    stop: /* @__PURE__ */ __name(async () => {
+    },
+    stop: async () => {
       if (!didSetStatus) {
         return;
       }
@@ -67,25 +65,25 @@ async function dispatchPreparedSlackMessage(prepared) {
         threadTs: statusThreadTs,
         status: ''
       });
-    }, 'stop'),
-    onStartError: /* @__PURE__ */ __name((err) => {
+    },
+    onStartError: (err) => {
       logTypingFailure({
-        log: /* @__PURE__ */ __name((message2) => runtime.error?.(danger(message2)), 'log'),
+        log: (message2) => runtime.error?.(danger(message2)),
         channel: 'slack',
         action: 'start',
         target: typingTarget,
         error: err
       });
-    }, 'onStartError'),
-    onStopError: /* @__PURE__ */ __name((err) => {
+    },
+    onStopError: (err) => {
       logTypingFailure({
-        log: /* @__PURE__ */ __name((message2) => runtime.error?.(danger(message2)), 'log'),
+        log: (message2) => runtime.error?.(danger(message2)),
         channel: 'slack',
         action: 'stop',
         target: typingTarget,
         error: err
       });
-    }, 'onStopError')
+    }
   });
   const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
     cfg,
@@ -96,7 +94,7 @@ async function dispatchPreparedSlackMessage(prepared) {
   const { dispatcher, replyOptions, markDispatchIdle } = createReplyDispatcherWithTyping({
     ...prefixOptions,
     humanDelay: resolveHumanDelayConfig(cfg, route.agentId),
-    deliver: /* @__PURE__ */ __name(async (payload) => {
+    deliver: async (payload) => {
       const replyThreadTs = replyPlan.nextThreadTs();
       await deliverReplies({
         replies: [payload],
@@ -108,11 +106,11 @@ async function dispatchPreparedSlackMessage(prepared) {
         replyThreadTs
       });
       replyPlan.markSent();
-    }, 'deliver'),
-    onError: /* @__PURE__ */ __name((err, info) => {
+    },
+    onError: (err, info) => {
       runtime.error?.(danger(`slack ${info.kind} reply failed: ${String(err)}`));
       typingCallbacks.onIdle?.();
-    }, 'onError'),
+    },
     onReplyStart: typingCallbacks.onReplyStart,
     onIdle: typingCallbacks.onIdle
   });
@@ -150,7 +148,7 @@ async function dispatchPreparedSlackMessage(prepared) {
     removeAfterReply: ctx.removeAckAfterReply,
     ackReactionPromise: prepared.ackReactionPromise,
     ackReactionValue: prepared.ackReactionValue,
-    remove: /* @__PURE__ */ __name(() => removeSlackReaction(
+    remove: () => removeSlackReaction(
       message.channel,
       prepared.ackReactionMessageTs ?? '',
       prepared.ackReactionValue,
@@ -158,15 +156,15 @@ async function dispatchPreparedSlackMessage(prepared) {
         token: ctx.botToken,
         client: ctx.app.client
       }
-    ), 'remove'),
-    onError: /* @__PURE__ */ __name((err) => {
+    ),
+    onError: (err) => {
       logAckFailure({
         log: logVerbose,
         channel: 'slack',
         target: `${message.channel}/${message.ts}`,
         error: err
       });
-    }, 'onError')
+    }
   });
   if (prepared.isRoomish) {
     clearHistoryEntriesIfEnabled({
@@ -176,7 +174,6 @@ async function dispatchPreparedSlackMessage(prepared) {
     });
   }
 }
-__name(dispatchPreparedSlackMessage, 'dispatchPreparedSlackMessage');
 export {
   dispatchPreparedSlackMessage
 };

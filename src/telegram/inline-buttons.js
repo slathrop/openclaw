@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { listTelegramAccountIds, resolveTelegramAccount } from './accounts.js';
 import { parseTelegramTarget } from './targets.js';
 const DEFAULT_INLINE_BUTTONS_SCOPE = 'allowlist';
@@ -13,7 +11,6 @@ function normalizeInlineButtonsScope(value) {
   }
   return void 0;
 }
-__name(normalizeInlineButtonsScope, 'normalizeInlineButtonsScope');
 function resolveInlineButtonsScopeFromCapabilities(capabilities) {
   if (!capabilities) {
     return DEFAULT_INLINE_BUTTONS_SCOPE;
@@ -30,12 +27,10 @@ function resolveInlineButtonsScopeFromCapabilities(capabilities) {
   }
   return DEFAULT_INLINE_BUTTONS_SCOPE;
 }
-__name(resolveInlineButtonsScopeFromCapabilities, 'resolveInlineButtonsScopeFromCapabilities');
 function resolveTelegramInlineButtonsScope(params) {
   const account = resolveTelegramAccount({ cfg: params.cfg, accountId: params.accountId });
   return resolveInlineButtonsScopeFromCapabilities(account.config.capabilities);
 }
-__name(resolveTelegramInlineButtonsScope, 'resolveTelegramInlineButtonsScope');
 function isTelegramInlineButtonsEnabled(params) {
   if (params.accountId) {
     return resolveTelegramInlineButtonsScope(params) !== 'off';
@@ -48,7 +43,6 @@ function isTelegramInlineButtonsEnabled(params) {
     (accountId) => resolveTelegramInlineButtonsScope({ cfg: params.cfg, accountId }) !== 'off'
   );
 }
-__name(isTelegramInlineButtonsEnabled, 'isTelegramInlineButtonsEnabled');
 function resolveTelegramTargetChatType(target) {
   if (!target.trim()) {
     return 'unknown';
@@ -63,7 +57,6 @@ function resolveTelegramTargetChatType(target) {
   }
   return 'unknown';
 }
-__name(resolveTelegramTargetChatType, 'resolveTelegramTargetChatType');
 export {
   isTelegramInlineButtonsEnabled,
   resolveTelegramInlineButtonsScope,

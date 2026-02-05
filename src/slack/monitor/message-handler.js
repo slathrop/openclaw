@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 import { hasControlCommand } from '../../auto-reply/command-detection.js';
 import {
   createInboundDebouncer,
@@ -14,7 +12,7 @@ function createSlackMessageHandler(params) {
   const threadTsResolver = createSlackThreadTsResolver({ client: ctx.app.client });
   const debouncer = createInboundDebouncer({
     debounceMs,
-    buildKey: /* @__PURE__ */ __name((entry) => {
+    buildKey: (entry) => {
       const senderId = entry.message.user ?? entry.message.bot_id;
       if (!senderId) {
         return null;
@@ -22,8 +20,8 @@ function createSlackMessageHandler(params) {
       const messageTs = entry.message.ts ?? entry.message.event_ts;
       const threadKey = entry.message.thread_ts ? `${entry.message.channel}:${entry.message.thread_ts}` : entry.message.parent_user_id && messageTs ? `${entry.message.channel}:maybe-thread:${messageTs}` : entry.message.channel;
       return `slack:${ctx.accountId}:${threadKey}:${senderId}`;
-    }, 'buildKey'),
-    shouldDebounce: /* @__PURE__ */ __name((entry) => {
+    },
+    shouldDebounce: (entry) => {
       const text = entry.message.text ?? '';
       if (!text.trim()) {
         return false;
@@ -32,8 +30,8 @@ function createSlackMessageHandler(params) {
         return false;
       }
       return !hasControlCommand(text, ctx.cfg);
-    }, 'shouldDebounce'),
-    onFlush: /* @__PURE__ */ __name(async (entries) => {
+    },
+    onFlush: async (entries) => {
       const last = entries.at(-1);
       if (!last) {
         return;
@@ -65,10 +63,10 @@ function createSlackMessageHandler(params) {
         }
       }
       await dispatchPreparedSlackMessage(prepared);
-    }, 'onFlush'),
-    onError: /* @__PURE__ */ __name((err) => {
+    },
+    onError: (err) => {
       ctx.runtime.error?.(`slack inbound debounce flush failed: ${String(err)}`);
-    }, 'onError')
+    }
   });
   return async (message, opts) => {
     if (opts.source === 'message' && message.type !== 'message') {
@@ -84,7 +82,6 @@ function createSlackMessageHandler(params) {
     await debouncer.enqueue({ message: resolvedMessage, opts });
   };
 }
-__name(createSlackMessageHandler, 'createSlackMessageHandler');
 export {
   createSlackMessageHandler
 };
