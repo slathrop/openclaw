@@ -37,13 +37,13 @@ function parseReplyToMessageId(replyToId) {
   return Number.isFinite(parsed) ? parsed : void 0;
 }
 function parseThreadId(threadId) {
-  if (threadId === null) {
+  if (threadId === null || threadId === undefined) {
     return void 0;
   }
   if (typeof threadId === 'number') {
     return Number.isFinite(threadId) ? Math.trunc(threadId) : void 0;
   }
-  const trimmed = threadId.trim();
+  const trimmed = String(threadId).trim();
   if (!trimmed) {
     return void 0;
   }

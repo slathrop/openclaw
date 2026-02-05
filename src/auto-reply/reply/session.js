@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { CURRENT_SESSION_VERSION, SessionManager } from '@mariozechner/pi-coding-agent';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -98,7 +97,7 @@ async function initSessionState(params) {
   let persistedModelOverride;
   let persistedProviderOverride;
   const normalizedChatType = normalizeChatType(ctx.ChatType);
-  const isGroup = normalizedChatType !== null && e !== undefined && normalizedChatType !== 'direct' ? true : Boolean(groupResolution);
+  const isGroup = normalizedChatType !== null && normalizedChatType !== undefined && normalizedChatType !== 'direct' ? true : Boolean(groupResolution);
   const commandSource = ctx.BodyForCommands ?? ctx.CommandBody ?? ctx.RawBody ?? ctx.Body ?? '';
   const triggerBodyNormalized = stripStructuralPrefixes(commandSource).trim();
   const rawBody = commandSource;

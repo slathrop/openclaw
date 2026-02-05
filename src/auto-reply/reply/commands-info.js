@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { logVerbose } from '../../globals.js';
 import { listSkillCommandsForAgents } from '../skill-commands.js';
 import {
@@ -177,7 +176,7 @@ const handleWhoamiCommand = async (params, allowTextCommands) => {
   if (params.ctx.ChatType === 'group' && params.ctx.From) {
     lines.push(`Chat: ${params.ctx.From}`);
   }
-  if (params.ctx.MessageThreadId !== null && d !== undefined) {
+  if (params.ctx.MessageThreadId !== null && params.ctx.MessageThreadId !== undefined) {
     lines.push(`Thread: ${params.ctx.MessageThreadId}`);
   }
   if (senderId) {

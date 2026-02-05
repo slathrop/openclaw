@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import {
 
   // SECURITY: This module handles security-sensitive operations.
@@ -85,7 +84,7 @@ const handleCompactCommand = async (params) => {
     customInstructions,
     ownerNumbers: params.command.ownerList.length > 0 ? params.command.ownerList : void 0
   });
-  const compactLabel = result.ok ? result.compacted ? result.result?.tokensBefore !== null && e !== undefined && result.result?.tokensAfter !== null && r !== undefined ? `Compacted (${formatTokenCount(result.result.tokensBefore)} \u2192 ${formatTokenCount(result.result.tokensAfter)})` : result.result?.tokensBefore ? `Compacted (${formatTokenCount(result.result.tokensBefore)} before)` : 'Compacted' : 'Compaction skipped' : 'Compaction failed';
+  const compactLabel = result.ok ? result.compacted ? result.result?.tokensBefore !== null && result.result?.tokensBefore !== undefined && result.result?.tokensAfter !== null && result.result?.tokensAfter !== undefined ? `Compacted (${formatTokenCount(result.result.tokensBefore)} \u2192 ${formatTokenCount(result.result.tokensAfter)})` : result.result?.tokensBefore ? `Compacted (${formatTokenCount(result.result.tokensBefore)} before)` : 'Compacted' : 'Compaction skipped' : 'Compaction failed';
   if (result.ok && result.compacted) {
     await incrementCompactionCount({
       sessionEntry: params.sessionEntry,

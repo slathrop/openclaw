@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -197,7 +196,7 @@ async function launchOpenClawChrome(resolved, profile) {
     }
     const exitDeadline = Date.now() + 5e3;
     while (Date.now() < exitDeadline) {
-      if (bootstrap.exitCode !== null && e !== undefined) {
+      if (bootstrap.exitCode !== null && bootstrap.exitCode !== undefined) {
         break;
       }
       await new Promise((r) => setTimeout(r, 50));

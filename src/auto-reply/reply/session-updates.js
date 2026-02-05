@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import crypto from 'node:crypto';
 import { resolveUserTimezone } from '../../agents/date-time.js';
 import { buildWorkspaceSkillSnapshot } from '../../agents/skills.js';
@@ -230,7 +229,7 @@ async function incrementCompactionCount(params) {
     compactionCount: nextCount,
     updatedAt: now
   };
-  if (tokensAfter !== null && r !== undefined && tokensAfter > 0) {
+  if (tokensAfter !== null && tokensAfter !== undefined && tokensAfter > 0) {
     updates.totalTokens = tokensAfter;
     updates.inputTokens = void 0;
     updates.outputTokens = void 0;

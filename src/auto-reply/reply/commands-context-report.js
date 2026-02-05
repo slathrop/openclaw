@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { resolveSessionAgentIds } from '../../agents/agent-scope.js';
 import { resolveBootstrapContextForRun } from '../../agents/bootstrap-files.js';
 import { resolveDefaultModelForAgent } from '../../agents/model-selection.js';
@@ -218,7 +217,7 @@ async function buildContextReply(params) {
   const systemPromptLine = `System prompt (${report.source}): ${formatCharsAndTokens(report.systemPrompt.chars)} (Project Context ${formatCharsAndTokens(report.systemPrompt.projectContextChars)})`;
   const workspaceLabel = report.workspaceDir ?? params.workspaceDir;
   const bootstrapMaxLabel = typeof report.bootstrapMaxChars === 'number' ? `${formatInt(report.bootstrapMaxChars)} chars` : '? chars';
-  const totalsLine = session.totalTokens !== null && s !== undefined ? `Session tokens (cached): ${formatInt(session.totalTokens)} total / ctx=${session.contextTokens ?? '?'}` : `Session tokens (cached): unknown / ctx=${session.contextTokens ?? '?'}`;
+  const totalsLine = session.totalTokens !== null && session.totalTokens !== undefined ? `Session tokens (cached): ${formatInt(session.totalTokens)} total / ctx=${session.contextTokens ?? '?'}` : `Session tokens (cached): unknown / ctx=${session.contextTokens ?? '?'}`;
   if (sub === 'detail' || sub === 'deep') {
     const perSkill = formatListTop(
       report.skills.entries.map((s) => ({ name: s.name, value: s.blockChars })),
@@ -232,7 +231,7 @@ async function buildContextReply(params) {
       report.tools.entries.map((t) => ({ name: t.name, value: t.summaryChars })),
       30
     );
-    const toolPropsLines = report.tools.entries.filter((t) => t.propertiesCount !== null && t !== undefined).toSorted((a, b) => (b.propertiesCount ?? 0) - (a.propertiesCount ?? 0)).slice(0, 30).map((t) => `- ${t.name}: ${t.propertiesCount} params`);
+    const toolPropsLines = report.tools.entries.filter((t) => t.propertiesCount !== null && t.propertiesCount !== undefined).toSorted((a, b) => (b.propertiesCount ?? 0) - (a.propertiesCount ?? 0)).slice(0, 30).map((t) => `- ${t.name}: ${t.propertiesCount} params`);
     return {
       text: [
         '\u{1F9E0} Context breakdown (detailed)',

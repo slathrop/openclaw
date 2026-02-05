@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { resolveSessionAgentId } from '../../agents/agent-scope.js';
 import { resolveEffectiveMessagesConfig } from '../../agents/identity.js';
 import { normalizeChannelId } from '../../channels/plugins/index.js';
@@ -40,7 +39,7 @@ async function routeReply(params) {
   if (abortSignal?.aborted) {
     return { ok: false, error: 'Reply routing aborted' };
   }
-  const resolvedReplyToId = replyToId ?? (channelId === 'slack' && threadId !== null && d !== undefined && threadId !== '' ? String(threadId) : void 0);
+  const resolvedReplyToId = replyToId ?? (channelId === 'slack' && threadId !== null && threadId !== undefined && threadId !== '' ? String(threadId) : void 0);
   const resolvedThreadId = channelId === 'slack' ? null : threadId ?? null;
   try {
     const { deliverOutboundPayloads } = await import('../../infra/outbound/deliver.js');

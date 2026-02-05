@@ -125,7 +125,7 @@ class SearchableSelectList {
     const inputWidth = Math.max(1, width - visibleWidth(prompt));
     const inputLines = this._searchInput.render(inputWidth);
     const inputText = inputLines[0] ?? '';
-    lines.push(`${prompt}${this._theme._searchInput(inputText)}`);
+    lines.push(`${prompt}${this._theme.searchInput(inputText)}`);
     lines.push('');
     const query = this._searchInput.getValue().trim();
     if (this._filteredItems.length === 0) {
