@@ -1,33 +1,37 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/devices
+ * Protocol schemas for device pairing (list/approve/reject) and device token rotation/revocation.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const DevicePairListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const DevicePairApproveParamsSchema = Type.Object(
   { requestId: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const DevicePairRejectParamsSchema = Type.Object(
   { requestId: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const DeviceTokenRotateParamsSchema = Type.Object(
   {
     deviceId: NonEmptyString,
     role: NonEmptyString,
-    scopes: Type.Optional(Type.Array(NonEmptyString)),
+    scopes: Type.Optional(Type.Array(NonEmptyString))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const DeviceTokenRevokeParamsSchema = Type.Object(
   {
     deviceId: NonEmptyString,
-    role: NonEmptyString,
+    role: NonEmptyString
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const DevicePairRequestedEventSchema = Type.Object(
@@ -45,9 +49,9 @@ export const DevicePairRequestedEventSchema = Type.Object(
     remoteIp: Type.Optional(NonEmptyString),
     silent: Type.Optional(Type.Boolean()),
     isRepair: Type.Optional(Type.Boolean()),
-    ts: Type.Integer({ minimum: 0 }),
+    ts: Type.Integer({ minimum: 0 })
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const DevicePairResolvedEventSchema = Type.Object(
@@ -55,7 +59,7 @@ export const DevicePairResolvedEventSchema = Type.Object(
     requestId: NonEmptyString,
     deviceId: NonEmptyString,
     decision: NonEmptyString,
-    ts: Type.Integer({ minimum: 0 }),
+    ts: Type.Integer({ minimum: 0 })
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

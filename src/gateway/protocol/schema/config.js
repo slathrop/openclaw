@@ -1,14 +1,18 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/config
+ * Protocol schemas for configuration get/set/apply/patch, update-run, and config schema introspection.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const ConfigGetParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const ConfigSetParamsSchema = Type.Object(
   {
     raw: NonEmptyString,
-    baseHash: Type.Optional(NonEmptyString),
+    baseHash: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ConfigApplyParamsSchema = Type.Object(
@@ -17,9 +21,9 @@ export const ConfigApplyParamsSchema = Type.Object(
     baseHash: Type.Optional(NonEmptyString),
     sessionKey: Type.Optional(Type.String()),
     note: Type.Optional(Type.String()),
-    restartDelayMs: Type.Optional(Type.Integer({ minimum: 0 })),
+    restartDelayMs: Type.Optional(Type.Integer({ minimum: 0 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ConfigPatchParamsSchema = Type.Object(
@@ -28,9 +32,9 @@ export const ConfigPatchParamsSchema = Type.Object(
     baseHash: Type.Optional(NonEmptyString),
     sessionKey: Type.Optional(Type.String()),
     note: Type.Optional(Type.String()),
-    restartDelayMs: Type.Optional(Type.Integer({ minimum: 0 })),
+    restartDelayMs: Type.Optional(Type.Integer({ minimum: 0 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ConfigSchemaParamsSchema = Type.Object({}, { additionalProperties: false });
@@ -40,9 +44,9 @@ export const UpdateRunParamsSchema = Type.Object(
     sessionKey: Type.Optional(Type.String()),
     note: Type.Optional(Type.String()),
     restartDelayMs: Type.Optional(Type.Integer({ minimum: 0 })),
-    timeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
+    timeoutMs: Type.Optional(Type.Integer({ minimum: 1 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ConfigUiHintSchema = Type.Object(
@@ -54,9 +58,9 @@ export const ConfigUiHintSchema = Type.Object(
     advanced: Type.Optional(Type.Boolean()),
     sensitive: Type.Optional(Type.Boolean()),
     placeholder: Type.Optional(Type.String()),
-    itemTemplate: Type.Optional(Type.Unknown()),
+    itemTemplate: Type.Optional(Type.Unknown())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ConfigSchemaResponseSchema = Type.Object(
@@ -64,7 +68,7 @@ export const ConfigSchemaResponseSchema = Type.Object(
     schema: Type.Unknown(),
     uiHints: Type.Record(Type.String(), ConfigUiHintSchema),
     version: NonEmptyString,
-    generatedAt: NonEmptyString,
+    generatedAt: NonEmptyString
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

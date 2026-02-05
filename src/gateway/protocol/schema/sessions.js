@@ -1,5 +1,10 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString, SessionLabelString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/sessions
+ * Protocol schemas for session listing, previewing, resolving, patching, resetting, deleting,
+ * and compacting operations.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString, SessionLabelString } from './primitives.js';
 
 export const SessionsListParamsSchema = Type.Object(
   {
@@ -20,18 +25,18 @@ export const SessionsListParamsSchema = Type.Object(
     label: Type.Optional(SessionLabelString),
     spawnedBy: Type.Optional(NonEmptyString),
     agentId: Type.Optional(NonEmptyString),
-    search: Type.Optional(Type.String()),
+    search: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsPreviewParamsSchema = Type.Object(
   {
     keys: Type.Array(NonEmptyString, { minItems: 1 }),
     limit: Type.Optional(Type.Integer({ minimum: 1 })),
-    maxChars: Type.Optional(Type.Integer({ minimum: 20 })),
+    maxChars: Type.Optional(Type.Integer({ minimum: 20 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsResolveParamsSchema = Type.Object(
@@ -42,9 +47,9 @@ export const SessionsResolveParamsSchema = Type.Object(
     agentId: Type.Optional(NonEmptyString),
     spawnedBy: Type.Optional(NonEmptyString),
     includeGlobal: Type.Optional(Type.Boolean()),
-    includeUnknown: Type.Optional(Type.Boolean()),
+    includeUnknown: Type.Optional(Type.Boolean())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsPatchParamsSchema = Type.Object(
@@ -56,13 +61,13 @@ export const SessionsPatchParamsSchema = Type.Object(
     reasoningLevel: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
     responseUsage: Type.Optional(
       Type.Union([
-        Type.Literal("off"),
-        Type.Literal("tokens"),
-        Type.Literal("full"),
+        Type.Literal('off'),
+        Type.Literal('tokens'),
+        Type.Literal('full'),
         // Backward compat with older clients/stores.
-        Type.Literal("on"),
-        Type.Null(),
-      ]),
+        Type.Literal('on'),
+        Type.Null()
+      ])
     ),
     elevatedLevel: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
     execHost: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
@@ -72,32 +77,32 @@ export const SessionsPatchParamsSchema = Type.Object(
     model: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
     spawnedBy: Type.Optional(Type.Union([NonEmptyString, Type.Null()])),
     sendPolicy: Type.Optional(
-      Type.Union([Type.Literal("allow"), Type.Literal("deny"), Type.Null()]),
+      Type.Union([Type.Literal('allow'), Type.Literal('deny'), Type.Null()])
     ),
     groupActivation: Type.Optional(
-      Type.Union([Type.Literal("mention"), Type.Literal("always"), Type.Null()]),
-    ),
+      Type.Union([Type.Literal('mention'), Type.Literal('always'), Type.Null()])
+    )
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsResetParamsSchema = Type.Object(
   { key: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsDeleteParamsSchema = Type.Object(
   {
     key: NonEmptyString,
-    deleteTranscript: Type.Optional(Type.Boolean()),
+    deleteTranscript: Type.Optional(Type.Boolean())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SessionsCompactParamsSchema = Type.Object(
   {
     key: NonEmptyString,
-    maxLines: Type.Optional(Type.Integer({ minimum: 1 })),
+    maxLines: Type.Optional(Type.Integer({ minimum: 1 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

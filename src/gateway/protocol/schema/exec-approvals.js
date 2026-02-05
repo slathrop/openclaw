@@ -1,5 +1,9 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/exec-approvals
+ * Protocol schemas for execution approval management (allowlists, per-agent settings, request/resolve).
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const ExecApprovalsAllowlistEntrySchema = Type.Object(
   {
@@ -7,9 +11,9 @@ export const ExecApprovalsAllowlistEntrySchema = Type.Object(
     pattern: Type.String(),
     lastUsedAt: Type.Optional(Type.Integer({ minimum: 0 })),
     lastUsedCommand: Type.Optional(Type.String()),
-    lastResolvedPath: Type.Optional(Type.String()),
+    lastResolvedPath: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsDefaultsSchema = Type.Object(
@@ -17,9 +21,9 @@ export const ExecApprovalsDefaultsSchema = Type.Object(
     security: Type.Optional(Type.String()),
     ask: Type.Optional(Type.String()),
     askFallback: Type.Optional(Type.String()),
-    autoAllowSkills: Type.Optional(Type.Boolean()),
+    autoAllowSkills: Type.Optional(Type.Boolean())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsAgentSchema = Type.Object(
@@ -28,9 +32,9 @@ export const ExecApprovalsAgentSchema = Type.Object(
     ask: Type.Optional(Type.String()),
     askFallback: Type.Optional(Type.String()),
     autoAllowSkills: Type.Optional(Type.Boolean()),
-    allowlist: Type.Optional(Type.Array(ExecApprovalsAllowlistEntrySchema)),
+    allowlist: Type.Optional(Type.Array(ExecApprovalsAllowlistEntrySchema))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsFileSchema = Type.Object(
@@ -40,15 +44,15 @@ export const ExecApprovalsFileSchema = Type.Object(
       Type.Object(
         {
           path: Type.Optional(Type.String()),
-          token: Type.Optional(Type.String()),
+          token: Type.Optional(Type.String())
         },
-        { additionalProperties: false },
-      ),
+        { additionalProperties: false }
+      )
     ),
     defaults: Type.Optional(ExecApprovalsDefaultsSchema),
-    agents: Type.Optional(Type.Record(Type.String(), ExecApprovalsAgentSchema)),
+    agents: Type.Optional(Type.Record(Type.String(), ExecApprovalsAgentSchema))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsSnapshotSchema = Type.Object(
@@ -56,9 +60,9 @@ export const ExecApprovalsSnapshotSchema = Type.Object(
     path: NonEmptyString,
     exists: Type.Boolean(),
     hash: NonEmptyString,
-    file: ExecApprovalsFileSchema,
+    file: ExecApprovalsFileSchema
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsGetParamsSchema = Type.Object({}, { additionalProperties: false });
@@ -66,25 +70,25 @@ export const ExecApprovalsGetParamsSchema = Type.Object({}, { additionalProperti
 export const ExecApprovalsSetParamsSchema = Type.Object(
   {
     file: ExecApprovalsFileSchema,
-    baseHash: Type.Optional(NonEmptyString),
+    baseHash: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsNodeGetParamsSchema = Type.Object(
   {
-    nodeId: NonEmptyString,
+    nodeId: NonEmptyString
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalsNodeSetParamsSchema = Type.Object(
   {
     nodeId: NonEmptyString,
     file: ExecApprovalsFileSchema,
-    baseHash: Type.Optional(NonEmptyString),
+    baseHash: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalRequestParamsSchema = Type.Object(
@@ -98,15 +102,15 @@ export const ExecApprovalRequestParamsSchema = Type.Object(
     agentId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
     resolvedPath: Type.Optional(Type.Union([Type.String(), Type.Null()])),
     sessionKey: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-    timeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
+    timeoutMs: Type.Optional(Type.Integer({ minimum: 1 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ExecApprovalResolveParamsSchema = Type.Object(
   {
     id: NonEmptyString,
-    decision: NonEmptyString,
+    decision: NonEmptyString
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

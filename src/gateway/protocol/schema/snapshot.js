@@ -1,5 +1,10 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/snapshot
+ * Protocol schemas for gateway state snapshots: presence entries, health, session defaults,
+ * state versioning, and the full snapshot envelope.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const PresenceEntrySchema = Type.Object(
   {
@@ -18,9 +23,9 @@ export const PresenceEntrySchema = Type.Object(
     deviceId: Type.Optional(NonEmptyString),
     roles: Type.Optional(Type.Array(NonEmptyString)),
     scopes: Type.Optional(Type.Array(NonEmptyString)),
-    instanceId: Type.Optional(NonEmptyString),
+    instanceId: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const HealthSnapshotSchema = Type.Any();
@@ -30,17 +35,17 @@ export const SessionDefaultsSchema = Type.Object(
     defaultAgentId: NonEmptyString,
     mainKey: NonEmptyString,
     mainSessionKey: NonEmptyString,
-    scope: Type.Optional(NonEmptyString),
+    scope: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const StateVersionSchema = Type.Object(
   {
     presence: Type.Integer({ minimum: 0 }),
-    health: Type.Integer({ minimum: 0 }),
+    health: Type.Integer({ minimum: 0 })
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const SnapshotSchema = Type.Object(
@@ -51,7 +56,7 @@ export const SnapshotSchema = Type.Object(
     uptimeMs: Type.Integer({ minimum: 0 }),
     configPath: Type.Optional(NonEmptyString),
     stateDir: Type.Optional(NonEmptyString),
-    sessionDefaults: Type.Optional(SessionDefaultsSchema),
+    sessionDefaults: Type.Optional(SessionDefaultsSchema)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

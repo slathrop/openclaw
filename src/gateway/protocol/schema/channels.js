@@ -1,20 +1,24 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/channels
+ * Protocol schemas for channel status, talk mode, web login, and channel logout operations.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const TalkModeParamsSchema = Type.Object(
   {
     enabled: Type.Boolean(),
-    phase: Type.Optional(Type.String()),
+    phase: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ChannelsStatusParamsSchema = Type.Object(
   {
     probe: Type.Optional(Type.Boolean()),
-    timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
+    timeoutMs: Type.Optional(Type.Integer({ minimum: 0 }))
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 // Channel docking: channels.status is intentionally schema-light so new
@@ -49,9 +53,9 @@ export const ChannelAccountSnapshotSchema = Type.Object(
     port: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.Null()])),
     probe: Type.Optional(Type.Unknown()),
     audit: Type.Optional(Type.Unknown()),
-    application: Type.Optional(Type.Unknown()),
+    application: Type.Optional(Type.Unknown())
   },
-  { additionalProperties: true },
+  { additionalProperties: true }
 );
 
 export const ChannelUiMetaSchema = Type.Object(
@@ -59,9 +63,9 @@ export const ChannelUiMetaSchema = Type.Object(
     id: NonEmptyString,
     label: NonEmptyString,
     detailLabel: NonEmptyString,
-    systemImage: Type.Optional(Type.String()),
+    systemImage: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ChannelsStatusResultSchema = Type.Object(
@@ -74,17 +78,17 @@ export const ChannelsStatusResultSchema = Type.Object(
     channelMeta: Type.Optional(Type.Array(ChannelUiMetaSchema)),
     channels: Type.Record(NonEmptyString, Type.Unknown()),
     channelAccounts: Type.Record(NonEmptyString, Type.Array(ChannelAccountSnapshotSchema)),
-    channelDefaultAccountId: Type.Record(NonEmptyString, NonEmptyString),
+    channelDefaultAccountId: Type.Record(NonEmptyString, NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const ChannelsLogoutParamsSchema = Type.Object(
   {
     channel: NonEmptyString,
-    accountId: Type.Optional(Type.String()),
+    accountId: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const WebLoginStartParamsSchema = Type.Object(
@@ -92,15 +96,15 @@ export const WebLoginStartParamsSchema = Type.Object(
     force: Type.Optional(Type.Boolean()),
     timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
     verbose: Type.Optional(Type.Boolean()),
-    accountId: Type.Optional(Type.String()),
+    accountId: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const WebLoginWaitParamsSchema = Type.Object(
   {
     timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
-    accountId: Type.Optional(Type.String()),
+    accountId: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

@@ -1,5 +1,9 @@
-import { Type } from "@sinclair/typebox";
-import { NonEmptyString } from "./primitives.js";
+/**
+ * @module gateway/protocol/schema/nodes
+ * Protocol schemas for node pairing, listing, describing, invoking, renaming, and event reporting.
+ */
+import { Type } from '@sinclair/typebox';
+import { NonEmptyString } from './primitives.js';
 
 export const NodePairRequestParamsSchema = Type.Object(
   {
@@ -14,38 +18,38 @@ export const NodePairRequestParamsSchema = Type.Object(
     caps: Type.Optional(Type.Array(NonEmptyString)),
     commands: Type.Optional(Type.Array(NonEmptyString)),
     remoteIp: Type.Optional(NonEmptyString),
-    silent: Type.Optional(Type.Boolean()),
+    silent: Type.Optional(Type.Boolean())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodePairListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const NodePairApproveParamsSchema = Type.Object(
   { requestId: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodePairRejectParamsSchema = Type.Object(
   { requestId: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodePairVerifyParamsSchema = Type.Object(
   { nodeId: NonEmptyString, token: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeRenameParamsSchema = Type.Object(
   { nodeId: NonEmptyString, displayName: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const NodeDescribeParamsSchema = Type.Object(
   { nodeId: NonEmptyString },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeInvokeParamsSchema = Type.Object(
@@ -54,9 +58,9 @@ export const NodeInvokeParamsSchema = Type.Object(
     command: NonEmptyString,
     params: Type.Optional(Type.Unknown()),
     timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
-    idempotencyKey: NonEmptyString,
+    idempotencyKey: NonEmptyString
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeInvokeResultParamsSchema = Type.Object(
@@ -70,22 +74,22 @@ export const NodeInvokeResultParamsSchema = Type.Object(
       Type.Object(
         {
           code: Type.Optional(NonEmptyString),
-          message: Type.Optional(NonEmptyString),
+          message: Type.Optional(NonEmptyString)
         },
-        { additionalProperties: false },
-      ),
-    ),
+        { additionalProperties: false }
+      )
+    )
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeEventParamsSchema = Type.Object(
   {
     event: NonEmptyString,
     payload: Type.Optional(Type.Unknown()),
-    payloadJSON: Type.Optional(Type.String()),
+    payloadJSON: Type.Optional(Type.String())
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );
 
 export const NodeInvokeRequestEventSchema = Type.Object(
@@ -95,7 +99,7 @@ export const NodeInvokeRequestEventSchema = Type.Object(
     command: NonEmptyString,
     paramsJSON: Type.Optional(Type.String()),
     timeoutMs: Type.Optional(Type.Integer({ minimum: 0 })),
-    idempotencyKey: Type.Optional(NonEmptyString),
+    idempotencyKey: Type.Optional(NonEmptyString)
   },
-  { additionalProperties: false },
+  { additionalProperties: false }
 );

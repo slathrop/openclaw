@@ -1,4 +1,8 @@
-import type { TSchema } from "@sinclair/typebox";
+/**
+ * @module gateway/protocol/schema/protocol-schemas
+ * Master registry of all gateway protocol schemas, mapping human-readable names to
+ * their TypeBox schema definitions. Also exports the protocol version constant.
+ */
 import {
   AgentEventSchema,
   AgentIdentityParamsSchema,
@@ -7,8 +11,8 @@ import {
   AgentWaitParamsSchema,
   PollParamsSchema,
   SendParamsSchema,
-  WakeParamsSchema,
-} from "./agent.js";
+  WakeParamsSchema
+} from './agent.js';
 import {
   AgentSummarySchema,
   AgentsFileEntrySchema,
@@ -27,16 +31,16 @@ import {
   SkillsBinsResultSchema,
   SkillsInstallParamsSchema,
   SkillsStatusParamsSchema,
-  SkillsUpdateParamsSchema,
-} from "./agents-models-skills.js";
+  SkillsUpdateParamsSchema
+} from './agents-models-skills.js';
 import {
   ChannelsLogoutParamsSchema,
   ChannelsStatusParamsSchema,
   ChannelsStatusResultSchema,
   TalkModeParamsSchema,
   WebLoginStartParamsSchema,
-  WebLoginWaitParamsSchema,
-} from "./channels.js";
+  WebLoginWaitParamsSchema
+} from './channels.js';
 import {
   ConfigApplyParamsSchema,
   ConfigGetParamsSchema,
@@ -44,8 +48,8 @@ import {
   ConfigSchemaParamsSchema,
   ConfigSchemaResponseSchema,
   ConfigSetParamsSchema,
-  UpdateRunParamsSchema,
-} from "./config.js";
+  UpdateRunParamsSchema
+} from './config.js';
 import {
   CronAddParamsSchema,
   CronJobSchema,
@@ -55,8 +59,8 @@ import {
   CronRunParamsSchema,
   CronRunsParamsSchema,
   CronStatusParamsSchema,
-  CronUpdateParamsSchema,
-} from "./cron.js";
+  CronUpdateParamsSchema
+} from './cron.js';
 import {
   DevicePairApproveParamsSchema,
   DevicePairListParamsSchema,
@@ -64,8 +68,8 @@ import {
   DevicePairRequestedEventSchema,
   DevicePairResolvedEventSchema,
   DeviceTokenRevokeParamsSchema,
-  DeviceTokenRotateParamsSchema,
-} from "./devices.js";
+  DeviceTokenRotateParamsSchema
+} from './devices.js';
 import {
   ExecApprovalsGetParamsSchema,
   ExecApprovalsNodeGetParamsSchema,
@@ -73,8 +77,8 @@ import {
   ExecApprovalsSetParamsSchema,
   ExecApprovalsSnapshotSchema,
   ExecApprovalRequestParamsSchema,
-  ExecApprovalResolveParamsSchema,
-} from "./exec-approvals.js";
+  ExecApprovalResolveParamsSchema
+} from './exec-approvals.js';
 import {
   ConnectParamsSchema,
   ErrorShapeSchema,
@@ -84,8 +88,8 @@ import {
   RequestFrameSchema,
   ResponseFrameSchema,
   ShutdownEventSchema,
-  TickEventSchema,
-} from "./frames.js";
+  TickEventSchema
+} from './frames.js';
 import {
   ChatAbortParamsSchema,
   ChatEventSchema,
@@ -93,8 +97,8 @@ import {
   ChatInjectParamsSchema,
   ChatSendParamsSchema,
   LogsTailParamsSchema,
-  LogsTailResultSchema,
-} from "./logs-chat.js";
+  LogsTailResultSchema
+} from './logs-chat.js';
 import {
   NodeDescribeParamsSchema,
   NodeEventParamsSchema,
@@ -107,8 +111,8 @@ import {
   NodePairRejectParamsSchema,
   NodePairRequestParamsSchema,
   NodePairVerifyParamsSchema,
-  NodeRenameParamsSchema,
-} from "./nodes.js";
+  NodeRenameParamsSchema
+} from './nodes.js';
 import {
   SessionsCompactParamsSchema,
   SessionsDeleteParamsSchema,
@@ -116,9 +120,9 @@ import {
   SessionsPatchParamsSchema,
   SessionsPreviewParamsSchema,
   SessionsResetParamsSchema,
-  SessionsResolveParamsSchema,
-} from "./sessions.js";
-import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
+  SessionsResolveParamsSchema
+} from './sessions.js';
+import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from './snapshot.js';
 import {
   WizardCancelParamsSchema,
   WizardNextParamsSchema,
@@ -127,10 +131,11 @@ import {
   WizardStartResultSchema,
   WizardStatusParamsSchema,
   WizardStatusResultSchema,
-  WizardStepSchema,
-} from "./wizard.js";
+  WizardStepSchema
+} from './wizard.js';
 
-export const ProtocolSchemas: Record<string, TSchema> = {
+/** @type {Record<string, import('@sinclair/typebox').TSchema>} */
+export const ProtocolSchemas = {
   ConnectParams: ConnectParamsSchema,
   HelloOk: HelloOkSchema,
   RequestFrame: RequestFrameSchema,
@@ -238,7 +243,7 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   ChatEvent: ChatEventSchema,
   UpdateRunParams: UpdateRunParamsSchema,
   TickEvent: TickEventSchema,
-  ShutdownEvent: ShutdownEventSchema,
+  ShutdownEvent: ShutdownEventSchema
 };
 
-export const PROTOCOL_VERSION = 3 as const;
+export const PROTOCOL_VERSION = 3;
