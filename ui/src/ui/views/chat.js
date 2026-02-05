@@ -9,7 +9,7 @@ import {
 import { normalizeMessage, normalizeRoleForGrouping } from '../chat/message-normalizer.js';
 import { icons } from '../icons.js';
 import { renderMarkdownSidebar } from './markdown-sidebar.js';
-import '../components/resizable-divider.ts';
+import '../components/resizable-divider.js';
 const COMPACTION_TOAST_DURATION_MS = 5e3;
 function adjustTextareaHeight(el) {
   el.style.height = 'auto';
