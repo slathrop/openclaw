@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** Human-friendly JavaScript that senior engineers will accept and maintain
-**Current focus:** Phase 2 (Foundation Layer) -- COMPLETE
+**Current focus:** Phase 3 (Core Services) -- IN PROGRESS
 
 ## Current Position
 
-Phase: 2 of 6 (Foundation Layer)
-Plan: 10 of 10 in current phase (ALL COMPLETE)
-Status: Phase complete
-Last activity: 2026-02-05 -- Completed 02-10-PLAN.md (routing, entry points, vitest configs)
+Phase: 3 of 6 (Core Services)
+Plan: 1 of 8 in current phase
+Status: In progress
+Last activity: 2026-02-05 -- Completed 03-01-PLAN.md (logging, sessions, terminal, providers)
 
-Progress: [=============.......] 65% (13/20 total plans)
+Progress: [==============......] 47% (14/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: ~13m
-- Total execution time: ~2.7 hours
+- Total execution time: ~3 hours
 
 **By Phase:**
 
@@ -30,11 +30,12 @@ Progress: [=============.......] 65% (13/20 total plans)
 | --------------------- | ----- | ------- | -------- |
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
+| 3. Core Services      | 1/8   | ~15m    | ~15m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 02-10 (9m), 02-06 (~12m), 02-09 (~25m), 02-03 (29m), 02-08 (14m)
-- Trend: 02-10 fastest of Phase 2 (only 9 files + config updates, no complex type surgery)
+- Last 5 plans: 03-01 (~15m), 02-10 (9m), 02-06 (~12m), 02-09 (~25m), 02-03 (29m)
+- Trend: 03-01 consistent with Phase 2 average; straightforward leaf module conversion
 
 _Updated after each plan completion_
 
@@ -88,6 +89,11 @@ Recent decisions affecting current work:
 - 02-10: MoltbotConfig legacy type annotations removed (6 instances in routing test)
 - 02-10: All 6 vitest configs updated with .test.js patterns
 - 02-10: extensionAPI.ts import path fixed (sessions.ts -> sessions.js)
+- 03-01: Manual conversion (not esbuild) to preserve comments and add JSDoc annotations
+- 03-01: SECURITY annotations added to 3 provider auth files (OAuth device flow, token caching, credential refresh)
+- 03-01: as const removed from arrays (unnecessary in JS); runtime behavior unchanged
+- 03-01: Generic parseJsonResponse<T> simplified to untyped return (JS has no generics)
+- 03-01: /** @type {any} */ cast pattern for test fixtures replacing as unknown as Type
 
 ### Pending Todos
 
@@ -100,6 +106,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-05T00:09:36Z
-Stopped at: Completed 02-10-PLAN.md (Phase 2 COMPLETE)
+Last session: 2026-02-05T01:54:00Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
