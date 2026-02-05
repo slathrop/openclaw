@@ -35,7 +35,7 @@ export default defineConfig([
     ...shared
   },
   {
-    input: 'src/plugin-sdk/index.ts',
+    input: 'src/plugin-sdk/index.js',
     output: {
       dir: 'dist/plugin-sdk',
       format: 'esm'
@@ -43,7 +43,7 @@ export default defineConfig([
     ...shared
   },
   {
-    input: 'src/extensionAPI.ts',
+    input: 'src/extensionAPI.js',
     output: {
       dir: 'dist',
       format: 'esm'
