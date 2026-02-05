@@ -88,18 +88,18 @@ Plans:
 **Goal**: The CLI layer, all commands, and all nine messaging channel implementations are converted to idiomatic JavaScript
 **Depends on**: Phase 3
 **Requirements**: CORE-01, CORE-02, CORE-07, QUAL-03, QUAL-07
+**Plans:** 3 plans
 **Success Criteria** (what must be TRUE):
   1. All files in `src/cli/` and `src/commands/` are JavaScript with no remaining .ts files
   2. All nine channel directories (`src/telegram/`, `src/discord/`, `src/whatsapp/`, `src/slack/`, `src/signal/`, `src/imessage/`, `src/feishu/`, `src/line/`, `src/web/`, `src/channels/`) are JavaScript with no remaining .ts files
   3. Lodash is used in place of verbose built-in methods where it improves readability (e.g., groupBy, keyBy, pick, omit, debounce)
   4. Abstractions that add indirection without aiding comprehension are flattened; abstractions that clarify complex logic are preserved with explanatory comments
   5. Running `openclaw --help` from the converted source displays all commands correctly
-**Plans**: TBD
 
 Plans:
-- [ ] 04-01: Convert CLI infrastructure and command implementations
-- [ ] 04-02: Convert channel implementations (Telegram, Discord, WhatsApp, Slack)
-- [ ] 04-03: Convert channel implementations (Signal, iMessage, Feishu, LINE, Web) and shared channel modules
+- [ ] 04-01-PLAN.md -- Convert CLI infrastructure (170 files) and command implementations (227 files)
+- [ ] 04-02-PLAN.md -- Convert Telegram, Discord, WhatsApp, and Slack channel implementations (220 files)
+- [ ] 04-03-PLAN.md -- Convert Signal, iMessage, Feishu, LINE, Web, shared channels, and test-utils (275 files)
 
 ### Phase 5: UI and Extensions
 **Goal**: The web UI and all extension packages are converted to JavaScript, completing source conversion
