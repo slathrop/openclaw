@@ -13,7 +13,7 @@ This roadmap converts the OpenClaw codebase from TypeScript to JavaScript in six
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
-- [ ] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
+- [x] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
 - [ ] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
 - [ ] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
 - [ ] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
@@ -51,16 +51,16 @@ Plans:
   5. Vitest configuration resolves and runs tests against .js source files
 
 Plans:
-- [ ] 02-01-PLAN.md -- Delete src/types/ declarations, convert src/shared/ and src/utils/ to JS
-- [ ] 02-02-PLAN.md -- Convert infra device/auth/security and heartbeat/diagnostics modules
-- [ ] 02-03-PLAN.md -- Convert infra update system, state migrations, and network discovery
-- [ ] 02-04-PLAN.md -- Convert infra provider-usage, shell/env, and session cost modules
-- [ ] 02-05-PLAN.md -- Convert infra misc utilities (retry, ports, platform, file I/O)
-- [ ] 02-06-PLAN.md -- Convert infra net/, outbound/, and tls/ subdirectories (security-critical)
-- [ ] 02-07-PLAN.md -- Convert config type definitions and Zod validation schemas
-- [ ] 02-08-PLAN.md -- Convert config core modules and legacy migration system
-- [ ] 02-09-PLAN.md -- Convert remaining config modules, sessions, and all config tests
-- [ ] 02-10-PLAN.md -- Convert routing, entry points, and update Vitest configuration
+- [x] 02-01-PLAN.md -- Delete src/types/ declarations, convert src/shared/ and src/utils/ to JS
+- [x] 02-02-PLAN.md -- Convert infra device/auth/security and heartbeat/diagnostics modules
+- [x] 02-03-PLAN.md -- Convert infra update system, state migrations, and network discovery
+- [x] 02-04-PLAN.md -- Convert infra provider-usage, shell/env, and session cost modules
+- [x] 02-05-PLAN.md -- Convert infra misc utilities (retry, ports, platform, file I/O)
+- [x] 02-06-PLAN.md -- Convert infra net/, outbound/, and tls/ subdirectories (security-critical)
+- [x] 02-07-PLAN.md -- Convert config type definitions and Zod validation schemas
+- [x] 02-08-PLAN.md -- Convert config core modules and legacy migration system
+- [x] 02-09-PLAN.md -- Convert remaining config modules, sessions, and all config tests
+- [x] 02-10-PLAN.md -- Convert routing, entry points, and update Vitest configuration
 
 ### Phase 3: Core Services
 **Goal**: The gateway server, agent runtime, AI providers, and support modules are converted to idiomatic JavaScript
@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
-| 2. Foundation Layer | 0/10 | Not started | - |
+| 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
 | 3. Core Services | 0/3 | Not started | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
 | 5. UI and Extensions | 0/3 | Not started | - |
