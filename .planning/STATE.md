@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** Human-friendly JavaScript that senior engineers will accept and maintain
-**Current focus:** Phase 4 (CLI and Channels) -- In progress
+**Current focus:** Phase 5 (UI and Extensions) -- In progress
 
 ## Current Position
 
-Phase: 4 of 6 (CLI and Channels)
-Plan: 3 of 3 in current phase (all done)
-Status: Phase complete
-Last activity: 2026-02-05 -- Completed 04-03-PLAN.md (channel layer conversion: 275 files)
+Phase: 5 of 6 (UI and Extensions)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-05 -- Completed 05-01-PLAN.md (UI source conversion: 111 files)
 
-Progress: [=====================>] 87% (26/30 total plans)
+Progress: [=======================>] 90% (27/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 26
+- Total plans completed: 27
 - Average duration: ~14m
-- Total execution time: ~6.2 hours
+- Total execution time: ~6.4 hours
 
 **By Phase:**
 
@@ -32,11 +32,12 @@ Progress: [=====================>] 87% (26/30 total plans)
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
 | 3. Core Services      | 8/8   | ~107m   | ~13m     |
 | 4. CLI and Channels   | 3/3   | ~79m    | ~26m     |
+| 5. UI and Extensions  | 1/3   | ~10m    | ~10m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 04-03 (~26m), 04-01 (~35m), 04-02 (~18m), 03-07 (~13m), 03-08 (~11m)
-- Trend: Channel layer conversion steady at ~26m for 275 files
+- Last 5 plans: 05-01 (~10m), 04-03 (~26m), 04-01 (~35m), 04-02 (~18m), 03-07 (~13m)
+- Trend: UI conversion efficient at 10m for 111 files
 
 _Updated after each plan completion_
 
@@ -142,6 +143,10 @@ Recent decisions affecting current work:
 - 04-03: onboarding-types.js, web/auto-reply/types.js, web/inbound/types.js needed manual JSDoc conversion (empty from esbuild)
 - 04-03: CHANNEL_MESSAGE_ACTION_NAMES runtime re-export preserved in types.js barrel (from message-action-names.js)
 - 04-03: qr-image.test.js hardcoded .ts path updated to .js
+- 05-01: Private fields in app.js kept without underscore prefix (accessed externally by extracted helper modules)
+- 05-01: Side-effect imports (bare import './file.ts') need separate regex pass for .ts->.js rewriting
+- 05-01: Browser globals (document, window, MouseEvent) cause no-undef ESLint errors -- pre-existing (UI .ts files were excluded from ESLint)
+- 05-01: Null equality regex single-char prefix bug: must use expression-capturing regex, not single-char group
 
 ### Pending Todos
 
@@ -152,9 +157,13 @@ None.
 - Pre-existing eqeqeq lint errors in scripts/run-node.mjs (== vs ===) should be fixed when file is next touched
 - Pre-existing max-len warning in scripts/test-parallel.mjs should be addressed in cleanup
 
+### Blockers/Concerns (Additional)
+
+- Browser globals ESLint no-undef in UI files: need browser environment in ESLint config for ui/ path
+
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 04-03-PLAN.md (channel layer conversion: 275 files)
+Stopped at: Completed 05-01-PLAN.md (UI source conversion: 111 files)
 Resume file: None
-Next action: Phase 4 complete. Verify phase, then execute Phase 5 (Remaining Modules)
+Next action: Execute 05-02-PLAN.md (extensions conversion)
