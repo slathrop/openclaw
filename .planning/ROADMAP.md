@@ -128,12 +128,12 @@ Plans:
   3. All CLI commands execute correctly (`openclaw gateway run`, `openclaw channels status`, `openclaw agent --message`, `openclaw config`, `openclaw status`, `openclaw doctor`)
   4. All messaging channels connect and relay messages (Telegram, Discord, WhatsApp, Slack, Signal, iMessage, Feishu, LINE)
   5. Web UI loads in browser, connects to gateway via WebSocket, and renders chat interface
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: Run full test suite and fix failures, verify coverage thresholds
-- [ ] 06-02: Verify CLI commands, gateway, agent runtime, and configuration
-- [ ] 06-03: Verify all channels, web UI, and extensions function identically
+- [ ] 06-01-PLAN.md -- Fix systematic test failures (CommandLane circular import, minified variable artifacts), verify coverage
+- [ ] 06-02-PLAN.md -- Verify CLI commands, gateway server startup, and configuration
+- [ ] 06-03-PLAN.md -- Verify channels, web UI, and extensions function correctly
 
 ## Progress
 
