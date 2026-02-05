@@ -3,17 +3,17 @@ import { escapeXml } from '../voice-mapping.js';
 import { reconstructWebhookUrl, verifyPlivoWebhook } from '../webhook-security.js';
 class PlivoProvider {
   name = 'plivo';
-  authId;
-  authToken;
-  baseUrl;
-  options;
+  _authId;
+  _authToken;
+  _baseUrl;
+  _options;
   // Best-effort mapping between create-call request UUID and call UUID.
-  requestUuidToCallUuid = /* @__PURE__ */ new Map();
+  _requestUuidToCallUuid = /* @__PURE__ */ new Map();
   // Used for transfer URLs and GetInput action URLs.
-  callIdToWebhookUrl = /* @__PURE__ */ new Map();
-  callUuidToWebhookUrl = /* @__PURE__ */ new Map();
-  pendingSpeakByCallId = /* @__PURE__ */ new Map();
-  pendingListenByCallId = /* @__PURE__ */ new Map();
+  _callIdToWebhookUrl = /* @__PURE__ */ new Map();
+  _callUuidToWebhookUrl = /* @__PURE__ */ new Map();
+  _pendingSpeakByCallId = /* @__PURE__ */ new Map();
+  _pendingListenByCallId = /* @__PURE__ */ new Map();
   constructor(config, options = {}) {
     if (!config.authId) {
       throw new Error('Plivo Auth ID is required');
@@ -117,7 +117,7 @@ class PlivoProvider {
       statusCode: 200
     };
   }
-  normalizeEvent(params, callIdOverride) {
+  _normalizeEvent(params, callIdOverride) {
     const callUuid = params.get('CallUUID') || '';
     const requestUuid = params.get('RequestUUID') || '';
     if (requestUuid && callUuid) {
@@ -306,11 +306,11 @@ class PlivoProvider {
   <Wait length="300" />
 </Response>`;
   }
-  getCallIdFromQuery(ctx) {
+  _getCallIdFromQuery(ctx) {
     const callId = typeof ctx.query?.callId === 'string' && ctx.query.callId.trim() ? ctx.query.callId.trim() : void 0;
     return callId || void 0;
   }
-  buildActionUrl(ctx, opts) {
+  _buildActionUrl(ctx, opts) {
     const base = this._baseWebhookUrlFromCtx(ctx);
     if (!base) {
       return null;
@@ -323,7 +323,7 @@ class PlivoProvider {
     }
     return u.toString();
   }
-  baseWebhookUrlFromCtx(ctx) {
+  _baseWebhookUrlFromCtx(ctx) {
     try {
       const u = new URL(
         reconstructWebhookUrl(ctx, {
@@ -338,7 +338,7 @@ class PlivoProvider {
       return null;
     }
   }
-  parseBody(rawBody) {
+  _parseBody(rawBody) {
     try {
       return new URLSearchParams(rawBody);
     } catch {

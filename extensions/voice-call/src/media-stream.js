@@ -1,14 +1,14 @@
 import { WebSocket, WebSocketServer } from 'ws';
 class MediaStreamHandler {
-  wss = null;
-  sessions = /* @__PURE__ */ new Map();
-  config;
+  _wss = null;
+  _sessions = /* @__PURE__ */ new Map();
+  _config;
   /** TTS playback queues per stream (serialize audio to prevent overlap) */
-  ttsQueues = /* @__PURE__ */ new Map();
+  _ttsQueues = /* @__PURE__ */ new Map();
   /** Whether TTS is currently playing per stream */
-  ttsPlaying = /* @__PURE__ */ new Map();
+  _ttsPlaying = /* @__PURE__ */ new Map();
   /** Active TTS playback controllers per stream */
-  ttsActiveControllers = /* @__PURE__ */ new Map();
+  _ttsActiveControllers = /* @__PURE__ */ new Map();
   constructor(config) {
     this._config = config;
   }
@@ -109,14 +109,14 @@ class MediaStreamHandler {
   /**
    * Handle stream stop event.
    */
-  handleStop(session) {
+  _handleStop(session) {
     console.log(`[MediaStream] Stream stopped: ${session.streamSid}`);
     this._clearTtsState(session.streamSid);
     session.sttSession.close();
     this._sessions.delete(session.streamSid);
     this._config.onDisconnect?.(session.callId);
   }
-  getStreamToken(request) {
+  _getStreamToken(request) {
     if (!request.url || !request.headers.host) {
       return void 0;
     }
@@ -130,14 +130,14 @@ class MediaStreamHandler {
   /**
    * Get an active session with an open WebSocket, or undefined if unavailable.
    */
-  getOpenSession(streamSid) {
+  _getOpenSession(streamSid) {
     const session = this._sessions.get(streamSid);
     return session?.ws.readyState === WebSocket.OPEN ? session : void 0;
   }
   /**
    * Send a message to a stream's WebSocket if available.
    */
-  sendToStream(streamSid, message) {
+  _sendToStream(streamSid, message) {
     const session = this._getOpenSession(streamSid);
     session?.ws.send(JSON.stringify(message));
   }
@@ -217,7 +217,7 @@ class MediaStreamHandler {
     }
     this._sessions.clear();
   }
-  getTtsQueue(streamSid) {
+  _getTtsQueue(streamSid) {
     const existing = this._ttsQueues.get(streamSid);
     if (existing) {
       return existing;
@@ -258,7 +258,7 @@ class MediaStreamHandler {
       }
     }
   }
-  clearTtsState(streamSid) {
+  _clearTtsState(streamSid) {
     const queue = this._ttsQueues.get(streamSid);
     if (queue) {
       queue.length = 0;

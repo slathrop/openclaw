@@ -5,32 +5,32 @@ import { twilioApiRequest } from './twilio/api.js';
 import { verifyTwilioProviderWebhook } from './twilio/webhook.js';
 class TwilioProvider {
   name = 'twilio';
-  accountSid;
-  authToken;
-  baseUrl;
-  callWebhookUrls = /* @__PURE__ */ new Map();
-  options;
+  _accountSid;
+  _authToken;
+  _baseUrl;
+  _callWebhookUrls = /* @__PURE__ */ new Map();
+  _options;
   /** Current public webhook URL (set when tunnel starts or from config) */
-  currentPublicUrl = null;
+  _currentPublicUrl = null;
   /** Optional telephony TTS provider for streaming TTS */
-  ttsProvider = null;
+  _ttsProvider = null;
   /** Optional media stream handler for sending audio */
-  mediaStreamHandler = null;
+  _mediaStreamHandler = null;
   /** Map of call SID to stream SID for media streams */
-  callStreamMap = /* @__PURE__ */ new Map();
+  _callStreamMap = /* @__PURE__ */ new Map();
   /** Per-call tokens for media stream authentication */
-  streamAuthTokens = /* @__PURE__ */ new Map();
+  _streamAuthTokens = /* @__PURE__ */ new Map();
   /** Storage for TwiML content (for notify mode with URL-based TwiML) */
-  twimlStorage = /* @__PURE__ */ new Map();
+  _twimlStorage = /* @__PURE__ */ new Map();
   /** Track notify-mode calls to avoid streaming on follow-up callbacks */
-  notifyCalls = /* @__PURE__ */ new Set();
+  _notifyCalls = /* @__PURE__ */ new Set();
   /**
    * Delete stored TwiML for a given `callId`.
    *
    * We keep TwiML in-memory only long enough to satisfy the initial Twilio
    * webhook request (notify mode). Subsequent webhooks should not reuse it.
    */
-  deleteStoredTwiml(callId) {
+  _deleteStoredTwiml(callId) {
     this._twimlStorage.delete(callId);
     this._notifyCalls.delete(callId);
   }
@@ -39,7 +39,7 @@ class TwilioProvider {
    *
    * This is used when we only have `providerCallId` (e.g. hangup).
    */
-  deleteStoredTwimlForProviderCall(providerCallId) {
+  _deleteStoredTwimlForProviderCall(providerCallId) {
     const webhookUrl = this._callWebhookUrls.get(providerCallId);
     if (!webhookUrl) {
       return;
@@ -169,7 +169,7 @@ class TwilioProvider {
   /**
    * Convert Twilio webhook params to normalized event format.
    */
-  normalizeEvent(params, callIdOverride) {
+  _normalizeEvent(params, callIdOverride) {
     const callSid = params.get('CallSid') || '';
     const baseEvent = {
       id: crypto.randomUUID(),
@@ -230,7 +230,7 @@ class TwilioProvider {
    * Generate TwiML response for webhook.
    * When a call is answered, connects to media stream for bidirectional audio.
    */
-  generateTwimlResponse(ctx) {
+  _generateTwimlResponse(ctx) {
     if (!ctx) {
       return TwilioProvider.EMPTY_TWIML;
     }
@@ -273,7 +273,7 @@ class TwilioProvider {
    * Get the WebSocket URL for media streaming.
    * Derives from the public URL origin + stream path.
    */
-  getStreamUrl() {
+  _getStreamUrl() {
     if (!this._currentPublicUrl || !this._options.streamPath) {
       return null;
     }
@@ -283,7 +283,7 @@ class TwilioProvider {
     const path = this._options.streamPath.startsWith('/') ? this._options.streamPath : `/${this._options.streamPath}`;
     return `${wsOrigin}${path}`;
   }
-  getStreamAuthToken(callSid) {
+  _getStreamAuthToken(callSid) {
     const existing = this._streamAuthTokens.get(callSid);
     if (existing) {
       return existing;
@@ -292,7 +292,7 @@ class TwilioProvider {
     this._streamAuthTokens.set(callSid, token);
     return token;
   }
-  getStreamUrlForCall(callSid) {
+  _getStreamUrlForCall(callSid) {
     const baseUrl = this._getStreamUrl();
     if (!baseUrl) {
       return null;

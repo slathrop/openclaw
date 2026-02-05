@@ -6,8 +6,8 @@ class TwitchClientManager {
   constructor(logger) {
     this.logger = logger;
   }
-  clients = /* @__PURE__ */ new Map();
-  messageHandlers = /* @__PURE__ */ new Map();
+  _clients = /* @__PURE__ */ new Map();
+  _messageHandlers = /* @__PURE__ */ new Map();
   /**
    * Create an auth provider for the account.
    */
@@ -116,7 +116,7 @@ class TwitchClientManager {
   /**
    * Set up message and event handlers for a client
    */
-  setupClientHandlers(client, account) {
+  _setupClientHandlers(client, account) {
     const key = this.getAccountKey(account);
     client.onMessage((channelName, _user, messageText, msg) => {
       const handler = this._messageHandlers.get(key);

@@ -27,17 +27,17 @@ function resolveDefaultStoreBase(config, storePath) {
   return existing;
 }
 class CallManager {
-  activeCalls = /* @__PURE__ */ new Map();
-  providerCallIdMap = /* @__PURE__ */ new Map();
+  _activeCalls = /* @__PURE__ */ new Map();
+  _providerCallIdMap = /* @__PURE__ */ new Map();
   // providerCallId -> internal callId
-  processedEventIds = /* @__PURE__ */ new Set();
-  provider = null;
-  config;
-  storePath;
-  webhookUrl = null;
-  transcriptWaiters = /* @__PURE__ */ new Map();
+  _processedEventIds = /* @__PURE__ */ new Set();
+  _provider = null;
+  _config;
+  _storePath;
+  _webhookUrl = null;
+  _transcriptWaiters = /* @__PURE__ */ new Map();
   /** Max duration timers to auto-hangup calls after configured timeout */
-  maxDurationTimers = /* @__PURE__ */ new Map();
+  _maxDurationTimers = /* @__PURE__ */ new Map();
   constructor(config, storePath) {
     this._config = config;
     this._storePath = resolveDefaultStoreBase(config, storePath);
@@ -218,7 +218,7 @@ class CallManager {
    * Start max duration timer for a call.
    * Auto-hangup when maxDurationSeconds is reached.
    */
-  startMaxDurationTimer(callId) {
+  _startMaxDurationTimer(callId) {
     this._clearMaxDurationTimer(callId);
     const maxDurationMs = this._config.maxDurationSeconds * 1e3;
     console.log(
@@ -241,14 +241,14 @@ class CallManager {
   /**
    * Clear max duration timer for a call.
    */
-  clearMaxDurationTimer(callId) {
+  _clearMaxDurationTimer(callId) {
     const timer = this._maxDurationTimers.get(callId);
     if (timer) {
       clearTimeout(timer);
       this._maxDurationTimers.delete(callId);
     }
   }
-  clearTranscriptWaiter(callId) {
+  _clearTranscriptWaiter(callId) {
     const waiter = this._transcriptWaiters.get(callId);
     if (!waiter) {
       return;
@@ -256,7 +256,7 @@ class CallManager {
     clearTimeout(waiter.timeout);
     this._transcriptWaiters.delete(callId);
   }
-  rejectTranscriptWaiter(callId, reason) {
+  _rejectTranscriptWaiter(callId, reason) {
     const waiter = this._transcriptWaiters.get(callId);
     if (!waiter) {
       return;
@@ -264,7 +264,7 @@ class CallManager {
     this._clearTranscriptWaiter(callId);
     waiter.reject(new Error(reason));
   }
-  resolveTranscriptWaiter(callId, transcript) {
+  _resolveTranscriptWaiter(callId, transcript) {
     const waiter = this._transcriptWaiters.get(callId);
     if (!waiter) {
       return;
@@ -272,7 +272,7 @@ class CallManager {
     this._clearTranscriptWaiter(callId);
     waiter.resolve(transcript);
   }
-  waitForFinalTranscript(callId) {
+  _waitForFinalTranscript(callId) {
     this._rejectTranscriptWaiter(callId, 'Transcript waiter replaced');
     const timeoutMs = this._config.transcriptTimeoutMs;
     return new Promise((resolve, reject) => {
@@ -361,7 +361,7 @@ class CallManager {
   /**
    * Check if an inbound call should be accepted based on policy.
    */
-  shouldAcceptInbound(from) {
+  _shouldAcceptInbound(from) {
     const { inboundPolicy: policy, allowFrom } = this._config;
     switch (policy) {
       case 'disabled':
@@ -391,7 +391,7 @@ class CallManager {
   /**
    * Create a call record for an inbound call.
    */
-  createInboundCall(providerCallId, from, to) {
+  _createInboundCall(providerCallId, from, to) {
     const callId = crypto.randomUUID();
     const callRecord = {
       callId,
@@ -417,7 +417,7 @@ class CallManager {
   /**
    * Look up a call by either internal callId or providerCallId.
    */
-  findCall(callIdOrProviderCallId) {
+  _findCall(callIdOrProviderCallId) {
     const directCall = this._activeCalls.get(callIdOrProviderCallId);
     if (directCall) {
       return directCall;
@@ -531,7 +531,7 @@ class CallManager {
       );
     }
   }
-  maybeSpeakInitialMessageOnAnswered(call) {
+  _maybeSpeakInitialMessageOnAnswered(call) {
     const initialMessage = typeof call.metadata?.initialMessage === 'string' ? call.metadata.initialMessage.trim() : '';
     if (!initialMessage) {
       return;
@@ -606,7 +606,7 @@ class CallManager {
   /**
    * Transition call state with monotonic enforcement.
    */
-  transitionState(call, newState) {
+  _transitionState(call, newState) {
     if (call.state === newState || TerminalStates.has(call.state)) {
       return;
     }
@@ -627,7 +627,7 @@ class CallManager {
   /**
    * Add an entry to the call transcript.
    */
-  addTranscriptEntry(call, speaker, text) {
+  _addTranscriptEntry(call, speaker, text) {
     const entry = {
       timestamp: Date.now(),
       speaker,
@@ -639,7 +639,7 @@ class CallManager {
   /**
    * Persist a call record to disk (fire-and-forget async).
    */
-  persistCallRecord(call) {
+  _persistCallRecord(call) {
     const logPath = path.join(this._storePath, 'calls.jsonl');
     const line = `${JSON.stringify(call)}
 `;
@@ -651,7 +651,7 @@ class CallManager {
    * Load active calls from persistence (for crash recovery).
    * Uses streaming to handle large log files efficiently.
    */
-  loadActiveCalls() {
+  _loadActiveCalls() {
     const logPath = path.join(this._storePath, 'calls.jsonl');
     if (!fs.existsSync(logPath)) {
       return;
@@ -683,7 +683,7 @@ class CallManager {
   /**
    * Generate TwiML for notify mode (speak message and hang up).
    */
-  generateNotifyTwiml(message, voice) {
+  _generateNotifyTwiml(message, voice) {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="${voice}">${escapeXml(message)}</Say>

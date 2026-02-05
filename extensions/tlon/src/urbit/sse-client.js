@@ -30,7 +30,7 @@ class UrbitSSEClient {
     this.maxReconnectDelay = options.maxReconnectDelay ?? 3e4;
     this.logger = options.logger ?? {};
   }
-  resolveShipFromUrl(url) {
+  _resolveShipFromUrl(url) {
     try {
       const parsed = new URL(url);
       const host = parsed.hostname;

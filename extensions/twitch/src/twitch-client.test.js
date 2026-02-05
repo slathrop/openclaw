@@ -191,7 +191,7 @@ describe('TwitchClientManager', () => {
       manager.onMessage(testAccount, handler1);
       manager.onMessage(testAccount, handler2);
       const key = manager.getAccountKey(testAccount);
-      expect(manager.messageHandlers.get(key)).toBe(handler2);
+      expect(manager._messageHandlers.get(key)).toBe(handler2);
     });
   });
   describe('disconnect', () => {
@@ -207,8 +207,8 @@ describe('TwitchClientManager', () => {
       manager.onMessage(testAccount, handler);
       await manager.disconnect(testAccount);
       const key = manager.getAccountKey(testAccount);
-      expect(manager.clients.has(key)).toBe(false);
-      expect(manager.messageHandlers.has(key)).toBe(false);
+      expect(manager._clients.has(key)).toBe(false);
+      expect(manager._messageHandlers.has(key)).toBe(false);
     });
     it('should handle disconnecting non-existent client gracefully', async () => {
       await manager.disconnect(testAccount);
@@ -220,7 +220,7 @@ describe('TwitchClientManager', () => {
       await manager.disconnect(testAccount);
       expect(mockQuit).toHaveBeenCalledTimes(1);
       const key2 = manager.getAccountKey(testAccount2);
-      expect(manager.clients.has(key2)).toBe(true);
+      expect(manager._clients.has(key2)).toBe(true);
     });
   });
   describe('disconnectAll', () => {
@@ -229,8 +229,8 @@ describe('TwitchClientManager', () => {
       await manager.getClient(testAccount2);
       await manager.disconnectAll();
       expect(mockQuit).toHaveBeenCalledTimes(2);
-      expect(manager.clients.size).toBe(0);
-      expect(manager.messageHandlers.size).toBe(0);
+      expect(manager._clients.size).toBe(0);
+      expect(manager._messageHandlers.size).toBe(0);
     });
     it('should handle empty client list gracefully', async () => {
       await manager.disconnectAll();
@@ -277,7 +277,7 @@ describe('TwitchClientManager', () => {
       expect(result.error).toBe('String error');
     });
     it('should create client if not already connected', async () => {
-      manager.clients.clear();
+      manager._clients.clear();
       const connectCallCountBefore = mockConnect.mock.calls.length;
       const result = await manager.sendMessage(testAccount, 'testchannel', 'Test message');
       expect(result.ok).toBe(true);
