@@ -8,7 +8,7 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseTest,
-    include: ['src/gateway/**/*.test.ts'],
+    include: ['src/gateway/**/*.test.ts', 'src/gateway/**/*.test.js'],
     exclude
   }
 });

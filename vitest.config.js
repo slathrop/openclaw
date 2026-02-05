@@ -48,9 +48,9 @@ export default defineConfig({
         'src/**/*.test.ts',
         'src/**/*.test.js',
         // Entrypoints and wiring (covered by CI smoke + manual/e2e flows).
-        'src/entry.ts',
-        'src/index.ts',
-        'src/runtime.ts',
+        'src/entry.{ts,js}',
+        'src/index.{ts,js}',
+        'src/runtime.{ts,js}',
         'src/cli/**',
         'src/commands/**',
         'src/daemon/**',

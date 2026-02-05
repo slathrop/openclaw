@@ -8,7 +8,7 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseTest,
-    include: ['extensions/**/*.test.ts'],
+    include: ['extensions/**/*.test.ts', 'extensions/**/*.test.js'],
     exclude
   }
 });
