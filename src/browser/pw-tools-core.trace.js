@@ -1,0 +1,29 @@
+import { ensureContextState, getPageForTargetId } from './pw-session.js';
+async function traceStartViaPlaywright(opts) {
+  const page = await getPageForTargetId(opts);
+  const context = page.context();
+  const ctxState = ensureContextState(context);
+  if (ctxState.traceActive) {
+    throw new Error('Trace already running. Stop the current trace before starting a new one.');
+  }
+  await context.tracing.start({
+    screenshots: opts.screenshots ?? true,
+    snapshots: opts.snapshots ?? true,
+    sources: opts.sources ?? false
+  });
+  ctxState.traceActive = true;
+}
+async function traceStopViaPlaywright(opts) {
+  const page = await getPageForTargetId(opts);
+  const context = page.context();
+  const ctxState = ensureContextState(context);
+  if (!ctxState.traceActive) {
+    throw new Error('No active trace. Start a trace before stopping it.');
+  }
+  await context.tracing.stop({ path: opts.path });
+  ctxState.traceActive = false;
+}
+export {
+  traceStartViaPlaywright,
+  traceStopViaPlaywright
+};

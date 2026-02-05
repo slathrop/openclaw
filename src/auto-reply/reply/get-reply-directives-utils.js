@@ -1,0 +1,48 @@
+function clearInlineDirectives(cleaned) {
+  return {
+    cleaned,
+    hasThinkDirective: false,
+    thinkLevel: void 0,
+    rawThinkLevel: void 0,
+    hasVerboseDirective: false,
+    verboseLevel: void 0,
+    rawVerboseLevel: void 0,
+    hasReasoningDirective: false,
+    reasoningLevel: void 0,
+    rawReasoningLevel: void 0,
+    hasElevatedDirective: false,
+    elevatedLevel: void 0,
+    rawElevatedLevel: void 0,
+    hasExecDirective: false,
+    execHost: void 0,
+    execSecurity: void 0,
+    execAsk: void 0,
+    execNode: void 0,
+    rawExecHost: void 0,
+    rawExecSecurity: void 0,
+    rawExecAsk: void 0,
+    rawExecNode: void 0,
+    hasExecOptions: false,
+    invalidExecHost: false,
+    invalidExecSecurity: false,
+    invalidExecAsk: false,
+    invalidExecNode: false,
+    hasStatusDirective: false,
+    hasModelDirective: false,
+    rawModelDirective: void 0,
+    hasQueueDirective: false,
+    queueMode: void 0,
+    queueReset: false,
+    rawQueueMode: void 0,
+    debounceMs: void 0,
+    cap: void 0,
+    dropPolicy: void 0,
+    rawDebounce: void 0,
+    rawCap: void 0,
+    rawDrop: void 0,
+    hasQueueOptions: false
+  };
+}
+export {
+  clearInlineDirectives
+};

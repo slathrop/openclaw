@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 5 of 6 (UI and Extensions)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-05 -- Completed 05-01-PLAN.md (UI source conversion: 111 files)
+Last activity: 2026-02-05 -- Completed 05-02-PLAN.md (extension conversion: 394 files, 31 packages)
 
-Progress: [=======================>] 90% (27/30 total plans)
+Progress: [========================>] 93% (28/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: ~14m
-- Total execution time: ~6.4 hours
+- Total execution time: ~6.7 hours
 
 **By Phase:**
 
@@ -32,12 +32,12 @@ Progress: [=======================>] 90% (27/30 total plans)
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
 | 3. Core Services      | 8/8   | ~107m   | ~13m     |
 | 4. CLI and Channels   | 3/3   | ~79m    | ~26m     |
-| 5. UI and Extensions  | 1/3   | ~10m    | ~10m     |
+| 5. UI and Extensions  | 2/3   | ~27m    | ~14m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 05-01 (~10m), 04-03 (~26m), 04-01 (~35m), 04-02 (~18m), 03-07 (~13m)
-- Trend: UI conversion efficient at 10m for 111 files
+- Last 5 plans: 05-02 (~17m), 05-01 (~10m), 04-03 (~26m), 04-01 (~35m), 04-02 (~18m)
+- Trend: Extension conversion at ~17m for 394 files (bulk esbuild efficient)
 
 _Updated after each plan completion_
 
@@ -147,6 +147,11 @@ Recent decisions affecting current work:
 - 05-01: Side-effect imports (bare import './file.ts') need separate regex pass for .ts->.js rewriting
 - 05-01: Browser globals (document, window, MouseEvent) cause no-undef ESLint errors -- pre-existing (UI .ts files were excluded from ESLint)
 - 05-01: Null equality regex single-char prefix bug: must use expression-capturing regex, not single-char group
+- 05-02: 15 type-only files converted to JSDoc @typedef modules (interface-only and export-type-only files)
+- 05-02: Null equality regex can match esbuild's existing !== null, producing broken !=== null; needs post-fix pass
+- 05-02: Parameterless catch blocks (catch { }) need separate regex from catch(e) { } pattern
+- 05-02: openclaw moved from dependencies to devDependencies in 4 extensions (msteams, nostr, zalo, zalouser)
+- 05-02: 55 remaining ESLint errors are all pre-existing from original TypeScript (unused vars, formatUd undef)
 
 ### Pending Todos
 
@@ -164,6 +169,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 05-01-PLAN.md (UI source conversion: 111 files)
+Stopped at: Completed 05-02-PLAN.md (extension conversion: 394 files, 31 packages)
 Resume file: None
-Next action: Execute 05-02-PLAN.md (extensions conversion)
+Next action: Execute 05-03-PLAN.md (final verification)

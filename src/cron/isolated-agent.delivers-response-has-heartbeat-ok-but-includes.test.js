@@ -1,0 +1,169 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { withTempHome as withTempHomeBase } from '../../test/helpers/temp-home.js';
+import { telegramOutbound } from '../channels/plugins/outbound/telegram.js';
+import { setActivePluginRegistry } from '../plugins/runtime.js';
+import { createOutboundTestPlugin, createTestRegistry } from '../test-utils/channel-plugins.js';
+vi.mock('../agents/pi-embedded.js', () => ({
+  abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
+  runEmbeddedPiAgent: vi.fn(),
+  resolveEmbeddedSessionLane: (key) => `session:${key.trim() || 'main'}`
+}));
+vi.mock('../agents/model-catalog.js', () => ({
+  loadModelCatalog: vi.fn()
+}));
+import { loadModelCatalog } from '../agents/model-catalog.js';
+import { runEmbeddedPiAgent } from '../agents/pi-embedded.js';
+import { runCronIsolatedAgentTurn } from './isolated-agent.js';
+async function withTempHome(fn) {
+  return withTempHomeBase(fn, { prefix: 'openclaw-cron-' });
+}
+async function writeSessionStore(home) {
+  const dir = path.join(home, '.openclaw', 'sessions');
+  await fs.mkdir(dir, { recursive: true });
+  const storePath = path.join(dir, 'sessions.json');
+  await fs.writeFile(
+    storePath,
+    JSON.stringify(
+      {
+        'agent:main:main': {
+          sessionId: 'main-session',
+          updatedAt: Date.now(),
+          lastProvider: 'webchat',
+          lastTo: ''
+        }
+      },
+      null,
+      2
+    ),
+    'utf-8'
+  );
+  return storePath;
+}
+function makeCfg(home, storePath, overrides = {}) {
+  const base = {
+    agents: {
+      defaults: {
+        model: 'anthropic/claude-opus-4-5',
+        workspace: path.join(home, 'openclaw')
+      }
+    },
+    session: { store: storePath, mainKey: 'main' }
+  };
+  return { ...base, ...overrides };
+}
+function makeJob(payload) {
+  const now = Date.now();
+  return {
+    id: 'job-1',
+    name: 'job-1',
+    enabled: true,
+    createdAtMs: now,
+    updatedAtMs: now,
+    schedule: { kind: 'every', everyMs: 6e4 },
+    sessionTarget: 'isolated',
+    wakeMode: 'now',
+    payload,
+    state: {}
+  };
+}
+describe('runCronIsolatedAgentTurn', () => {
+  beforeEach(() => {
+    vi.mocked(runEmbeddedPiAgent).mockReset();
+    vi.mocked(loadModelCatalog).mockResolvedValue([]);
+    setActivePluginRegistry(
+      createTestRegistry([
+        {
+          pluginId: 'telegram',
+          plugin: createOutboundTestPlugin({ id: 'telegram', outbound: telegramOutbound }),
+          source: 'test'
+        }
+      ])
+    );
+  });
+  it('delivers when response has HEARTBEAT_OK but includes media', async () => {
+    await withTempHome(async (home) => {
+      const storePath = await writeSessionStore(home);
+      const deps = {
+        sendMessageWhatsApp: vi.fn(),
+        sendMessageTelegram: vi.fn().mockResolvedValue({
+          messageId: 't1',
+          chatId: '123'
+        }),
+        sendMessageDiscord: vi.fn(),
+        sendMessageSignal: vi.fn(),
+        sendMessageIMessage: vi.fn()
+      };
+      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+        payloads: [{ text: 'HEARTBEAT_OK', mediaUrl: 'https://example.com/img.png' }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: 's', provider: 'p', model: 'm' }
+        }
+      });
+      const res = await runCronIsolatedAgentTurn({
+        cfg: makeCfg(home, storePath),
+        deps,
+        job: {
+          ...makeJob({
+            kind: 'agentTurn',
+            message: 'do it'
+          }),
+          delivery: { mode: 'announce', channel: 'telegram', to: '123' }
+        },
+        message: 'do it',
+        sessionKey: 'cron:job-1',
+        lane: 'cron'
+      });
+      expect(res.status).toBe('ok');
+      expect(deps.sendMessageTelegram).toHaveBeenCalled();
+    });
+  });
+  it('delivers when heartbeat ack padding exceeds configured limit', async () => {
+    await withTempHome(async (home) => {
+      const storePath = await writeSessionStore(home);
+      const deps = {
+        sendMessageWhatsApp: vi.fn(),
+        sendMessageTelegram: vi.fn().mockResolvedValue({
+          messageId: 't1',
+          chatId: '123'
+        }),
+        sendMessageDiscord: vi.fn(),
+        sendMessageSignal: vi.fn(),
+        sendMessageIMessage: vi.fn()
+      };
+      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+        payloads: [{ text: 'HEARTBEAT_OK \u{1F99E}' }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: 's', provider: 'p', model: 'm' }
+        }
+      });
+      const cfg = makeCfg(home, storePath);
+      cfg.agents = {
+        ...cfg.agents,
+        defaults: {
+          ...cfg.agents?.defaults,
+          heartbeat: { ackMaxChars: 0 }
+        }
+      };
+      const res = await runCronIsolatedAgentTurn({
+        cfg,
+        deps,
+        job: {
+          ...makeJob({
+            kind: 'agentTurn',
+            message: 'do it'
+          }),
+          delivery: { mode: 'announce', channel: 'telegram', to: '123' }
+        },
+        message: 'do it',
+        sessionKey: 'cron:job-1',
+        lane: 'cron'
+      });
+      expect(res.status).toBe('ok');
+      expect(deps.sendMessageTelegram).toHaveBeenCalled();
+    });
+  });
+});

@@ -1,0 +1,321 @@
+import {
+
+  // SECURITY: This module handles security-sensitive operations.
+  // Changes should be reviewed carefully for security implications.
+
+  normalizeAgentId,
+  normalizeMainKey,
+  parseAgentSessionKey
+} from '../routing/session-key.js';
+import { asString, extractTextFromMessage, isCommandMessage } from './tui-formatters.js';
+function createSessionActions(context) {
+  const {
+    client,
+    chatLog,
+    tui,
+    opts,
+    state,
+    agentNames,
+    initialSessionInput,
+    initialSessionAgentId,
+    resolveSessionKey,
+    updateHeader,
+    updateFooter,
+    updateAutocompleteProvider,
+    setActivityStatus,
+    clearLocalRunIds
+  } = context;
+  let refreshSessionInfoPromise = Promise.resolve();
+  let lastSessionDefaults = null;
+  const applyAgentsResult = (result) => {
+    state.agentDefaultId = normalizeAgentId(result.defaultId);
+    state.sessionMainKey = normalizeMainKey(result.mainKey);
+    state.sessionScope = result.scope ?? state.sessionScope;
+    state.agents = result.agents.map((agent) => ({
+      id: normalizeAgentId(agent.id),
+      name: agent.name?.trim() || void 0
+    }));
+    agentNames.clear();
+    for (const agent of state.agents) {
+      if (agent.name) {
+        agentNames.set(agent.id, agent.name);
+      }
+    }
+    if (!state.initialSessionApplied) {
+      if (initialSessionAgentId) {
+        if (state.agents.some((agent) => agent.id === initialSessionAgentId)) {
+          state.currentAgentId = initialSessionAgentId;
+        }
+      } else if (!state.agents.some((agent) => agent.id === state.currentAgentId)) {
+        state.currentAgentId = state.agents[0]?.id ?? normalizeAgentId(result.defaultId ?? state.currentAgentId);
+      }
+      const nextSessionKey = resolveSessionKey(initialSessionInput);
+      if (nextSessionKey !== state.currentSessionKey) {
+        state.currentSessionKey = nextSessionKey;
+      }
+      state.initialSessionApplied = true;
+    } else if (!state.agents.some((agent) => agent.id === state.currentAgentId)) {
+      state.currentAgentId = state.agents[0]?.id ?? normalizeAgentId(result.defaultId ?? state.currentAgentId);
+    }
+    updateHeader();
+    updateFooter();
+  };
+  const refreshAgents = async () => {
+    try {
+      const result = await client.listAgents();
+      applyAgentsResult(result);
+    } catch (err) {
+      chatLog.addSystem(`agents list failed: ${String(err)}`);
+    }
+  };
+  const updateAgentFromSessionKey = (key) => {
+    const parsed = parseAgentSessionKey(key);
+    if (!parsed) {
+      return;
+    }
+    const next = normalizeAgentId(parsed.agentId);
+    if (next !== state.currentAgentId) {
+      state.currentAgentId = next;
+    }
+  };
+  const resolveModelSelection = (entry) => {
+    if (entry?.modelProvider || entry?.model) {
+      return {
+        modelProvider: entry.modelProvider ?? state.sessionInfo.modelProvider,
+        model: entry.model ?? state.sessionInfo.model
+      };
+    }
+    const overrideModel = entry?.modelOverride?.trim();
+    if (overrideModel) {
+      const overrideProvider = entry?.providerOverride?.trim() || state.sessionInfo.modelProvider;
+      return { modelProvider: overrideProvider, model: overrideModel };
+    }
+    return {
+      modelProvider: state.sessionInfo.modelProvider,
+      model: state.sessionInfo.model
+    };
+  };
+  const applySessionInfo = (params) => {
+    const entry = params.entry ?? void 0;
+    const defaults = params.defaults ?? lastSessionDefaults ?? void 0;
+    const previousDefaults = lastSessionDefaults;
+    const defaultsChanged = params.defaults ? previousDefaults?.model !== params.defaults.model || previousDefaults?.modelProvider !== params.defaults.modelProvider || previousDefaults?.contextTokens !== params.defaults.contextTokens : false;
+    if (params.defaults) {
+      lastSessionDefaults = params.defaults;
+    }
+    const entryUpdatedAt = entry?.updatedAt ?? null;
+    const currentUpdatedAt = state.sessionInfo.updatedAt ?? null;
+    const modelChanged = entry?.modelProvider !== void 0 && entry.modelProvider !== state.sessionInfo.modelProvider || entry?.model !== void 0 && entry.model !== state.sessionInfo.model;
+    if (!params.force && entryUpdatedAt !== null && currentUpdatedAt !== null && entryUpdatedAt < currentUpdatedAt && !defaultsChanged && !modelChanged) {
+      return;
+    }
+    const next = { ...state.sessionInfo };
+    if (entry?.thinkingLevel !== void 0) {
+      next.thinkingLevel = entry.thinkingLevel;
+    }
+    if (entry?.verboseLevel !== void 0) {
+      next.verboseLevel = entry.verboseLevel;
+    }
+    if (entry?.reasoningLevel !== void 0) {
+      next.reasoningLevel = entry.reasoningLevel;
+    }
+    if (entry?.responseUsage !== void 0) {
+      next.responseUsage = entry.responseUsage;
+    }
+    if (entry?.inputTokens !== void 0) {
+      next.inputTokens = entry.inputTokens;
+    }
+    if (entry?.outputTokens !== void 0) {
+      next.outputTokens = entry.outputTokens;
+    }
+    if (entry?.totalTokens !== void 0) {
+      next.totalTokens = entry.totalTokens;
+    }
+    if (entry?.contextTokens !== void 0 || defaults?.contextTokens !== void 0) {
+      next.contextTokens = entry?.contextTokens ?? defaults?.contextTokens ?? state.sessionInfo.contextTokens;
+    }
+    if (entry?.displayName !== void 0) {
+      next.displayName = entry.displayName;
+    }
+    if (entry?.updatedAt !== void 0) {
+      next.updatedAt = entry.updatedAt;
+    }
+    const selection = resolveModelSelection(entry);
+    if (selection.modelProvider !== void 0) {
+      next.modelProvider = selection.modelProvider;
+    }
+    if (selection.model !== void 0) {
+      next.model = selection.model;
+    }
+    state.sessionInfo = next;
+    updateAutocompleteProvider();
+    updateFooter();
+    tui.requestRender();
+  };
+  const runRefreshSessionInfo = async () => {
+    try {
+      const resolveListAgentId = () => {
+        if (state.currentSessionKey === 'global' || state.currentSessionKey === 'unknown') {
+          return void 0;
+        }
+        const parsed = parseAgentSessionKey(state.currentSessionKey);
+        return parsed?.agentId ? normalizeAgentId(parsed.agentId) : state.currentAgentId;
+      };
+      const listAgentId = resolveListAgentId();
+      const result = await client.listSessions({
+        includeGlobal: false,
+        includeUnknown: false,
+        agentId: listAgentId
+      });
+      const normalizeMatchKey = (key) => parseAgentSessionKey(key)?.rest ?? key;
+      const currentMatchKey = normalizeMatchKey(state.currentSessionKey);
+      const entry = result.sessions.find((row) => {
+        if (row.key === state.currentSessionKey) {
+          return true;
+        }
+        return normalizeMatchKey(row.key) === currentMatchKey;
+      });
+      if (entry?.key && entry.key !== state.currentSessionKey) {
+        updateAgentFromSessionKey(entry.key);
+        state.currentSessionKey = entry.key;
+        updateHeader();
+      }
+      applySessionInfo({
+        entry,
+        defaults: result.defaults
+      });
+    } catch (err) {
+      chatLog.addSystem(`sessions list failed: ${String(err)}`);
+    }
+  };
+  const refreshSessionInfo = async () => {
+    refreshSessionInfoPromise = refreshSessionInfoPromise.then(
+      runRefreshSessionInfo,
+      runRefreshSessionInfo
+    );
+    await refreshSessionInfoPromise;
+  };
+  const applySessionInfoFromPatch = (result) => {
+    if (!result?.entry) {
+      return;
+    }
+    if (result.key && result.key !== state.currentSessionKey) {
+      updateAgentFromSessionKey(result.key);
+      state.currentSessionKey = result.key;
+      updateHeader();
+    }
+    const resolved = result.resolved;
+    const entry = resolved && (resolved.modelProvider || resolved.model) ? {
+      ...result.entry,
+      modelProvider: resolved.modelProvider ?? result.entry.modelProvider,
+      model: resolved.model ?? result.entry.model
+    } : result.entry;
+    applySessionInfo({ entry, force: true });
+  };
+  const loadHistory = async () => {
+    try {
+      const history = await client.loadHistory({
+        sessionKey: state.currentSessionKey,
+        limit: opts.historyLimit ?? 200
+      });
+      const record = history;
+      state.currentSessionId = typeof record.sessionId === 'string' ? record.sessionId : null;
+      state.sessionInfo.thinkingLevel = record.thinkingLevel ?? state.sessionInfo.thinkingLevel;
+      state.sessionInfo.verboseLevel = record.verboseLevel ?? state.sessionInfo.verboseLevel;
+      const showTools = (state.sessionInfo.verboseLevel ?? 'off') !== 'off';
+      chatLog.clearAll();
+      chatLog.addSystem(`session ${state.currentSessionKey}`);
+      for (const entry of record.messages ?? []) {
+        if (!entry || typeof entry !== 'object') {
+          continue;
+        }
+        const message = entry;
+        if (isCommandMessage(message)) {
+          const text = extractTextFromMessage(message);
+          if (text) {
+            chatLog.addSystem(text);
+          }
+          continue;
+        }
+        if (message.role === 'user') {
+          const text = extractTextFromMessage(message);
+          if (text) {
+            chatLog.addUser(text);
+          }
+          continue;
+        }
+        if (message.role === 'assistant') {
+          const text = extractTextFromMessage(message, {
+            includeThinking: state.showThinking
+          });
+          if (text) {
+            chatLog.finalizeAssistant(text);
+          }
+          continue;
+        }
+        if (message.role === 'toolResult') {
+          if (!showTools) {
+            continue;
+          }
+          const toolCallId = asString(message.toolCallId, '');
+          const toolName = asString(message.toolName, 'tool');
+          const component = chatLog.startTool(toolCallId, toolName, {});
+          component.setResult(
+            {
+              content: Array.isArray(message.content) ? message.content : [],
+              details: typeof message.details === 'object' && message.details ? message.details : void 0
+            },
+            { isError: Boolean(message.isError) }
+          );
+        }
+      }
+      state.historyLoaded = true;
+    } catch (err) {
+      chatLog.addSystem(`history failed: ${String(err)}`);
+    }
+    await refreshSessionInfo();
+    tui.requestRender();
+  };
+  const setSession = async (rawKey) => {
+    const nextKey = resolveSessionKey(rawKey);
+    updateAgentFromSessionKey(nextKey);
+    state.currentSessionKey = nextKey;
+    state.activeChatRunId = null;
+    state.currentSessionId = null;
+    state.historyLoaded = false;
+    clearLocalRunIds?.();
+    updateHeader();
+    updateFooter();
+    await loadHistory();
+  };
+  const abortActive = async () => {
+    if (!state.activeChatRunId) {
+      chatLog.addSystem('no active run');
+      tui.requestRender();
+      return;
+    }
+    try {
+      await client.abortChat({
+        sessionKey: state.currentSessionKey,
+        runId: state.activeChatRunId
+      });
+      setActivityStatus('aborted');
+    } catch (err) {
+      chatLog.addSystem(`abort failed: ${String(err)}`);
+      setActivityStatus('abort failed');
+    }
+    tui.requestRender();
+  };
+  return {
+    applyAgentsResult,
+    refreshAgents,
+    refreshSessionInfo,
+    applySessionInfoFromPatch,
+    loadHistory,
+    setSession,
+    abortActive
+  };
+}
+export {
+  createSessionActions
+};
