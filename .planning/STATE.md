@@ -20,9 +20,9 @@ Progress: [=================...] 57% (17/30 total plans)
 
 **Velocity:**
 
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: ~13m
-- Total execution time: ~3.4 hours
+- Total execution time: ~3.6 hours
 
 **By Phase:**
 
@@ -30,12 +30,12 @@ Progress: [=================...] 57% (17/30 total plans)
 | --------------------- | ----- | ------- | -------- |
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
-| 3. Core Services      | 3/8   | ~36m    | ~12m     |
+| 3. Core Services      | 4/8   | ~48m    | ~12m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 03-05 (~11m), 03-03 (~10m), 03-01 (~15m), 02-10 (9m), 02-06 (~12m)
-- Trend: Consistent ~11m for bulk agent file conversion; esbuild pipeline well-established
+- Last 5 plans: 03-06 (~12m), 03-05 (~11m), 03-03 (~10m), 03-01 (~15m), 02-10 (9m)
+- Trend: Consistent ~11-12m for agent file conversion; multi-agent interleaving working smoothly
 
 _Updated after each plan completion_
 
@@ -103,6 +103,16 @@ Recent decisions affecting current work:
 - 03-05: Type-only files reconstructed as JSDoc @typedef (pi-tools.types, pi-embedded-subscribe.types, pi-embedded-subscribe.handlers.types)
 - 03-05: BlockReplyChunking re-export converted to JSDoc @typedef (type-only, no runtime value)
 - 03-05: Pre-commit hook failure on scripts/run-node.mjs eqeqeq; batch 2 committed with --no-verify
+- 03-06: SECURITY annotations on 4 auth-profiles files (store, oauth, profiles, types)
+- 03-06: == null / != null replaced with strict equality in telegram-actions.js and 3 pi-embedded files
+- 03-06: Multi-agent interleave: 03-05 committed subdirectory files alongside root-level agents
+- 03-06: eslint-disable for TS-era type-only references becoming unused vars (SEARCH_PROVIDERS, _syncAuthProfileStore)
+- 03-06: 8 type-only .ts files converted to JSDoc @typedef modules (auth-profiles/types, sandbox/types, skills/types, etc.)
+- 03-06: 28 empty catch blocks annotated with explanatory comments across all subdirectories
+- 03-02: Memory already pre-converted; Task 1 fixed 2 broken tests referencing renamed private fields
+- 03-02: Plugin types.js created as JSDoc-only typedef file (420+ lines, no runtime exports)
+- 03-02: {[key: string]: T} used instead of Object<string, T> for ESLint jsdoc/check-types
+- 03-02: Parallel agent (03-03) committed most plugins .js files; 8 remaining .ts deletions completed here
 
 ### Pending Todos
 
@@ -115,6 +125,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-05T05:20:00Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-02-05T05:21:23Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

@@ -80,7 +80,7 @@ Plans:
 - [ ] 03-03-PLAN.md -- Convert gateway protocol layer (TypeBox/Zod schemas)
 - [ ] 03-04-PLAN.md -- Convert gateway source files (root, server, server-methods)
 - [ ] 03-05-PLAN.md -- Convert agents root-level source files
-- [ ] 03-06-PLAN.md -- Convert agents subdirectories (tools, auth-profiles, pi-embedded, sandbox, skills)
+- [x] 03-06-PLAN.md -- Convert agents subdirectories (tools, auth-profiles, pi-embedded, sandbox, skills)
 - [ ] 03-07-PLAN.md -- Convert gateway test files and verify full gateway test suite
 - [ ] 03-08-PLAN.md -- Convert agents root-level test files and verify root-level test suite
 
@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
 | 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
-| 3. Core Services | 0/8 | Not started | - |
+| 3. Core Services | 6/8 | In progress | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
 | 5. UI and Extensions | 0/3 | Not started | - |
 | 6. Verification and Parity | 0/3 | Not started | - |
