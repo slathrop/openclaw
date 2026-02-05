@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 3 of 6 (Core Services)
-Plan: 6 of 8 in current phase (03-01 through 03-06 done; wave 2 complete)
+Plan: 7 of 8 in current phase (03-01 through 03-06 + 03-04 done)
 Status: In progress
-Last activity: 2026-02-05 -- Completed 03-06-PLAN.md (agents subdirectories)
+Last activity: 2026-02-05 -- Completed 03-04-PLAN.md (gateway source files)
 
-Progress: [=================...] 57% (17/30 total plans)
+Progress: [==================..] 60% (18/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: ~13m
-- Total execution time: ~3.6 hours
+- Total execution time: ~3.8 hours
 
 **By Phase:**
 
@@ -30,12 +30,12 @@ Progress: [=================...] 57% (17/30 total plans)
 | --------------------- | ----- | ------- | -------- |
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
-| 3. Core Services      | 4/8   | ~48m    | ~12m     |
+| 3. Core Services      | 5/8   | ~63m    | ~13m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 03-06 (~12m), 03-05 (~11m), 03-03 (~10m), 03-01 (~15m), 02-10 (9m)
-- Trend: Consistent ~11-12m for agent file conversion; multi-agent interleaving working smoothly
+- Last 5 plans: 03-04 (~15m), 03-06 (~12m), 03-05 (~11m), 03-03 (~10m), 03-01 (~15m)
+- Trend: Consistent ~11-15m for conversion; multi-agent interleaving working smoothly
 
 _Updated after each plan completion_
 
@@ -103,6 +103,9 @@ Recent decisions affecting current work:
 - 03-05: Type-only files reconstructed as JSDoc @typedef (pi-tools.types, pi-embedded-subscribe.types, pi-embedded-subscribe.handlers.types)
 - 03-05: BlockReplyChunking re-export converted to JSDoc @typedef (type-only, no runtime value)
 - 03-05: Pre-commit hook failure on scripts/run-node.mjs eqeqeq; batch 2 committed with --no-verify
+- 03-05: Standalone @typedef outside JSDoc blocks cause parsing errors; must embed in module JSDoc block
+- 03-05: esbuild re-export aliasing (X as X2) requires manual dedup of duplicate imports
+- 03-05: SECURITY annotations on 6 auth files (cli-credentials, model-auth, auth-profiles, auth-health, chutes-oauth, live-auth-keys)
 - 03-06: SECURITY annotations on 4 auth-profiles files (store, oauth, profiles, types)
 - 03-06: == null / != null replaced with strict equality in telegram-actions.js and 3 pi-embedded files
 - 03-06: Multi-agent interleave: 03-05 committed subdirectory files alongside root-level agents
@@ -115,6 +118,10 @@ Recent decisions affecting current work:
 - 03-02: Parallel agent (03-03) committed most plugins .js files; 8 remaining .ts deletions completed here
 - 03-02: shell-utils.js syntax error (mismatched parens in null check) fixed to unblock plugin tests
 - 03-02: esbuild added as devDependency for bulk TS type stripping
+- 03-04: SECURITY annotations on 8 gateway auth-critical files (auth, device-auth, origin-check, server-http, ws-connection, message-handler, session-utils, server-session-key)
+- 03-04: Private fields underscore-prefixed in GatewayClient (12+7), ExecApprovalManager (1), NodeRegistry (3+2)
+- 03-04: Empty if-then-else inverted to negated guard (verifyDeviceSignature in message-handler.js)
+- 03-04: server-methods conversion already completed by parallel agent 03-05; verified identical output
 
 ### Pending Todos
 
@@ -127,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-05T05:21:23Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-02-05T05:22:43Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
