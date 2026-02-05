@@ -1,0 +1,44 @@
+/**
+ * @module bootstrap-files
+ * Agent workspace bootstrap file scaffolding.
+ */
+import { applyBootstrapHookOverrides } from './bootstrap-hooks.js';
+import { buildBootstrapContextFiles, resolveBootstrapMaxChars } from './pi-embedded-helpers.js';
+import {
+  filterBootstrapFilesForSession,
+  loadWorkspaceBootstrapFiles
+} from './workspace.js';
+function makeBootstrapWarn(params) {
+  if (!params.warn) {
+    return void 0;
+  }
+  return (message) => params.warn?.(`${message} (sessionKey=${params.sessionLabel})`);
+}
+async function resolveBootstrapFilesForRun(params) {
+  const sessionKey = params.sessionKey ?? params.sessionId;
+  const bootstrapFiles = filterBootstrapFilesForSession(
+    await loadWorkspaceBootstrapFiles(params.workspaceDir),
+    sessionKey
+  );
+  return applyBootstrapHookOverrides({
+    files: bootstrapFiles,
+    workspaceDir: params.workspaceDir,
+    config: params.config,
+    sessionKey: params.sessionKey,
+    sessionId: params.sessionId,
+    agentId: params.agentId
+  });
+}
+async function resolveBootstrapContextForRun(params) {
+  const bootstrapFiles = await resolveBootstrapFilesForRun(params);
+  const contextFiles = buildBootstrapContextFiles(bootstrapFiles, {
+    maxChars: resolveBootstrapMaxChars(params.config),
+    warn: params.warn
+  });
+  return { bootstrapFiles, contextFiles };
+}
+export {
+  makeBootstrapWarn,
+  resolveBootstrapContextForRun,
+  resolveBootstrapFilesForRun
+};

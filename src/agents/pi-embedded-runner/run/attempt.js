@@ -1,0 +1,785 @@
+/**
+ * Individual run attempt execution for Pi embedded runner.
+ * @module agents/pi-embedded-runner/run/attempt
+ */
+import { streamSimple } from '@mariozechner/pi-ai';
+import { createAgentSession, SessionManager, SettingsManager } from '@mariozechner/pi-coding-agent';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import { resolveHeartbeatPrompt } from '../../../auto-reply/heartbeat.js';
+import { resolveChannelCapabilities } from '../../../config/channel-capabilities.js';
+import { getMachineDisplayName } from '../../../infra/machine-name.js';
+import { MAX_IMAGE_BYTES } from '../../../media/constants.js';
+import { getGlobalHookRunner } from '../../../plugins/hook-runner-global.js';
+import { isSubagentSessionKey } from '../../../routing/session-key.js';
+import { resolveSignalReactionLevel } from '../../../signal/reaction-level.js';
+import { resolveTelegramInlineButtonsScope } from '../../../telegram/inline-buttons.js';
+import { resolveTelegramReactionLevel } from '../../../telegram/reaction-level.js';
+import { buildTtsSystemPromptHint } from '../../../tts/tts.js';
+import { resolveUserPath } from '../../../utils.js';
+import { normalizeMessageChannel } from '../../../utils/message-channel.js';
+import { isReasoningTagProvider } from '../../../utils/provider-utils.js';
+import { resolveOpenClawAgentDir } from '../../agent-paths.js';
+import { resolveSessionAgentIds } from '../../agent-scope.js';
+import { createAnthropicPayloadLogger } from '../../anthropic-payload-log.js';
+import { makeBootstrapWarn, resolveBootstrapContextForRun } from '../../bootstrap-files.js';
+import { createCacheTrace } from '../../cache-trace.js';
+import {
+  listChannelSupportedActions,
+  resolveChannelMessageToolHints
+} from '../../channel-tools.js';
+import { resolveOpenClawDocsPath } from '../../docs-path.js';
+import { isTimeoutError } from '../../failover-error.js';
+import { resolveModelAuthMode } from '../../model-auth.js';
+import { resolveDefaultModelForAgent } from '../../model-selection.js';
+import {
+  isCloudCodeAssistFormatError,
+  resolveBootstrapMaxChars,
+  validateAnthropicTurns,
+  validateGeminiTurns
+} from '../../pi-embedded-helpers.js';
+import { subscribeEmbeddedPiSession } from '../../pi-embedded-subscribe.js';
+import {
+  ensurePiCompactionReserveTokens,
+  resolveCompactionReserveTokensFloor
+} from '../../pi-settings.js';
+import { toClientToolDefinitions } from '../../pi-tool-definition-adapter.js';
+import { createOpenClawCodingTools } from '../../pi-tools.js';
+import { resolveSandboxContext } from '../../sandbox.js';
+import { resolveSandboxRuntimeStatus } from '../../sandbox/runtime-status.js';
+import { repairSessionFileIfNeeded } from '../../session-file-repair.js';
+import { guardSessionManager } from '../../session-tool-result-guard-wrapper.js';
+import { acquireSessionWriteLock } from '../../session-write-lock.js';
+import {
+  applySkillEnvOverrides,
+  applySkillEnvOverridesFromSnapshot,
+  loadWorkspaceSkillEntries,
+  resolveSkillsPromptForRun
+} from '../../skills.js';
+import { buildSystemPromptParams } from '../../system-prompt-params.js';
+import { buildSystemPromptReport } from '../../system-prompt-report.js';
+import { resolveTranscriptPolicy } from '../../transcript-policy.js';
+import { DEFAULT_BOOTSTRAP_FILENAME } from '../../workspace.js';
+import { isAbortError } from '../abort.js';
+import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from '../cache-ttl.js';
+import { buildEmbeddedExtensionPaths } from '../extensions.js';
+import { applyExtraParamsToAgent } from '../extra-params.js';
+import {
+  logToolSchemasForGoogle,
+  sanitizeSessionHistory,
+  sanitizeToolsForGoogle
+} from '../google.js';
+import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from '../history.js';
+import { log } from '../logger.js';
+import { buildModelAliasLines } from '../model.js';
+import {
+  clearActiveEmbeddedRun,
+  setActiveEmbeddedRun
+} from '../runs.js';
+import { buildEmbeddedSandboxInfo } from '../sandbox-info.js';
+import { prewarmSessionFile, trackSessionManagerAccess } from '../session-manager-cache.js';
+import { prepareSessionManagerForRun } from '../session-manager-init.js';
+import {
+  applySystemPromptOverrideToSession,
+  buildEmbeddedSystemPrompt,
+  createSystemPromptOverride
+} from '../system-prompt.js';
+import { splitSdkTools } from '../tool-split.js';
+import { describeUnknownError, mapThinkingLevel } from '../utils.js';
+import { detectAndLoadPromptImages } from './images.js';
+function injectHistoryImagesIntoMessages(messages, historyImagesByIndex) {
+  if (historyImagesByIndex.size === 0) {
+    return false;
+  }
+  let didMutate = false;
+  for (const [msgIndex, images] of historyImagesByIndex) {
+    if (msgIndex < 0 || msgIndex >= messages.length) {
+      continue;
+    }
+    const msg = messages[msgIndex];
+    if (msg && msg.role === 'user') {
+      if (typeof msg.content === 'string') {
+        msg.content = [{ type: 'text', text: msg.content }];
+        didMutate = true;
+      }
+      if (Array.isArray(msg.content)) {
+        const existingImageData = new Set(
+          msg.content.filter(
+            (c) => c !== null && c !== undefined && typeof c === 'object' && c.type === 'image' && typeof c.data === 'string'
+          ).map((c) => c.data)
+        );
+        for (const img of images) {
+          if (!existingImageData.has(img.data)) {
+            msg.content.push(img);
+            didMutate = true;
+          }
+        }
+      }
+    }
+  }
+  return didMutate;
+}
+async function runEmbeddedAttempt(params) {
+  const resolvedWorkspace = resolveUserPath(params.workspaceDir);
+  const prevCwd = process.cwd();
+  const runAbortController = new AbortController();
+  log.debug(
+    `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? 'unknown'}`
+  );
+  await fs.mkdir(resolvedWorkspace, { recursive: true });
+  const sandboxSessionKey = params.sessionKey?.trim() || params.sessionId;
+  const sandbox = await resolveSandboxContext({
+    config: params.config,
+    sessionKey: sandboxSessionKey,
+    workspaceDir: resolvedWorkspace
+  });
+  const effectiveWorkspace = sandbox?.enabled ? sandbox.workspaceAccess === 'rw' ? resolvedWorkspace : sandbox.workspaceDir : resolvedWorkspace;
+  await fs.mkdir(effectiveWorkspace, { recursive: true });
+  let restoreSkillEnv;
+  process.chdir(effectiveWorkspace);
+  try {
+    const shouldLoadSkillEntries = !params.skillsSnapshot || !params.skillsSnapshot.resolvedSkills;
+    const skillEntries = shouldLoadSkillEntries ? loadWorkspaceSkillEntries(effectiveWorkspace) : [];
+    restoreSkillEnv = params.skillsSnapshot ? applySkillEnvOverridesFromSnapshot({
+      snapshot: params.skillsSnapshot,
+      config: params.config
+    }) : applySkillEnvOverrides({
+      skills: skillEntries ?? [],
+      config: params.config
+    });
+    const skillsPrompt = resolveSkillsPromptForRun({
+      skillsSnapshot: params.skillsSnapshot,
+      entries: shouldLoadSkillEntries ? skillEntries : void 0,
+      config: params.config,
+      workspaceDir: effectiveWorkspace
+    });
+    const sessionLabel = params.sessionKey ?? params.sessionId;
+    const { bootstrapFiles: hookAdjustedBootstrapFiles, contextFiles } = await resolveBootstrapContextForRun({
+      workspaceDir: effectiveWorkspace,
+      config: params.config,
+      sessionKey: params.sessionKey,
+      sessionId: params.sessionId,
+      warn: makeBootstrapWarn({ sessionLabel, warn: (message) => log.warn(message) })
+    });
+    const workspaceNotes = hookAdjustedBootstrapFiles.some(
+      (file) => file.name === DEFAULT_BOOTSTRAP_FILENAME && !file.missing
+    ) ? ['Reminder: commit your changes in this workspace after edits.'] : void 0;
+    const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
+    const modelHasVision = params.model.input?.includes('image') ?? false;
+    const toolsRaw = params.disableTools ? [] : createOpenClawCodingTools({
+      exec: {
+        ...params.execOverrides,
+        elevated: params.bashElevated
+      },
+      sandbox,
+      messageProvider: params.messageChannel ?? params.messageProvider,
+      agentAccountId: params.agentAccountId,
+      messageTo: params.messageTo,
+      messageThreadId: params.messageThreadId,
+      groupId: params.groupId,
+      groupChannel: params.groupChannel,
+      groupSpace: params.groupSpace,
+      spawnedBy: params.spawnedBy,
+      senderId: params.senderId,
+      senderName: params.senderName,
+      senderUsername: params.senderUsername,
+      senderE164: params.senderE164,
+      sessionKey: params.sessionKey ?? params.sessionId,
+      agentDir,
+      workspaceDir: effectiveWorkspace,
+      config: params.config,
+      abortSignal: runAbortController.signal,
+      modelProvider: params.model.provider,
+      modelId: params.modelId,
+      modelAuthMode: resolveModelAuthMode(params.model.provider, params.config),
+      currentChannelId: params.currentChannelId,
+      currentThreadTs: params.currentThreadTs,
+      replyToMode: params.replyToMode,
+      hasRepliedRef: params.hasRepliedRef,
+      modelHasVision,
+      requireExplicitMessageTarget: params.requireExplicitMessageTarget ?? isSubagentSessionKey(params.sessionKey),
+      disableMessageTool: params.disableMessageTool
+    });
+    const tools = sanitizeToolsForGoogle({ tools: toolsRaw, provider: params.provider });
+    logToolSchemasForGoogle({ tools, provider: params.provider });
+    const machineName = await getMachineDisplayName();
+    const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
+    let runtimeCapabilities = runtimeChannel ? resolveChannelCapabilities({
+      cfg: params.config,
+      channel: runtimeChannel,
+      accountId: params.agentAccountId
+    }) ?? [] : void 0;
+    if (runtimeChannel === 'telegram' && params.config) {
+      const inlineButtonsScope = resolveTelegramInlineButtonsScope({
+        cfg: params.config,
+        accountId: params.agentAccountId ?? void 0
+      });
+      if (inlineButtonsScope !== 'off') {
+        if (!runtimeCapabilities) {
+          runtimeCapabilities = [];
+        }
+        if (!runtimeCapabilities.some((cap) => String(cap).trim().toLowerCase() === 'inlinebuttons')) {
+          runtimeCapabilities.push('inlineButtons');
+        }
+      }
+    }
+    const reactionGuidance = runtimeChannel && params.config ? (() => {
+      if (runtimeChannel === 'telegram') {
+        const resolved = resolveTelegramReactionLevel({
+          cfg: params.config,
+          accountId: params.agentAccountId ?? void 0
+        });
+        const level = resolved.agentReactionGuidance;
+        return level ? { level, channel: 'Telegram' } : void 0;
+      }
+      if (runtimeChannel === 'signal') {
+        const resolved = resolveSignalReactionLevel({
+          cfg: params.config,
+          accountId: params.agentAccountId ?? void 0
+        });
+        const level = resolved.agentReactionGuidance;
+        return level ? { level, channel: 'Signal' } : void 0;
+      }
+      return void 0;
+    })() : void 0;
+    const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
+      sessionKey: params.sessionKey,
+      config: params.config
+    });
+    const sandboxInfo = buildEmbeddedSandboxInfo(sandbox, params.bashElevated);
+    const reasoningTagHint = isReasoningTagProvider(params.provider);
+    const channelActions = runtimeChannel ? listChannelSupportedActions({
+      cfg: params.config,
+      channel: runtimeChannel
+    }) : void 0;
+    const messageToolHints = runtimeChannel ? resolveChannelMessageToolHints({
+      cfg: params.config,
+      channel: runtimeChannel,
+      accountId: params.agentAccountId
+    }) : void 0;
+    const defaultModelRef = resolveDefaultModelForAgent({
+      cfg: params.config ?? {},
+      agentId: sessionAgentId
+    });
+    const defaultModelLabel = `${defaultModelRef.provider}/${defaultModelRef.model}`;
+    const { runtimeInfo, userTimezone, userTime, userTimeFormat } = buildSystemPromptParams({
+      config: params.config,
+      agentId: sessionAgentId,
+      workspaceDir: effectiveWorkspace,
+      cwd: process.cwd(),
+      runtime: {
+        host: machineName,
+        os: `${os.type()} ${os.release()}`,
+        arch: os.arch(),
+        node: process.version,
+        model: `${params.provider}/${params.modelId}`,
+        defaultModel: defaultModelLabel,
+        channel: runtimeChannel,
+        capabilities: runtimeCapabilities,
+        channelActions
+      }
+    });
+    const isDefaultAgent = sessionAgentId === defaultAgentId;
+    const promptMode = isSubagentSessionKey(params.sessionKey) ? 'minimal' : 'full';
+    const docsPath = await resolveOpenClawDocsPath({
+      workspaceDir: effectiveWorkspace,
+      argv1: process.argv[1],
+      cwd: process.cwd(),
+      moduleUrl: import.meta.url
+    });
+    const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : void 0;
+    const appendPrompt = buildEmbeddedSystemPrompt({
+      workspaceDir: effectiveWorkspace,
+      defaultThinkLevel: params.thinkLevel,
+      reasoningLevel: params.reasoningLevel ?? 'off',
+      extraSystemPrompt: params.extraSystemPrompt,
+      ownerNumbers: params.ownerNumbers,
+      reasoningTagHint,
+      heartbeatPrompt: isDefaultAgent ? resolveHeartbeatPrompt(params.config?.agents?.defaults?.heartbeat?.prompt) : void 0,
+      skillsPrompt,
+      docsPath: docsPath ?? void 0,
+      ttsHint,
+      workspaceNotes,
+      reactionGuidance,
+      promptMode,
+      runtimeInfo,
+      messageToolHints,
+      sandboxInfo,
+      tools,
+      modelAliasLines: buildModelAliasLines(params.config),
+      userTimezone,
+      userTime,
+      userTimeFormat,
+      contextFiles,
+      memoryCitationsMode: params.config?.memory?.citations
+    });
+    const systemPromptReport = buildSystemPromptReport({
+      source: 'run',
+      generatedAt: Date.now(),
+      sessionId: params.sessionId,
+      sessionKey: params.sessionKey,
+      provider: params.provider,
+      model: params.modelId,
+      workspaceDir: effectiveWorkspace,
+      bootstrapMaxChars: resolveBootstrapMaxChars(params.config),
+      sandbox: (() => {
+        const runtime = resolveSandboxRuntimeStatus({
+          cfg: params.config,
+          sessionKey: params.sessionKey ?? params.sessionId
+        });
+        return { mode: runtime.mode, sandboxed: runtime.sandboxed };
+      })(),
+      systemPrompt: appendPrompt,
+      bootstrapFiles: hookAdjustedBootstrapFiles,
+      injectedFiles: contextFiles,
+      skillsPrompt,
+      tools
+    });
+    const systemPromptOverride = createSystemPromptOverride(appendPrompt);
+    const systemPromptText = systemPromptOverride();
+    const sessionLock = await acquireSessionWriteLock({
+      sessionFile: params.sessionFile
+    });
+    let sessionManager;
+    let session;
+    try {
+      await repairSessionFileIfNeeded({
+        sessionFile: params.sessionFile,
+        warn: (message) => log.warn(message)
+      });
+      const hadSessionFile = await fs.stat(params.sessionFile).then(() => true).catch(() => false);
+      const transcriptPolicy = resolveTranscriptPolicy({
+        modelApi: params.model?.api,
+        provider: params.provider,
+        modelId: params.modelId
+      });
+      await prewarmSessionFile(params.sessionFile);
+      sessionManager = guardSessionManager(SessionManager.open(params.sessionFile), {
+        agentId: sessionAgentId,
+        sessionKey: params.sessionKey,
+        allowSyntheticToolResults: transcriptPolicy.allowSyntheticToolResults
+      });
+      trackSessionManagerAccess(params.sessionFile);
+      await prepareSessionManagerForRun({
+        sessionManager,
+        sessionFile: params.sessionFile,
+        hadSessionFile,
+        sessionId: params.sessionId,
+        cwd: effectiveWorkspace
+      });
+      const settingsManager = SettingsManager.create(effectiveWorkspace, agentDir);
+      ensurePiCompactionReserveTokens({
+        settingsManager,
+        minReserveTokens: resolveCompactionReserveTokensFloor(params.config)
+      });
+      buildEmbeddedExtensionPaths({
+        cfg: params.config,
+        sessionManager,
+        provider: params.provider,
+        modelId: params.modelId,
+        model: params.model
+      });
+      const { builtInTools, customTools } = splitSdkTools({
+        tools,
+        sandboxEnabled: !!sandbox?.enabled
+      });
+      let clientToolCallDetected = null;
+      const clientToolDefs = params.clientTools ? toClientToolDefinitions(
+        params.clientTools,
+        (toolName, toolParams) => {
+          clientToolCallDetected = { name: toolName, params: toolParams };
+        },
+        {
+          agentId: sessionAgentId,
+          sessionKey: params.sessionKey
+        }
+      ) : [];
+      const allCustomTools = [...customTools, ...clientToolDefs];
+      ({ session } = await createAgentSession({
+        cwd: resolvedWorkspace,
+        agentDir,
+        authStorage: params.authStorage,
+        modelRegistry: params.modelRegistry,
+        model: params.model,
+        thinkingLevel: mapThinkingLevel(params.thinkLevel),
+        tools: builtInTools,
+        customTools: allCustomTools,
+        sessionManager,
+        settingsManager
+      }));
+      applySystemPromptOverrideToSession(session, systemPromptText);
+      if (!session) {
+        throw new Error('Embedded agent session missing');
+      }
+      const activeSession = session;
+      const cacheTrace = createCacheTrace({
+        cfg: params.config,
+        env: process.env,
+        runId: params.runId,
+        sessionId: activeSession.sessionId,
+        sessionKey: params.sessionKey,
+        provider: params.provider,
+        modelId: params.modelId,
+        modelApi: params.model.api,
+        workspaceDir: params.workspaceDir
+      });
+      const anthropicPayloadLogger = createAnthropicPayloadLogger({
+        env: process.env,
+        runId: params.runId,
+        sessionId: activeSession.sessionId,
+        sessionKey: params.sessionKey,
+        provider: params.provider,
+        modelId: params.modelId,
+        modelApi: params.model.api,
+        workspaceDir: params.workspaceDir
+      });
+      activeSession.agent.streamFn = streamSimple;
+      applyExtraParamsToAgent(
+        activeSession.agent,
+        params.config,
+        params.provider,
+        params.modelId,
+        params.streamParams
+      );
+      if (cacheTrace) {
+        cacheTrace.recordStage('session:loaded', {
+          messages: activeSession.messages,
+          system: systemPromptText,
+          note: 'after session create'
+        });
+        activeSession.agent.streamFn = cacheTrace.wrapStreamFn(activeSession.agent.streamFn);
+      }
+      if (anthropicPayloadLogger) {
+        activeSession.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(
+          activeSession.agent.streamFn
+        );
+      }
+      try {
+        const prior = await sanitizeSessionHistory({
+          messages: activeSession.messages,
+          modelApi: params.model.api,
+          modelId: params.modelId,
+          provider: params.provider,
+          sessionManager,
+          sessionId: params.sessionId,
+          policy: transcriptPolicy
+        });
+        cacheTrace?.recordStage('session:sanitized', { messages: prior });
+        const validatedGemini = transcriptPolicy.validateGeminiTurns ? validateGeminiTurns(prior) : prior;
+        const validated = transcriptPolicy.validateAnthropicTurns ? validateAnthropicTurns(validatedGemini) : validatedGemini;
+        const limited = limitHistoryTurns(
+          validated,
+          getDmHistoryLimitFromSessionKey(params.sessionKey, params.config)
+        );
+        cacheTrace?.recordStage('session:limited', { messages: limited });
+        if (limited.length > 0) {
+          activeSession.agent.replaceMessages(limited);
+        }
+      } catch (err) {
+        sessionManager.flushPendingToolResults?.();
+        activeSession.dispose();
+        throw err;
+      }
+      let aborted = Boolean(params.abortSignal?.aborted);
+      let timedOut = false;
+      const getAbortReason = (signal) => 'reason' in signal ? signal.reason : void 0;
+      const makeTimeoutAbortReason = () => {
+        const err = new Error('request timed out');
+        err.name = 'TimeoutError';
+        return err;
+      };
+      const makeAbortError = (signal) => {
+        const reason = getAbortReason(signal);
+        const err = reason ? new Error('aborted', { cause: reason }) : new Error('aborted');
+        err.name = 'AbortError';
+        return err;
+      };
+      const abortRun = (isTimeout = false, reason) => {
+        aborted = true;
+        if (isTimeout) {
+          timedOut = true;
+        }
+        if (isTimeout) {
+          runAbortController.abort(reason ?? makeTimeoutAbortReason());
+        } else {
+          runAbortController.abort(reason);
+        }
+        void activeSession.abort();
+      };
+      const abortable = (promise) => {
+        const signal = runAbortController.signal;
+        if (signal.aborted) {
+          return Promise.reject(makeAbortError(signal));
+        }
+        return new Promise((resolve, reject) => {
+          const onAbort2 = () => {
+            signal.removeEventListener('abort', onAbort2);
+            reject(makeAbortError(signal));
+          };
+          signal.addEventListener('abort', onAbort2, { once: true });
+          promise.then(
+            (value) => {
+              signal.removeEventListener('abort', onAbort2);
+              resolve(value);
+            },
+            (err) => {
+              signal.removeEventListener('abort', onAbort2);
+              reject(err);
+            }
+          );
+        });
+      };
+      const subscription = subscribeEmbeddedPiSession({
+        session: activeSession,
+        runId: params.runId,
+        verboseLevel: params.verboseLevel,
+        reasoningMode: params.reasoningLevel ?? 'off',
+        toolResultFormat: params.toolResultFormat,
+        shouldEmitToolResult: params.shouldEmitToolResult,
+        shouldEmitToolOutput: params.shouldEmitToolOutput,
+        onToolResult: params.onToolResult,
+        onReasoningStream: params.onReasoningStream,
+        onBlockReply: params.onBlockReply,
+        onBlockReplyFlush: params.onBlockReplyFlush,
+        blockReplyBreak: params.blockReplyBreak,
+        blockReplyChunking: params.blockReplyChunking,
+        onPartialReply: params.onPartialReply,
+        onAssistantMessageStart: params.onAssistantMessageStart,
+        onAgentEvent: params.onAgentEvent,
+        enforceFinalTag: params.enforceFinalTag
+      });
+      const {
+        assistantTexts,
+        toolMetas,
+        unsubscribe,
+        waitForCompactionRetry,
+        getMessagingToolSentTexts,
+        getMessagingToolSentTargets,
+        didSendViaMessagingTool,
+        getLastToolError
+      } = subscription;
+      const queueHandle = {
+        queueMessage: async (text) => {
+          await activeSession.steer(text);
+        },
+        isStreaming: () => activeSession.isStreaming,
+        isCompacting: () => subscription.isCompacting(),
+        abort: abortRun
+      };
+      setActiveEmbeddedRun(params.sessionId, queueHandle);
+      let abortWarnTimer;
+      const isProbeSession = params.sessionId?.startsWith('probe-') ?? false;
+      const abortTimer = setTimeout(
+        () => {
+          if (!isProbeSession) {
+            log.warn(
+              `embedded run timeout: runId=${params.runId} sessionId=${params.sessionId} timeoutMs=${params.timeoutMs}`
+            );
+          }
+          abortRun(true);
+          if (!abortWarnTimer) {
+            abortWarnTimer = setTimeout(() => {
+              if (!activeSession.isStreaming) {
+                return;
+              }
+              if (!isProbeSession) {
+                log.warn(
+                  `embedded run abort still streaming: runId=${params.runId} sessionId=${params.sessionId}`
+                );
+              }
+            }, 1e4);
+          }
+        },
+        Math.max(1, params.timeoutMs)
+      );
+      let messagesSnapshot = [];
+      let sessionIdUsed = activeSession.sessionId;
+      const onAbort = () => {
+        const reason = params.abortSignal ? getAbortReason(params.abortSignal) : void 0;
+        const timeout = reason ? isTimeoutError(reason) : false;
+        abortRun(timeout, reason);
+      };
+      if (params.abortSignal) {
+        if (params.abortSignal.aborted) {
+          onAbort();
+        } else {
+          params.abortSignal.addEventListener('abort', onAbort, {
+            once: true
+          });
+        }
+      }
+      const hookRunner = getGlobalHookRunner();
+      let promptError = null;
+      try {
+        const promptStartedAt = Date.now();
+        let effectivePrompt = params.prompt;
+        if (hookRunner?.hasHooks('before_agent_start')) {
+          try {
+            const hookResult = await hookRunner.runBeforeAgentStart(
+              {
+                prompt: params.prompt,
+                messages: activeSession.messages
+              },
+              {
+                agentId: params.sessionKey?.split(':')[0] ?? 'main',
+                sessionKey: params.sessionKey,
+                workspaceDir: params.workspaceDir,
+                messageProvider: params.messageProvider ?? void 0
+              }
+            );
+            if (hookResult?.prependContext) {
+              effectivePrompt = `${hookResult.prependContext}
+
+${params.prompt}`;
+              log.debug(
+                `hooks: prepended context to prompt (${hookResult.prependContext.length} chars)`
+              );
+            }
+          } catch (hookErr) {
+            log.warn(`before_agent_start hook failed: ${String(hookErr)}`);
+          }
+        }
+        log.debug(`embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`);
+        cacheTrace?.recordStage('prompt:before', {
+          prompt: effectivePrompt,
+          messages: activeSession.messages
+        });
+        const leafEntry = sessionManager.getLeafEntry();
+        if (leafEntry?.type === 'message' && leafEntry.message.role === 'user') {
+          if (leafEntry.parentId) {
+            sessionManager.branch(leafEntry.parentId);
+          } else {
+            sessionManager.resetLeaf();
+          }
+          const sessionContext = sessionManager.buildSessionContext();
+          activeSession.agent.replaceMessages(sessionContext.messages);
+          log.warn(
+            `Removed orphaned user message to prevent consecutive user turns. runId=${params.runId} sessionId=${params.sessionId}`
+          );
+        }
+        try {
+          const imageResult = await detectAndLoadPromptImages({
+            prompt: effectivePrompt,
+            workspaceDir: effectiveWorkspace,
+            model: params.model,
+            existingImages: params.images,
+            historyMessages: activeSession.messages,
+            maxBytes: MAX_IMAGE_BYTES,
+            // Enforce sandbox path restrictions when sandbox is enabled
+            sandboxRoot: sandbox?.enabled ? sandbox.workspaceDir : void 0
+          });
+          const didMutate = injectHistoryImagesIntoMessages(
+            activeSession.messages,
+            imageResult.historyImagesByIndex
+          );
+          if (didMutate) {
+            activeSession.agent.replaceMessages(activeSession.messages);
+          }
+          cacheTrace?.recordStage('prompt:images', {
+            prompt: effectivePrompt,
+            messages: activeSession.messages,
+            note: `images: prompt=${imageResult.images.length} history=${imageResult.historyImagesByIndex.size}`
+          });
+          const shouldTrackCacheTtl = params.config?.agents?.defaults?.contextPruning?.mode === 'cache-ttl' && isCacheTtlEligibleProvider(params.provider, params.modelId);
+          if (shouldTrackCacheTtl) {
+            appendCacheTtlTimestamp(sessionManager, {
+              timestamp: Date.now(),
+              provider: params.provider,
+              modelId: params.modelId
+            });
+          }
+          if (imageResult.images.length > 0) {
+            await abortable(activeSession.prompt(effectivePrompt, { images: imageResult.images }));
+          } else {
+            await abortable(activeSession.prompt(effectivePrompt));
+          }
+        } catch (err) {
+          promptError = err;
+        } finally {
+          log.debug(
+            `embedded run prompt end: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - promptStartedAt}`
+          );
+        }
+        try {
+          await waitForCompactionRetry();
+        } catch (err) {
+          if (isAbortError(err)) {
+            if (!promptError) {
+              promptError = err;
+            }
+          } else {
+            throw err;
+          }
+        }
+        messagesSnapshot = activeSession.messages.slice();
+        sessionIdUsed = activeSession.sessionId;
+        cacheTrace?.recordStage('session:after', {
+          messages: messagesSnapshot,
+          note: promptError ? 'prompt error' : void 0
+        });
+        anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
+        if (hookRunner?.hasHooks('agent_end')) {
+          hookRunner.runAgentEnd(
+            {
+              messages: messagesSnapshot,
+              success: !aborted && !promptError,
+              error: promptError ? describeUnknownError(promptError) : void 0,
+              durationMs: Date.now() - promptStartedAt
+            },
+            {
+              agentId: params.sessionKey?.split(':')[0] ?? 'main',
+              sessionKey: params.sessionKey,
+              workspaceDir: params.workspaceDir,
+              messageProvider: params.messageProvider ?? void 0
+            }
+          ).catch((err) => {
+            log.warn(`agent_end hook failed: ${err}`);
+          });
+        }
+      } finally {
+        clearTimeout(abortTimer);
+        if (abortWarnTimer) {
+          clearTimeout(abortWarnTimer);
+        }
+        unsubscribe();
+        clearActiveEmbeddedRun(params.sessionId, queueHandle);
+        params.abortSignal?.removeEventListener?.('abort', onAbort);
+      }
+      const lastAssistant = messagesSnapshot.slice().toReversed().find((m) => m.role === 'assistant');
+      const toolMetasNormalized = toolMetas.filter(
+        (entry) => typeof entry.toolName === 'string' && entry.toolName.trim().length > 0
+      ).map((entry) => ({ toolName: entry.toolName, meta: entry.meta }));
+      return {
+        aborted,
+        timedOut,
+        promptError,
+        sessionIdUsed,
+        systemPromptReport,
+        messagesSnapshot,
+        assistantTexts,
+        toolMetas: toolMetasNormalized,
+        lastAssistant,
+        lastToolError: getLastToolError?.(),
+        didSendViaMessagingTool: didSendViaMessagingTool(),
+        messagingToolSentTexts: getMessagingToolSentTexts(),
+        messagingToolSentTargets: getMessagingToolSentTargets(),
+        cloudCodeAssistFormatError: Boolean(
+          lastAssistant?.errorMessage && isCloudCodeAssistFormatError(lastAssistant.errorMessage)
+        ),
+        // Client tool call detected (OpenResponses hosted tools)
+        clientToolCall: clientToolCallDetected ?? void 0
+      };
+    } finally {
+      sessionManager?.flushPendingToolResults?.();
+      session?.dispose();
+      await sessionLock.release();
+    }
+  } finally {
+    restoreSkillEnv?.();
+    process.chdir(prevCwd);
+  }
+}
+export {
+  injectHistoryImagesIntoMessages,
+  runEmbeddedAttempt
+};
