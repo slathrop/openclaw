@@ -34,7 +34,7 @@ function splitToolExecuteArgs(args) {
       signal: signal2
     };
   }
-  const [toolCallId, params, onUpdate, _ctx, signal] = args;
+  const [toolCallId, params, onUpdate, /* _ctx */, signal] = args;
   return {
     toolCallId,
     params,
