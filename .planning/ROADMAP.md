@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Build Tooling** - Replace TypeScript toolchain with JavaScript-native build, lint, and test infrastructure
 - [x] **Phase 2: Foundation Layer** - Convert shared infrastructure, config, routing, and entry points to JavaScript
 - [x] **Phase 3: Core Services** - Convert gateway, agents, providers, and support modules to JavaScript
-- [ ] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
+- [x] **Phase 4: CLI and Channels** - Convert CLI infrastructure, commands, and all channel implementations to JavaScript
 - [ ] **Phase 5: UI and Extensions** - Convert web UI and extension packages to JavaScript
 - [ ] **Phase 6: Verification and Parity** - Validate all tests pass, coverage holds, and every feature works identically
 
@@ -97,9 +97,9 @@ Plans:
   5. Running `openclaw --help` from the converted source displays all commands correctly
 
 Plans:
-- [ ] 04-01-PLAN.md -- Convert CLI infrastructure (170 files) and command implementations (227 files)
-- [ ] 04-02-PLAN.md -- Convert Telegram, Discord, WhatsApp, and Slack channel implementations (220 files)
-- [ ] 04-03-PLAN.md -- Convert Signal, iMessage, Feishu, LINE, Web, shared channels, and test-utils (275 files)
+- [x] 04-01-PLAN.md -- Convert CLI infrastructure (170 files) and command implementations (227 files)
+- [x] 04-02-PLAN.md -- Convert Telegram, Discord, WhatsApp, and Slack channel implementations (220 files)
+- [x] 04-03-PLAN.md -- Convert Signal, iMessage, Feishu, LINE, Web, shared channels, and test-utils (275 files)
 
 ### Phase 5: UI and Extensions
 **Goal**: The web UI and all extension packages are converted to JavaScript, completing source conversion
@@ -145,6 +145,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
 | 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
 | 3. Core Services | 8/8 | Complete | 2026-02-05 |
-| 4. CLI and Channels | 0/3 | Not started | - |
+| 4. CLI and Channels | 3/3 | Complete | 2026-02-05 |
 | 5. UI and Extensions | 0/3 | Not started | - |
 | 6. Verification and Parity | 0/3 | Not started | - |
