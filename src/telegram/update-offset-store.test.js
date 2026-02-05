@@ -1,0 +1,35 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { readTelegramUpdateOffset, writeTelegramUpdateOffset } from './update-offset-store.js';
+async function withTempStateDir(fn) {
+  const previous = process.env.OPENCLAW_STATE_DIR;
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openclaw-telegram-'));
+  process.env.OPENCLAW_STATE_DIR = dir;
+  try {
+    return await fn(dir);
+  } finally {
+    if (previous === void 0) {
+      delete process.env.OPENCLAW_STATE_DIR;
+    } else {
+      process.env.OPENCLAW_STATE_DIR = previous;
+    }
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+}
+__name(withTempStateDir, 'withTempStateDir');
+describe('telegram update offset store', () => {
+  it('persists and reloads the last update id', async () => {
+    await withTempStateDir(async () => {
+      expect(await readTelegramUpdateOffset({ accountId: 'primary' })).toBeNull();
+      await writeTelegramUpdateOffset({
+        accountId: 'primary',
+        updateId: 421
+      });
+      expect(await readTelegramUpdateOffset({ accountId: 'primary' })).toBe(421);
+    });
+  });
+});

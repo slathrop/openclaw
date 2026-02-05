@@ -1,0 +1,61 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import {
+  buildMessagingTarget,
+  ensureTargetId,
+  requireTargetKind
+} from '../channels/targets.js';
+function parseSlackTarget(raw, options = {}) {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return void 0;
+  }
+  const mentionMatch = trimmed.match(/^<@([A-Z0-9]+)>$/i);
+  if (mentionMatch) {
+    return buildMessagingTarget('user', mentionMatch[1], trimmed);
+  }
+  if (trimmed.startsWith('user:')) {
+    const id = trimmed.slice('user:'.length).trim();
+    return id ? buildMessagingTarget('user', id, trimmed) : void 0;
+  }
+  if (trimmed.startsWith('channel:')) {
+    const id = trimmed.slice('channel:'.length).trim();
+    return id ? buildMessagingTarget('channel', id, trimmed) : void 0;
+  }
+  if (trimmed.startsWith('slack:')) {
+    const id = trimmed.slice('slack:'.length).trim();
+    return id ? buildMessagingTarget('user', id, trimmed) : void 0;
+  }
+  if (trimmed.startsWith('@')) {
+    const candidate = trimmed.slice(1).trim();
+    const id = ensureTargetId({
+      candidate,
+      pattern: /^[A-Z0-9]+$/i,
+      errorMessage: 'Slack DMs require a user id (use user:<id> or <@id>)'
+    });
+    return buildMessagingTarget('user', id, trimmed);
+  }
+  if (trimmed.startsWith('#')) {
+    const candidate = trimmed.slice(1).trim();
+    const id = ensureTargetId({
+      candidate,
+      pattern: /^[A-Z0-9]+$/i,
+      errorMessage: 'Slack channels require a channel id (use channel:<id>)'
+    });
+    return buildMessagingTarget('channel', id, trimmed);
+  }
+  if (options.defaultKind) {
+    return buildMessagingTarget(options.defaultKind, trimmed, trimmed);
+  }
+  return buildMessagingTarget('channel', trimmed, trimmed);
+}
+__name(parseSlackTarget, 'parseSlackTarget');
+function resolveSlackChannelId(raw) {
+  const target = parseSlackTarget(raw, { defaultKind: 'channel' });
+  return requireTargetKind({ platform: 'Slack', target, kind: 'channel' });
+}
+__name(resolveSlackChannelId, 'resolveSlackChannelId');
+export {
+  parseSlackTarget,
+  resolveSlackChannelId
+};

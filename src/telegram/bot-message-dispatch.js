@@ -1,0 +1,307 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { resolveAgentDir } from '../agents/agent-scope.js';
+import {
+  findModelInCatalog,
+  loadModelCatalog,
+  modelSupportsVision
+} from '../agents/model-catalog.js';
+import { resolveDefaultModelForAgent } from '../agents/model-selection.js';
+import { EmbeddedBlockChunker } from '../agents/pi-embedded-block-chunker.js';
+import { resolveChunkMode } from '../auto-reply/chunk.js';
+import { clearHistoryEntriesIfEnabled } from '../auto-reply/reply/history.js';
+import { dispatchReplyWithBufferedBlockDispatcher } from '../auto-reply/reply/provider-dispatcher.js';
+import { removeAckReactionAfterReply } from '../channels/ack-reactions.js';
+import { logAckFailure, logTypingFailure } from '../channels/logging.js';
+import { createReplyPrefixOptions } from '../channels/reply-prefix.js';
+import { createTypingCallbacks } from '../channels/typing.js';
+import { resolveMarkdownTableMode } from '../config/markdown-tables.js';
+import { danger, logVerbose } from '../globals.js';
+import { deliverReplies } from './bot/delivery.js';
+import { resolveTelegramDraftStreamingChunking } from './draft-chunking.js';
+import { createTelegramDraftStream } from './draft-stream.js';
+import { cacheSticker, describeStickerImage } from './sticker-cache.js';
+const EMPTY_RESPONSE_FALLBACK = 'No response generated. Please try again.';
+async function resolveStickerVisionSupport(cfg, agentId) {
+  try {
+    const catalog = await loadModelCatalog({ config: cfg });
+    const defaultModel = resolveDefaultModelForAgent({ cfg, agentId });
+    const entry = findModelInCatalog(catalog, defaultModel.provider, defaultModel.model);
+    if (!entry) {
+      return false;
+    }
+    return modelSupportsVision(entry);
+  } catch {
+    return false;
+  }
+}
+__name(resolveStickerVisionSupport, 'resolveStickerVisionSupport');
+const dispatchTelegramMessage = /* @__PURE__ */ __name(async ({
+  context,
+  bot,
+  cfg,
+  runtime,
+  replyToMode,
+  streamMode,
+  textLimit,
+  telegramCfg,
+  opts,
+  resolveBotTopicsEnabled
+}) => {
+  const {
+    ctxPayload,
+    primaryCtx,
+    msg,
+    chatId,
+    isGroup,
+    threadSpec,
+    historyKey,
+    historyLimit,
+    groupHistories,
+    route,
+    skillFilter,
+    sendTyping,
+    sendRecordVoice,
+    ackReactionPromise,
+    reactionApi,
+    removeAckAfterReply
+  } = context;
+  const isPrivateChat = msg.chat.type === 'private';
+  const draftThreadId = threadSpec.id;
+  const draftMaxChars = Math.min(textLimit, 4096);
+  const canStreamDraft = streamMode !== 'off' && isPrivateChat && typeof draftThreadId === 'number' && await resolveBotTopicsEnabled(primaryCtx);
+  const draftStream = canStreamDraft ? createTelegramDraftStream({
+    api: bot.api,
+    chatId,
+    draftId: msg.message_id || Date.now(),
+    maxChars: draftMaxChars,
+    thread: threadSpec,
+    log: logVerbose,
+    warn: logVerbose
+  }) : void 0;
+  const draftChunking = draftStream && streamMode === 'block' ? resolveTelegramDraftStreamingChunking(cfg, route.accountId) : void 0;
+  const draftChunker = draftChunking ? new EmbeddedBlockChunker(draftChunking) : void 0;
+  let lastPartialText = '';
+  let draftText = '';
+  const updateDraftFromPartial = /* @__PURE__ */ __name((text) => {
+    if (!draftStream || !text) {
+      return;
+    }
+    if (text === lastPartialText) {
+      return;
+    }
+    if (streamMode === 'partial') {
+      lastPartialText = text;
+      draftStream.update(text);
+      return;
+    }
+    let delta = text;
+    if (text.startsWith(lastPartialText)) {
+      delta = text.slice(lastPartialText.length);
+    } else {
+      draftChunker?.reset();
+      draftText = '';
+    }
+    lastPartialText = text;
+    if (!delta) {
+      return;
+    }
+    if (!draftChunker) {
+      draftText = text;
+      draftStream.update(draftText);
+      return;
+    }
+    draftChunker.append(delta);
+    draftChunker.drain({
+      force: false,
+      emit: /* @__PURE__ */ __name((chunk) => {
+        draftText += chunk;
+        draftStream.update(draftText);
+      }, 'emit')
+    });
+  }, 'updateDraftFromPartial');
+  const flushDraft = /* @__PURE__ */ __name(async () => {
+    if (!draftStream) {
+      return;
+    }
+    if (draftChunker?.hasBuffered()) {
+      draftChunker.drain({
+        force: true,
+        emit: /* @__PURE__ */ __name((chunk) => {
+          draftText += chunk;
+        }, 'emit')
+      });
+      draftChunker.reset();
+      if (draftText) {
+        draftStream.update(draftText);
+      }
+    }
+    await draftStream.flush();
+  }, 'flushDraft');
+  const disableBlockStreaming = Boolean(draftStream) || (typeof telegramCfg.blockStreaming === 'boolean' ? !telegramCfg.blockStreaming : void 0);
+  const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
+    cfg,
+    agentId: route.agentId,
+    channel: 'telegram',
+    accountId: route.accountId
+  });
+  const tableMode = resolveMarkdownTableMode({
+    cfg,
+    channel: 'telegram',
+    accountId: route.accountId
+  });
+  const chunkMode = resolveChunkMode(cfg, 'telegram', route.accountId);
+  const sticker = ctxPayload.Sticker;
+  if (sticker?.fileId && sticker.fileUniqueId && ctxPayload.MediaPath) {
+    const agentDir = resolveAgentDir(cfg, route.agentId);
+    const stickerSupportsVision = await resolveStickerVisionSupport(cfg, route.agentId);
+    let description = sticker.cachedDescription ?? null;
+    if (!description) {
+      description = await describeStickerImage({
+        imagePath: ctxPayload.MediaPath,
+        cfg,
+        agentDir,
+        agentId: route.agentId
+      });
+    }
+    if (description) {
+      const stickerContext = [sticker.emoji, sticker.setName ? `from "${sticker.setName}"` : null].filter(Boolean).join(' ');
+      const formattedDesc = `[Sticker${stickerContext ? ` ${stickerContext}` : ''}] ${description}`;
+      sticker.cachedDescription = description;
+      if (!stickerSupportsVision) {
+        ctxPayload.Body = formattedDesc;
+        ctxPayload.BodyForAgent = formattedDesc;
+        ctxPayload.MediaPath = void 0;
+        ctxPayload.MediaType = void 0;
+        ctxPayload.MediaUrl = void 0;
+        ctxPayload.MediaPaths = void 0;
+        ctxPayload.MediaUrls = void 0;
+        ctxPayload.MediaTypes = void 0;
+      }
+      if (sticker.fileId) {
+        cacheSticker({
+          fileId: sticker.fileId,
+          fileUniqueId: sticker.fileUniqueId,
+          emoji: sticker.emoji,
+          setName: sticker.setName,
+          description,
+          cachedAt: (/* @__PURE__ */ new Date()).toISOString(),
+          receivedFrom: ctxPayload.From
+        });
+        logVerbose(`telegram: cached sticker description for ${sticker.fileUniqueId}`);
+      } else {
+        logVerbose('telegram: skipped sticker cache (missing fileId)');
+      }
+    }
+  }
+  const replyQuoteText = ctxPayload.ReplyToIsQuote && ctxPayload.ReplyToBody ? ctxPayload.ReplyToBody.trim() || void 0 : void 0;
+  const deliveryState = {
+    delivered: false,
+    skippedNonSilent: 0
+  };
+  const { queuedFinal } = await dispatchReplyWithBufferedBlockDispatcher({
+    ctx: ctxPayload,
+    cfg,
+    dispatcherOptions: {
+      ...prefixOptions,
+      deliver: /* @__PURE__ */ __name(async (payload, info) => {
+        if (info.kind === 'final') {
+          await flushDraft();
+          draftStream?.stop();
+        }
+        const result = await deliverReplies({
+          replies: [payload],
+          chatId: String(chatId),
+          token: opts.token,
+          runtime,
+          bot,
+          replyToMode,
+          textLimit,
+          thread: threadSpec,
+          tableMode,
+          chunkMode,
+          onVoiceRecording: sendRecordVoice,
+          linkPreview: telegramCfg.linkPreview,
+          replyQuoteText
+        });
+        if (result.delivered) {
+          deliveryState.delivered = true;
+        }
+      }, 'deliver'),
+      onSkip: /* @__PURE__ */ __name((_payload, info) => {
+        if (info.reason !== 'silent') {
+          deliveryState.skippedNonSilent += 1;
+        }
+      }, 'onSkip'),
+      onError: /* @__PURE__ */ __name((err, info) => {
+        runtime.error?.(danger(`telegram ${info.kind} reply failed: ${String(err)}`));
+      }, 'onError'),
+      onReplyStart: createTypingCallbacks({
+        start: sendTyping,
+        onStartError: /* @__PURE__ */ __name((err) => {
+          logTypingFailure({
+            log: logVerbose,
+            channel: 'telegram',
+            target: String(chatId),
+            error: err
+          });
+        }, 'onStartError')
+      }).onReplyStart
+    },
+    replyOptions: {
+      skillFilter,
+      disableBlockStreaming,
+      onPartialReply: draftStream ? (payload) => updateDraftFromPartial(payload.text) : void 0,
+      onModelSelected
+    }
+  });
+  draftStream?.stop();
+  let sentFallback = false;
+  if (!deliveryState.delivered && deliveryState.skippedNonSilent > 0) {
+    const result = await deliverReplies({
+      replies: [{ text: EMPTY_RESPONSE_FALLBACK }],
+      chatId: String(chatId),
+      token: opts.token,
+      runtime,
+      bot,
+      replyToMode,
+      textLimit,
+      thread: threadSpec,
+      tableMode,
+      chunkMode,
+      linkPreview: telegramCfg.linkPreview,
+      replyQuoteText
+    });
+    sentFallback = result.delivered;
+  }
+  const hasFinalResponse = queuedFinal || sentFallback;
+  if (!hasFinalResponse) {
+    if (isGroup && historyKey) {
+      clearHistoryEntriesIfEnabled({ historyMap: groupHistories, historyKey, limit: historyLimit });
+    }
+    return;
+  }
+  removeAckReactionAfterReply({
+    removeAfterReply: removeAckAfterReply,
+    ackReactionPromise,
+    ackReactionValue: ackReactionPromise ? 'ack' : null,
+    remove: /* @__PURE__ */ __name(() => reactionApi?.(chatId, msg.message_id ?? 0, []) ?? Promise.resolve(), 'remove'),
+    onError: /* @__PURE__ */ __name((err) => {
+      if (!msg.message_id) {
+        return;
+      }
+      logAckFailure({
+        log: logVerbose,
+        channel: 'telegram',
+        target: `${chatId}/${msg.message_id}`,
+        error: err
+      });
+    }, 'onError')
+  });
+  if (isGroup && historyKey) {
+    clearHistoryEntriesIfEnabled({ historyMap: groupHistories, historyKey, limit: historyLimit });
+  }
+}, 'dispatchTelegramMessage');
+export {
+  dispatchTelegramMessage
+};

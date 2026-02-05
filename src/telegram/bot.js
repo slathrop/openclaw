@@ -1,0 +1,392 @@
+const __defProp = Object.defineProperty;
+const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { sequentialize } from '@grammyjs/runner';
+import { apiThrottler } from '@grammyjs/transformer-throttler';
+import { Bot, webhookCallback } from 'grammy';
+import { resolveDefaultAgentId } from '../agents/agent-scope.js';
+import { resolveTextChunkLimit } from '../auto-reply/chunk.js';
+import { isControlCommandMessage } from '../auto-reply/command-detection.js';
+import { DEFAULT_GROUP_HISTORY_LIMIT } from '../auto-reply/reply/history.js';
+import {
+  isNativeCommandsExplicitlyDisabled,
+  resolveNativeCommandsEnabled,
+  resolveNativeSkillsEnabled
+} from '../config/commands.js';
+import { loadConfig } from '../config/config.js';
+import {
+  resolveChannelGroupPolicy,
+  resolveChannelGroupRequireMention
+} from '../config/group-policy.js';
+import { loadSessionStore, resolveStorePath } from '../config/sessions.js';
+import { danger, logVerbose, shouldLogVerbose } from '../globals.js';
+import { formatUncaughtError } from '../infra/errors.js';
+import { enqueueSystemEvent } from '../infra/system-events.js';
+import { getChildLogger } from '../logging.js';
+import { createSubsystemLogger } from '../logging/subsystem.js';
+import { resolveAgentRoute } from '../routing/resolve-route.js';
+import { resolveTelegramAccount } from './accounts.js';
+import { withTelegramApiErrorLogging } from './api-logging.js';
+import { registerTelegramHandlers } from './bot-handlers.js';
+import { createTelegramMessageProcessor } from './bot-message.js';
+import { registerTelegramNativeCommands } from './bot-native-commands.js';
+import {
+  buildTelegramUpdateKey,
+  createTelegramUpdateDedupe,
+  resolveTelegramUpdateId
+} from './bot-updates.js';
+import {
+  buildTelegramGroupPeerId,
+  resolveTelegramForumThreadId,
+  resolveTelegramStreamMode
+} from './bot/helpers.js';
+import { resolveTelegramFetch } from './fetch.js';
+import { wasSentByBot } from './sent-message-cache.js';
+function getTelegramSequentialKey(ctx) {
+  const reaction = ctx.update?.message_reaction;
+  if (reaction?.chat?.id) {
+    return `telegram:${reaction.chat.id}`;
+  }
+  const msg = ctx.message ?? ctx.update?.message ?? ctx.update?.edited_message ?? ctx.update?.callback_query?.message;
+  const chatId = msg?.chat?.id ?? ctx.chat?.id;
+  const rawText = msg?.text ?? msg?.caption;
+  const botUsername = ctx.me?.username;
+  if (rawText && isControlCommandMessage(rawText, void 0, botUsername ? { botUsername } : void 0)) {
+    if (typeof chatId === 'number') {
+      return `telegram:${chatId}:control`;
+    }
+    return 'telegram:control';
+  }
+  const isGroup = msg?.chat?.type === 'group' || msg?.chat?.type === 'supergroup';
+  const messageThreadId = msg?.message_thread_id;
+  const isForum = msg?.chat?.is_forum;
+  const threadId = isGroup ? resolveTelegramForumThreadId({ isForum, messageThreadId }) : messageThreadId;
+  if (typeof chatId === 'number') {
+    return threadId !== null && threadId !== undefined ? `telegram:${chatId}:topic:${threadId}` : `telegram:${chatId}`;
+  }
+  return 'telegram:unknown';
+}
+__name(getTelegramSequentialKey, 'getTelegramSequentialKey');
+function createTelegramBot(opts) {
+  const runtime = opts.runtime ?? {
+    log: console.log,
+    error: console.error,
+    exit: /* @__PURE__ */ __name((code) => {
+      throw new Error(`exit ${code}`);
+    }, 'exit')
+  };
+  const cfg = opts.config ?? loadConfig();
+  const account = resolveTelegramAccount({
+    cfg,
+    accountId: opts.accountId
+  });
+  const telegramCfg = account.config;
+  const fetchImpl = resolveTelegramFetch(opts.proxyFetch, {
+    network: telegramCfg.network
+  });
+  const shouldProvideFetch = Boolean(fetchImpl);
+  const timeoutSeconds = typeof telegramCfg?.timeoutSeconds === 'number' && Number.isFinite(telegramCfg.timeoutSeconds) ? Math.max(1, Math.floor(telegramCfg.timeoutSeconds)) : void 0;
+  const client = shouldProvideFetch || timeoutSeconds ? {
+    ...shouldProvideFetch && fetchImpl ? { fetch: fetchImpl } : {},
+    ...timeoutSeconds ? { timeoutSeconds } : {}
+  } : void 0;
+  const bot = new Bot(opts.token, client ? { client } : void 0);
+  bot.api.config.use(apiThrottler());
+  bot.use(sequentialize(getTelegramSequentialKey));
+  bot.catch((err) => {
+    runtime.error?.(danger(`telegram bot error: ${formatUncaughtError(err)}`));
+  });
+  const recentUpdates = createTelegramUpdateDedupe();
+  let lastUpdateId = typeof opts.updateOffset?.lastUpdateId === 'number' ? opts.updateOffset.lastUpdateId : null;
+  const recordUpdateId = /* @__PURE__ */ __name((ctx) => {
+    const updateId = resolveTelegramUpdateId(ctx);
+    if (typeof updateId !== 'number') {
+      return;
+    }
+    if (lastUpdateId !== null && updateId <= lastUpdateId) {
+      return;
+    }
+    lastUpdateId = updateId;
+    void opts.updateOffset?.onUpdateId?.(updateId);
+  }, 'recordUpdateId');
+  const shouldSkipUpdate = /* @__PURE__ */ __name((ctx) => {
+    const updateId = resolveTelegramUpdateId(ctx);
+    if (typeof updateId === 'number' && lastUpdateId !== null) {
+      if (updateId <= lastUpdateId) {
+        return true;
+      }
+    }
+    const key = buildTelegramUpdateKey(ctx);
+    const skipped = recentUpdates.check(key);
+    if (skipped && key && shouldLogVerbose()) {
+      logVerbose(`telegram dedupe: skipped ${key}`);
+    }
+    return skipped;
+  }, 'shouldSkipUpdate');
+  const rawUpdateLogger = createSubsystemLogger('gateway/channels/telegram/raw-update');
+  const MAX_RAW_UPDATE_CHARS = 8e3;
+  const MAX_RAW_UPDATE_STRING = 500;
+  const MAX_RAW_UPDATE_ARRAY = 20;
+  const stringifyUpdate = /* @__PURE__ */ __name((update) => {
+    const seen = /* @__PURE__ */ new WeakSet();
+    return JSON.stringify(update ?? null, (key, value) => {
+      if (typeof value === 'string' && value.length > MAX_RAW_UPDATE_STRING) {
+        return `${value.slice(0, MAX_RAW_UPDATE_STRING)}...`;
+      }
+      if (Array.isArray(value) && value.length > MAX_RAW_UPDATE_ARRAY) {
+        return [
+          ...value.slice(0, MAX_RAW_UPDATE_ARRAY),
+          `...(${value.length - MAX_RAW_UPDATE_ARRAY} more)`
+        ];
+      }
+      if (value && typeof value === 'object') {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    });
+  }, 'stringifyUpdate');
+  bot.use(async (ctx, next) => {
+    if (shouldLogVerbose()) {
+      try {
+        const raw = stringifyUpdate(ctx.update);
+        const preview = raw.length > MAX_RAW_UPDATE_CHARS ? `${raw.slice(0, MAX_RAW_UPDATE_CHARS)}...` : raw;
+        rawUpdateLogger.debug(`telegram update: ${preview}`);
+      } catch (err) {
+        rawUpdateLogger.debug(`telegram update log failed: ${String(err)}`);
+      }
+    }
+    await next();
+    recordUpdateId(ctx);
+  });
+  const historyLimit = Math.max(
+    0,
+    telegramCfg.historyLimit ?? cfg.messages?.groupChat?.historyLimit ?? DEFAULT_GROUP_HISTORY_LIMIT
+  );
+  const groupHistories = /* @__PURE__ */ new Map();
+  const textLimit = resolveTextChunkLimit(cfg, 'telegram', account.accountId);
+  const dmPolicy = telegramCfg.dmPolicy ?? 'pairing';
+  const allowFrom = opts.allowFrom ?? telegramCfg.allowFrom;
+  const groupAllowFrom = opts.groupAllowFrom ?? telegramCfg.groupAllowFrom ?? (telegramCfg.allowFrom && telegramCfg.allowFrom.length > 0 ? telegramCfg.allowFrom : void 0) ?? (opts.allowFrom && opts.allowFrom.length > 0 ? opts.allowFrom : void 0);
+  const replyToMode = opts.replyToMode ?? telegramCfg.replyToMode ?? 'first';
+  const nativeEnabled = resolveNativeCommandsEnabled({
+    providerId: 'telegram',
+    providerSetting: telegramCfg.commands?.native,
+    globalSetting: cfg.commands?.native
+  });
+  const nativeSkillsEnabled = resolveNativeSkillsEnabled({
+    providerId: 'telegram',
+    providerSetting: telegramCfg.commands?.nativeSkills,
+    globalSetting: cfg.commands?.nativeSkills
+  });
+  const nativeDisabledExplicit = isNativeCommandsExplicitlyDisabled({
+    providerSetting: telegramCfg.commands?.native,
+    globalSetting: cfg.commands?.native
+  });
+  const useAccessGroups = cfg.commands?.useAccessGroups !== false;
+  const ackReactionScope = cfg.messages?.ackReactionScope ?? 'group-mentions';
+  const mediaMaxBytes = (opts.mediaMaxMb ?? telegramCfg.mediaMaxMb ?? 5) * 1024 * 1024;
+  const logger = getChildLogger({ module: 'telegram-auto-reply' });
+  const streamMode = resolveTelegramStreamMode(telegramCfg);
+  let botHasTopicsEnabled;
+  const resolveBotTopicsEnabled = /* @__PURE__ */ __name(async (ctx) => {
+    if (typeof ctx?.me?.has_topics_enabled === 'boolean') {
+      botHasTopicsEnabled = ctx.me.has_topics_enabled;
+      return botHasTopicsEnabled;
+    }
+    if (typeof botHasTopicsEnabled === 'boolean') {
+      return botHasTopicsEnabled;
+    }
+    if (typeof bot.api.getMe !== 'function') {
+      botHasTopicsEnabled = false;
+      return botHasTopicsEnabled;
+    }
+    try {
+      const me = await withTelegramApiErrorLogging({
+        operation: 'getMe',
+        runtime,
+        fn: /* @__PURE__ */ __name(() => bot.api.getMe(), 'fn')
+      });
+      botHasTopicsEnabled = Boolean(me?.has_topics_enabled);
+    } catch (err) {
+      logVerbose(`telegram getMe failed: ${String(err)}`);
+      botHasTopicsEnabled = false;
+    }
+    return botHasTopicsEnabled;
+  }, 'resolveBotTopicsEnabled');
+  const resolveGroupPolicy = /* @__PURE__ */ __name((chatId) => resolveChannelGroupPolicy({
+    cfg,
+    channel: 'telegram',
+    accountId: account.accountId,
+    groupId: String(chatId)
+  }), 'resolveGroupPolicy');
+  const resolveGroupActivation = /* @__PURE__ */ __name((params) => {
+    const agentId = params.agentId ?? resolveDefaultAgentId(cfg);
+    const sessionKey = params.sessionKey ?? `agent:${agentId}:telegram:group:${buildTelegramGroupPeerId(params.chatId, params.messageThreadId)}`;
+    const storePath = resolveStorePath(cfg.session?.store, { agentId });
+    try {
+      const store = loadSessionStore(storePath);
+      const entry = store[sessionKey];
+      if (entry?.groupActivation === 'always') {
+        return false;
+      }
+      if (entry?.groupActivation === 'mention') {
+        return true;
+      }
+    } catch (err) {
+      logVerbose(`Failed to load session for activation check: ${String(err)}`);
+    }
+    return void 0;
+  }, 'resolveGroupActivation');
+  const resolveGroupRequireMention = /* @__PURE__ */ __name((chatId) => resolveChannelGroupRequireMention({
+    cfg,
+    channel: 'telegram',
+    accountId: account.accountId,
+    groupId: String(chatId),
+    requireMentionOverride: opts.requireMention,
+    overrideOrder: 'after-config'
+  }), 'resolveGroupRequireMention');
+  const resolveTelegramGroupConfig = /* @__PURE__ */ __name((chatId, messageThreadId) => {
+    const groups = telegramCfg.groups;
+    if (!groups) {
+      return { groupConfig: void 0, topicConfig: void 0 };
+    }
+    const groupKey = String(chatId);
+    const groupConfig = groups[groupKey] ?? groups['*'];
+    const topicConfig = messageThreadId !== null && messageThreadId !== undefined ? groupConfig?.topics?.[String(messageThreadId)] : void 0;
+    return { groupConfig, topicConfig };
+  }, 'resolveTelegramGroupConfig');
+  const processMessage = createTelegramMessageProcessor({
+    bot,
+    cfg,
+    account,
+    telegramCfg,
+    historyLimit,
+    groupHistories,
+    dmPolicy,
+    allowFrom,
+    groupAllowFrom,
+    ackReactionScope,
+    logger,
+    resolveGroupActivation,
+    resolveGroupRequireMention,
+    resolveTelegramGroupConfig,
+    runtime,
+    replyToMode,
+    streamMode,
+    textLimit,
+    opts,
+    resolveBotTopicsEnabled
+  });
+  registerTelegramNativeCommands({
+    bot,
+    cfg,
+    runtime,
+    accountId: account.accountId,
+    telegramCfg,
+    allowFrom,
+    groupAllowFrom,
+    replyToMode,
+    textLimit,
+    useAccessGroups,
+    nativeEnabled,
+    nativeSkillsEnabled,
+    nativeDisabledExplicit,
+    resolveGroupPolicy,
+    resolveTelegramGroupConfig,
+    shouldSkipUpdate,
+    opts
+  });
+  bot.on('message_reaction', async (ctx) => {
+    try {
+      const reaction = ctx.messageReaction;
+      if (!reaction) {
+        return;
+      }
+      if (shouldSkipUpdate(ctx)) {
+        return;
+      }
+      const chatId = reaction.chat.id;
+      const messageId = reaction.message_id;
+      const user = reaction.user;
+      const reactionMode = telegramCfg.reactionNotifications ?? 'own';
+      if (reactionMode === 'off') {
+        return;
+      }
+      if (user?.is_bot) {
+        return;
+      }
+      if (reactionMode === 'own' && !wasSentByBot(chatId, messageId)) {
+        return;
+      }
+      const oldEmojis = new Set(
+        reaction.old_reaction.filter((r) => r.type === 'emoji').map((r) => r.emoji)
+      );
+      const addedReactions = reaction.new_reaction.filter((r) => r.type === 'emoji').filter((r) => !oldEmojis.has(r.emoji));
+      if (addedReactions.length === 0) {
+        return;
+      }
+      const senderName = user ? [user.first_name, user.last_name].filter(Boolean).join(' ').trim() || user.username : void 0;
+      const senderUsername = user?.username ? `@${user.username}` : void 0;
+      let senderLabel = senderName;
+      if (senderName && senderUsername) {
+        senderLabel = `${senderName} (${senderUsername})`;
+      } else if (!senderName && senderUsername) {
+        senderLabel = senderUsername;
+      }
+      if (!senderLabel && user?.id) {
+        senderLabel = `id:${user.id}`;
+      }
+      senderLabel = senderLabel || 'unknown';
+      const isGroup = reaction.chat.type === 'group' || reaction.chat.type === 'supergroup';
+      const isForum = reaction.chat.is_forum === true;
+      const resolvedThreadId = isForum ? resolveTelegramForumThreadId({ isForum, messageThreadId: void 0 }) : void 0;
+      const peerId = isGroup ? buildTelegramGroupPeerId(chatId, resolvedThreadId) : String(chatId);
+      const route = resolveAgentRoute({
+        cfg,
+        channel: 'telegram',
+        accountId: account.accountId,
+        peer: { kind: isGroup ? 'group' : 'dm', id: peerId }
+      });
+      const sessionKey = route.sessionKey;
+      for (const r of addedReactions) {
+        const emoji = r.emoji;
+        const text = `Telegram reaction added: ${emoji} by ${senderLabel} on msg ${messageId}`;
+        enqueueSystemEvent(text, {
+          sessionKey,
+          contextKey: `telegram:reaction:add:${chatId}:${messageId}:${user?.id ?? 'anon'}:${emoji}`
+        });
+        logVerbose(`telegram: reaction event enqueued: ${text}`);
+      }
+    } catch (err) {
+      runtime.error?.(danger(`telegram reaction handler failed: ${String(err)}`));
+    }
+  });
+  registerTelegramHandlers({
+    cfg,
+    accountId: account.accountId,
+    bot,
+    opts,
+    runtime,
+    mediaMaxBytes,
+    telegramCfg,
+    groupAllowFrom,
+    resolveGroupPolicy,
+    resolveTelegramGroupConfig,
+    shouldSkipUpdate,
+    processMessage,
+    logger
+  });
+  return bot;
+}
+__name(createTelegramBot, 'createTelegramBot');
+function createTelegramWebhookCallback(bot, path = '/telegram-webhook') {
+  return { path, handler: webhookCallback(bot, 'http') };
+}
+__name(createTelegramWebhookCallback, 'createTelegramWebhookCallback');
+export {
+  createTelegramBot,
+  createTelegramWebhookCallback,
+  getTelegramSequentialKey
+};
