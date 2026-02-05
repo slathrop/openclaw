@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 4 of 6 (CLI and Channels)
-Plan: 2 of 3 in current phase (04-02 done)
+Plan: 2 of 3 in current phase (04-01 and 04-02 done)
 Status: In progress
-Last activity: 2026-02-05 -- Completed 04-02-PLAN.md (channel conversion)
+Last activity: 2026-02-05 -- Completed 04-01-PLAN.md (CLI and commands conversion)
 
-Progress: [=================>..] 80% (24/30 total plans)
+Progress: [===================>] 83% (25/30 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: ~14m
-- Total execution time: ~5.2 hours
+- Total execution time: ~5.8 hours
 
 **By Phase:**
 
@@ -31,12 +31,12 @@ Progress: [=================>..] 80% (24/30 total plans)
 | 1. Build Tooling      | 3/3   | 14m 09s | 4m 43s   |
 | 2. Foundation Layer   | 10/10 | ~169m   | ~17m     |
 | 3. Core Services      | 8/8   | ~107m   | ~13m     |
-| 4. CLI and Channels   | 2/3   | ~18m    | ~18m     |
+| 4. CLI and Channels   | 2/3   | ~53m    | ~27m     |
 
 **Recent Trend:**
 
-- Last 5 plans: 04-02 (~18m), 03-07 (~13m), 03-08 (~11m), 03-04 (~15m), 03-06 (~12m)
-- Trend: Larger batches (220 files) take ~18m; __name boilerplate removal added time
+- Last 5 plans: 04-01 (~35m), 04-02 (~18m), 03-07 (~13m), 03-08 (~11m), 03-04 (~15m)
+- Trend: CLI/commands conversion took ~35m due to __name hoisting issue requiring 3 fix attempts
 
 _Updated after each plan completion_
 
@@ -47,7 +47,7 @@ _Updated after each plan completion_
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Roadmap: Code quality improvements (QUAL-\*) applied during conversion phases, not as a separate pass
+- Roadmap: Code quality improvements (QUAL-*) applied during conversion phases, not as a separate pass
 - Roadmap: Tests convert alongside source modules; TEST-01 completion verified in Phase 5
 - Roadmap: Foundation layer (shared infra, config, routing) converts before dependent modules
 - 01-01: Rolldown config references current .js entry points (updated in 02-10)
@@ -133,6 +133,11 @@ Recent decisions affecting current work:
 - 04-02: esbuild keepNames boilerplate (__defProp/__name) must be removed from all converted files (breaks vi.mock hoisting)
 - 04-02: Private constructor params expanded correctly by esbuild (no manual underscore-prefix needed)
 - 04-02: Null equality regex must use word-boundary matching to avoid capturing opening parens
+- 04-01: esbuild __name hoisting conflict with vitest vi.mock; strip __name wrappers from test files with vi.mock
+- 04-01: static { __name(this, 'X') } in class bodies within mock factories must be removed
+- 04-01: Lodash-es not introduced in src/commands/ (no patterns found that would benefit)
+- 04-01: onboarding/types.js is a runtime barrel re-export, not type-only (preserved as-is)
+- 04-01: gateway.sigterm.test.js had hardcoded .ts paths in path.resolve() calls
 
 ### Pending Todos
 
@@ -146,6 +151,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 04-02-PLAN.md (channel conversion: telegram, discord, whatsapp, slack)
+Stopped at: Completed 04-01-PLAN.md (CLI and commands conversion: 397 files)
 Resume file: None
-Next action: Execute 04-03 (remaining channels: signal, imessage, web, channels, routing) or 04-01 (CLI)
+Next action: Execute 04-03 (remaining channels: signal, imessage, web, channels, routing)
