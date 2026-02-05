@@ -66,18 +66,21 @@ Plans:
 **Goal**: The gateway server, agent runtime, AI providers, and support modules are converted to idiomatic JavaScript
 **Depends on**: Phase 2
 **Requirements**: CORE-03, CORE-05, CORE-06, CORE-09, QUAL-01, QUAL-02
+**Plans:** 6 plans
 **Success Criteria** (what must be TRUE):
   1. All files in `src/gateway/`, `src/agents/`, `src/providers/` are JavaScript with no remaining .ts files
   2. All files in `src/logging/`, `src/memory/`, `src/sessions/`, `src/terminal/`, `src/plugins/` are JavaScript with no remaining .ts files
   3. Nested conditionals and callback pyramids are flattened to early returns and set-and-return patterns throughout converted code
   4. Functions use arrow syntax and functional patterns (map, filter, reduce) instead of imperative loops where appropriate
   5. Gateway server starts and accepts WebSocket connections when run from the converted source
-**Plans**: TBD
 
 Plans:
-- [ ] 03-01: Convert gateway server and protocol modules
-- [ ] 03-02: Convert agent runtime, model selection, and AI provider clients
-- [ ] 03-03: Convert logging, memory, sessions, terminal, and plugin modules
+- [ ] 03-01-PLAN.md -- Install esbuild, convert logging, sessions, terminal, and providers
+- [ ] 03-02-PLAN.md -- Convert memory subsystem and plugin system
+- [ ] 03-03-PLAN.md -- Convert gateway protocol layer (TypeBox/Zod schemas)
+- [ ] 03-04-PLAN.md -- Convert gateway root, server, and server-methods
+- [ ] 03-05-PLAN.md -- Convert agents root-level source and test files
+- [ ] 03-06-PLAN.md -- Convert agents subdirectories (tools, auth-profiles, pi-embedded, sandbox, skills)
 
 ### Phase 4: CLI and Channels
 **Goal**: The CLI layer, all commands, and all nine messaging channel implementations are converted to idiomatic JavaScript
@@ -139,7 +142,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Build Tooling | 3/3 | Complete | 2026-02-04 |
 | 2. Foundation Layer | 10/10 | Complete | 2026-02-04 |
-| 3. Core Services | 0/3 | Not started | - |
+| 3. Core Services | 0/6 | Not started | - |
 | 4. CLI and Channels | 0/3 | Not started | - |
 | 5. UI and Extensions | 0/3 | Not started | - |
 | 6. Verification and Parity | 0/3 | Not started | - |
