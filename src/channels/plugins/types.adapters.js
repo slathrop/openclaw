@@ -110,11 +110,9 @@
  * @property {(params: {cfg: import('../../config/config.js').OpenClawConfig, accountId?: string | null, inputs: string[], kind: ChannelResolveKind, runtime: import('../../runtime.js').RuntimeEnv}) => Promise<ChannelResolveResult[]>} resolveTargets
  * @typedef {object} ChannelElevatedAdapter
  * @property {(params: {cfg: import('../../config/config.js').OpenClawConfig, accountId?: string | null}) => Array<string | number> | undefined} [allowFromFallback]
- *
  * @typedef {object} ChannelCommandAdapter
  * @property {boolean} [enforceOwnerForCommands]
  * @property {boolean} [skipWhenConfigEmpty]
- *
  * @typedef {object} ChannelSecurityAdapter
  * @property {(ctx: import('./types.core.js').ChannelSecurityContext) => import('./types.core.js').ChannelSecurityDmPolicy | null} [resolveDmPolicy]
  * @property {(ctx: import('./types.core.js').ChannelSecurityContext) => Promise<string[]> | string[]} [collectWarnings]

@@ -172,12 +172,9 @@
  * @property {(raw: string) => string | undefined} [normalizeTarget]
  * @property {{looksLikeId?: (raw: string, normalized?: string) => boolean, hint?: string}} [targetResolver]
  * @property {(params: {target: string, display?: string, kind?: ChannelDirectoryEntryKind}) => string} [formatTargetDisplay]
- *
  * @typedef {object} ChannelAgentPromptAdapter
  * @property {(params: {cfg: import('../../config/config.js').OpenClawConfig, accountId?: string | null}) => string[]} [messageToolHints]
- *
  * @typedef {'user' | 'group' | 'channel'} ChannelDirectoryEntryKind
- *
  * @typedef {object} ChannelDirectoryEntry
  * @property {ChannelDirectoryEntryKind} kind
  * @property {string} id
@@ -186,9 +183,7 @@
  * @property {string} [avatarUrl]
  * @property {number} [rank]
  * @property {unknown} [raw]
- *
  * @typedef {import('./message-action-names.js').ChannelMessageActionName} ChannelMessageActionName
- *
  * @typedef {object} ChannelMessageActionContext
  * @property {ChannelId} channel
  * @property {ChannelMessageActionName} action
@@ -198,11 +193,9 @@
  * @property {{url?: string, token?: string, timeoutMs?: number, clientName: import('../../utils/message-channel.js').GatewayClientName, clientDisplayName?: string, mode: import('../../utils/message-channel.js').GatewayClientMode}} [gateway]
  * @property {ChannelThreadingToolContext} [toolContext]
  * @property {boolean} [dryRun]
- *
  * @typedef {object} ChannelToolSend
  * @property {string} to
  * @property {string | null} [accountId]
- *
  * @typedef {object} ChannelMessageActionAdapter
  * @property {(params: {cfg: import('../../config/config.js').OpenClawConfig}) => ChannelMessageActionName[]} [listActions]
  * @property {(params: {action: ChannelMessageActionName}) => boolean} [supportsAction]
@@ -210,14 +203,12 @@
  * @property {(params: {cfg: import('../../config/config.js').OpenClawConfig}) => boolean} [supportsCards]
  * @property {(params: {args: Record<string, unknown>}) => ChannelToolSend | null} [extractToolSend]
  * @property {(ctx: ChannelMessageActionContext) => Promise<import('@mariozechner/pi-agent-core').AgentToolResult>} [handleAction]
- *
  * @typedef {object} ChannelPollResult
  * @property {string} messageId
  * @property {string} [toJid]
  * @property {string} [channelId]
  * @property {string} [conversationId]
  * @property {string} [pollId]
- *
  * @typedef {object} ChannelPollContext
  * @property {import('../../config/config.js').OpenClawConfig} cfg
  * @property {string} to
