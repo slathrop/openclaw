@@ -28,6 +28,7 @@ Docs: https://docs.openclaw.ai
 - Web UI: fix agent model selection saves for default/non-default agents and wrap long workspace paths. Thanks @Takhoffman.
 - Web UI: resolve header logo path when `gateway.controlUi.basePath` is set. (#7178) Thanks @Yeom-JinHo.
 - Web UI: apply button styling to the new-messages indicator.
+- Onboarding: infer auth choice from non-interactive API key flags. (#8484) Thanks @f-trycua.
 - Security: keep untrusted channel metadata out of system prompts (Slack/Discord). Thanks @KonstantinMirin.
 - Security: enforce sandboxed media paths for message tool attachments. (#9182) Thanks @victormier.
 - Voice call: harden webhook verification with host allowlists/proxy trust and keep ngrok loopback bypass.
