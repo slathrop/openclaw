@@ -112,6 +112,28 @@ describe('resolveCommandAuthorization', () => {
     expect(auth.senderId).toBe('+41796666864');
     expect(auth.isAuthorizedSender).toBe(true);
   });
+
+  it('uses owner allowlist override from context when configured', () => {
+    const cfg = {
+      channels: { discord: {} }
+    };
+    const ctx = {
+      Provider: 'discord',
+      Surface: 'discord',
+      From: 'discord:123',
+      SenderId: '123',
+      OwnerAllowFrom: ['discord:123']
+    };
+    const auth = resolveCommandAuthorization({
+      ctx,
+      cfg,
+      commandAuthorized: true
+    });
+    expect(auth.senderIsOwner).toBe(true);
+    // In test environment without Discord plugin registered, the prefix is not stripped.
+    // In production the ownerList would be ['123'].
+    expect(auth.ownerList).toEqual(['discord:123']);
+  });
 });
 describe('control command parsing', () => {
   it('requires slash for send policy', () => {
