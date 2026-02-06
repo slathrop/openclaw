@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
+
+const MOCK_USERNAME = 'MockUser';
+
+vi.mock('node:os', () => ({
+  default: { userInfo: () => ({ username: MOCK_USERNAME }) },
+  userInfo: () => ({ username: MOCK_USERNAME })
+}));
+
+const {
   createIcaclsResetCommand,
   formatIcaclsResetCommand,
   formatWindowsAclSummary,
@@ -7,7 +15,7 @@ import {
   parseIcaclsOutput,
   resolveWindowsUserPrincipal,
   summarizeWindowsAcl
-} from './windows-acl.js';
+} = await import('./windows-acl.js');
 
 describe('windows-acl', () => {
   describe('resolveWindowsUserPrincipal', () => {
@@ -31,7 +39,7 @@ describe('windows-acl', () => {
       const env = { USERNAME: '', USERDOMAIN: 'WORKGROUP' };
       const result = resolveWindowsUserPrincipal(env);
       // Should return a username (from os.userInfo fallback) with WORKGROUP domain
-      expect(result).toContain('WORKGROUP\\');
+      expect(result).toBe(`WORKGROUP\\${MOCK_USERNAME}`);
     });
   });
 
@@ -304,9 +312,9 @@ Successfully processed 1 files`;
     it('uses system username when env is empty (falls back to os.userInfo)', () => {
       // When env is empty, resolveWindowsUserPrincipal falls back to os.userInfo().username
       const result = formatIcaclsResetCommand('C:\\test\\file.txt', { isDir: false, env: {} });
-      // Should contain the actual system username from os.userInfo
-      expect(result).toContain(':F');
-      expect(result).toContain('/grant:r');
+      // Should contain the mocked system username from os.userInfo
+      expect(result).toContain(`"${MOCK_USERNAME}:F"`);
+      expect(result).not.toContain('%USERNAME%');
     });
   });
 
@@ -323,9 +331,10 @@ Successfully processed 1 files`;
     it('returns command with system username when env is empty (falls back to os.userInfo)', () => {
       // When env is empty, resolveWindowsUserPrincipal falls back to os.userInfo().username
       const result = createIcaclsResetCommand('C:\\test\\file.txt', { isDir: false, env: {} });
-      // Should return a valid command using the system username
+      // Should return a valid command using the mocked system username
       expect(result).not.toBeNull();
       expect(result?.command).toBe('icacls');
+      expect(result?.args).toContain(`${MOCK_USERNAME}:F`);
     });
 
     it('includes display string matching formatIcaclsResetCommand', () => {
