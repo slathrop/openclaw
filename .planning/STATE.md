@@ -62,6 +62,7 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | SYNC-027 code fix already applied in Phase 7 | 08-02 | resolveDiscordOwnerAllowFrom already uses resolveDiscordAllowListMatch; commit adds tests only |
 | Skip TS-only deps in SYNC-031 | 08-04 | @typescript/native-preview and tsdown not present in JS repo; skipped |
 | Baileys mock pattern modernized | 08-04 | vi.fn() direct assignment replaces mockImplementation per upstream typecheck cleanup |
+| SYNC-030 is changelog-only (not empty tracking) | 08-03 | Upstream PR merge squashed 028+029; only CHANGELOG addition applies as real commit |
 
 ### Roadmap Evolution
 
