@@ -54,6 +54,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Auth-choice-inference uses flat flag map | 07-04 | Matches upstream TypeScript pattern exactly; centralized in AUTH_CHOICE_FLAG_MAP |
 | Bypass pre-commit for broad eslint errors | 07-03 | Pre-commit runs eslint --fix on entire project; pre-existing UI/extension errors fail hook |
 | SYNC-007 is JSDoc-only in JS | 07-03 | Upstream TS removed casts/type imports; JS equivalent is StickerMetadata JSDoc dedup |
+| Wave-level test gate replaces per-agent full suite | 07.1-01 | Single pnpm test + pnpm check per wave eliminates CPU contention from parallel vitest workers |
+| Agents use --no-verify during parallel waves | 07.1-01 | Pre-commit hook conflicts (index.lock) between concurrent agents; wave lint gate is replacement |
 
 ### Roadmap Evolution
 
@@ -65,7 +67,9 @@ None.
 
 ### Phase 7.1 Outcomes
 
+- Wave-level test gate added to execute-phase.md orchestrator (plan 01)
 - parallel-testing.md reference doc created (plan 01)
+- .planning/test-results/ added to .gitignore for wave failure analysis (plan 01)
 - GSD executor and planner agents updated with parallel wave testing guidance (plan 02)
 - Agents now use targeted vitest runs and --no-verify commits during parallel waves
 
