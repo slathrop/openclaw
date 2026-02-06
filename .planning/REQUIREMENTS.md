@@ -5,9 +5,9 @@
 
 ## v2 Requirements
 
-Port 103 upstream commits with 1:1 parity and full test verification.
+Port 104 upstream commits with 1:1 parity and full test verification.
 
-**Commit range (INCLUSIVE):** a13ff55bd..ee1ec3fab
+**Commit range (INCLUSIVE):** a13ff55bd..6c42d3461
 
 ### Phase 7: Security + Initial Hardening (commits 1-21)
 
@@ -104,7 +104,7 @@ Port 103 upstream commits with 1:1 parity and full test verification.
 - [ ] **SYNC-082**: Changelog: note #9976 thinking alias + Codex 5.3 docs sync (7db839544)
 - [ ] **SYNC-083**: fix: normalize xhigh aliases and docs sync (#9976) (de7b2ba7d)
 
-### Phase 11: Agents + Feishu + Gateway Auth (commits 84-103)
+### Phase 11: Agents + Feishu + Gateway Auth (commits 84-104)
 
 - [ ] **SYNC-084**: fix(agents): skip tool extraction for aborted messages (#4598) (861725fba)
 - [ ] **SYNC-085**: fix(cron): handle undefined sessionTarget in list output (#9752) (2d15dd757)
@@ -126,12 +126,13 @@ Port 103 upstream commits with 1:1 parity and full test verification.
 - [ ] **SYNC-101**: fix: Gateway canvas host bypasses auth (47538bca4)
 - [ ] **SYNC-102**: fix(gateway): require auth for canvas host and a2ui (#9518) (a459e237e)
 - [ ] **SYNC-103**: Add proper `onToolResult` fallback. (ee1ec3fab)
+- [ ] **SYNC-104**: chore: Add VS Code defaults and extensions for Oxlint/Oxfmt (6c42d3461)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Commits outside range | Only a13ff55..ee1ec3f (inclusive) |
+| Commits outside range | Only a13ff55..6c42d34 (inclusive) |
 | Reordering commits | Strict chronological order |
 | Skipping commits | All 103 must be ported |
 
@@ -143,13 +144,13 @@ Port 103 upstream commits with 1:1 parity and full test verification.
 | SYNC-022 to SYNC-042 | Phase 8 | Pending |
 | SYNC-043 to SYNC-063 | Phase 9 | Pending |
 | SYNC-064 to SYNC-083 | Phase 10 | Pending |
-| SYNC-084 to SYNC-103 | Phase 11 | Pending |
+| SYNC-084 to SYNC-104 | Phase 11 | Pending |
 
 **Coverage:**
-- v2 requirements: 103 total
-- Mapped to phases: 103
+- v2 requirements: 104 total
+- Mapped to phases: 104
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-05*
-*Last updated: 2026-02-05 — corrected to include boundary commit a13ff55*
+*Last updated: 2026-02-05 — extended range to include 6c42d3461 (104 total)*

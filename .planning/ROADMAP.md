@@ -1,8 +1,8 @@
 # Roadmap: v2 Upstream Sync
 
 **Created:** 2026-02-05
-**Milestone:** v2 — Port 103 upstream commits to JavaScript codebase
-**Commit range (INCLUSIVE):** a13ff55bd..ee1ec3fab
+**Milestone:** v2 — Port 104 upstream commits to JavaScript codebase
+**Commit range (INCLUSIVE):** a13ff55bd..6c42d3461
 
 ## Overview
 
@@ -12,7 +12,7 @@
 | 8 | Windows ACL + Telegram Threading | 22-42 | ACL tests, Discord, Telegram DM threading, Docs |
 | 9 | Threading + Features | 43-63 | Telegram threading, Opus 4.6, Feishu, Cron fixes |
 | 10 | xAI + Cron + Security Scanner | 64-83 | xAI Grok, Cron fixes, Exec approvals, Security scanner |
-| 11 | Agents + Feishu + Gateway Auth | 84-103 | Agent fixes, Feishu multi-account, Gateway security |
+| 11 | Agents + Feishu + Gateway Auth | 84-104 | Agent fixes, Feishu multi-account, Gateway security |
 
 ---
 
@@ -117,8 +117,8 @@
 
 **Goal:** Port agent fixes, Feishu multi-account, and critical gateway auth security fixes
 
-**Commits:** 84-103 (20 commits)
-**Requirements:** SYNC-084 to SYNC-103
+**Commits:** 84-104 (21 commits)
+**Requirements:** SYNC-084 to SYNC-104
 
 **Key changes:**
 - Agents: skip tool extraction for aborted/errored messages
@@ -131,6 +131,7 @@
 - Ollama: streaming config and OLLAMA_API_KEY env var support
 - Slack: mention stripPatterns for /new and /reset commands
 - Nextcloud Talk: sign message text instead of JSON body
+- DevEx: VS Code defaults and extensions for Oxlint/Oxfmt
 
 **Success criteria:**
 1. Agent tool extraction skips aborted messages
