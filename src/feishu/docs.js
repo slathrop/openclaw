@@ -282,7 +282,7 @@ export async function fetchFeishuDocContent(client, docRef, options = {}) {
 
     // Truncate if too long
     if (content.length > maxLength) {
-      content = content.substring(0, maxLength) + '\n\n... (Content truncated due to length)';
+      content = `${content.substring(0, maxLength)  }\n\n... (Content truncated due to length)`;
       truncated = true;
     }
 

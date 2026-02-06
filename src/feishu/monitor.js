@@ -53,7 +53,7 @@ async function monitorFeishuProvider(opts = {}) {
   const probeResult = await probeFeishu(appId, appSecret, 5000, domain);
   const botOpenId = probeResult.bot?.openId ?? undefined;
   if (!botOpenId) {
-    logger.warn(`Could not get bot open_id, group mention detection may not work correctly`);
+    logger.warn('Could not get bot open_id, group mention detection may not work correctly');
   }
 
   const eventDispatcher = new Lark.EventDispatcher({}).register({

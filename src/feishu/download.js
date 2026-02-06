@@ -6,7 +6,6 @@ const logger = getChildLogger({ module: 'feishu-download' });
 /**
  * Download a resource from a user message using messageResource.get
  * This is the correct API for downloading resources from messages sent by users.
- *
  * @param {object} client
  * @param {string} messageId
  * @param {string} fileKey
