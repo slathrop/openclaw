@@ -14,6 +14,11 @@ import { shortenHomePath } from '../utils.js';
 import { formatCliCommand } from './command-format.js';
 function bundledExtensionRootDir() {
   const here = path.dirname(fileURLToPath(import.meta.url));
+
+  // `here` is the directory containing this file.
+  // - In source runs/tests, it's typically `<packageRoot>/src/cli`.
+  // - In transpiled builds, it's typically `<packageRoot>/dist/cli`.
+  // The bundled extension lives at `<packageRoot>/assets/chrome-extension`.
   return path.resolve(here, '../../assets/chrome-extension');
 }
 __name(bundledExtensionRootDir, 'bundledExtensionRootDir');
