@@ -48,6 +48,40 @@ import {
   hasBotMention,
   resolveTelegramThreadSpec
 } from './bot/helpers.js';
+
+/**
+ * Reference to Telegram media with optional sticker metadata.
+ * @typedef {object} TelegramMediaRef
+ * @property {string} path
+ * @property {string} [contentType]
+ * @property {object} [stickerMetadata]
+ * @property {string} [stickerMetadata.emoji]
+ * @property {string} [stickerMetadata.setName]
+ * @property {string} [stickerMetadata.cachedDescription]
+ */
+
+/**
+ * Parameters for building Telegram message context.
+ * @typedef {object} BuildTelegramMessageContextParams
+ * @property {import('./bot/types.js').TelegramContext} primaryCtx
+ * @property {TelegramMediaRef[]} allMedia
+ * @property {string[]} storeAllowFrom
+ * @property {{messageIdOverride?: string; forceWasMentioned?: boolean}} [options]
+ * @property {*} bot
+ * @property {import('../config/config.js').Config} cfg
+ * @property {{accountId: string}} account
+ * @property {number} historyLimit
+ * @property {Map<string, Array<*>>} groupHistories
+ * @property {string} dmPolicy
+ * @property {*} allowFrom
+ * @property {*} groupAllowFrom
+ * @property {string} ackReactionScope
+ * @property {*} logger
+ * @property {(params: {chatId: string | number; messageThreadId?: number; sessionKey: string; agentId: string}) => boolean | undefined} resolveGroupActivation
+ * @property {(chatId: string | number) => boolean} resolveGroupRequireMention
+ * @property {(chatId: string | number, topicId?: number) => {groupConfig?: *; topicConfig?: *}} resolveTelegramGroupConfig
+ */
+
 async function resolveStickerVisionSupport(params) {
   try {
     const catalog = await loadModelCatalog({ config: params.cfg });
