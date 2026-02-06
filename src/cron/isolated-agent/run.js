@@ -191,7 +191,10 @@ async function runCronIsolatedAgentTurn(params) {
     });
   }
   if (thinkLevel === 'xhigh' && !supportsXHighThinking(provider, model)) {
-    throw new Error(`Thinking level "xhigh" is only supported for ${formatXHighModelHint()}.`);
+    logWarn(
+      `[cron:${params.job.id}] Thinking level "xhigh" is not supported for ${provider}/${model}; downgrading to "high".`
+    );
+    thinkLevel = 'high';
   }
   const timeoutMs = resolveAgentTimeoutMs({
     cfg: cfgWithAgentDefaults,
