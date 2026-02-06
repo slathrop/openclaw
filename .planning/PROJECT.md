@@ -2,7 +2,17 @@
 
 ## What This Is
 
-A comprehensive refactor of the OpenClaw multi-channel messaging gateway from TypeScript to JavaScript, now complete. The codebase is 100% JavaScript, follows Google Standard Style, includes comprehensive JSDoc annotations, and maintains full feature parity with the TypeScript original.
+The OpenClaw multi-channel messaging gateway, converted from TypeScript to JavaScript. The codebase is 100% JavaScript, follows Google Standard Style, includes comprehensive JSDoc annotations, and stays synchronized with upstream TypeScript development.
+
+## Current Milestone: v2 Upstream Sync
+
+**Goal:** Port all upstream TypeScript commits to this JavaScript codebase, maintaining 1:1 commit parity with full test verification.
+
+**Scope:**
+- 102 commits from upstream (a13ff55..ee1ec3f)
+- Security fixes, bug fixes, features, docs, tests
+- Each upstream commit becomes one commit here
+- Full test suite run after each ported commit
 
 ## Core Value
 
@@ -46,25 +56,35 @@ The code is human-friendly to senior JavaScript engineers. Every decision — st
 
 ### Active
 
-(None — v1 complete, next milestone requirements to be defined)
+- [ ] Port 102 upstream commits (a13ff55..ee1ec3f) — v2
+- [ ] Security fixes: sandboxed media, owner-only tools, command auth, skill scanner, credential redaction, canvas auth — v2
+- [ ] Bug fixes: telegram threading, discord allowlists, cron scheduling, CLI extensions, exec approvals, session locks — v2
+- [ ] Features: Claude Opus 4.6, xAI Grok provider, Feishu multi-account, QR code skill (reverted) — v2
+- [ ] Docs: onboarding, install, DM security, model config — v2
+- [ ] Tests: windows-acl, telegram threading, CLI extension install — v2
+- [ ] 1:1 commit parity with upstream — v2
+- [ ] Full test suite passing after each commit — v2
 
 ### Out of Scope
 
-- Feature removal or reduction — separate future effort after code simplification
-- Native app rewrites (Swift/Kotlin) — this project targeted the Node.js codebase only
-- UI framework changes — React + Tailwind stayed as-is, just converted from TS to JS
-- New features — this was purely a code transformation project
+- Feature removal or reduction — separate future effort
+- Native app rewrites (Swift/Kotlin) — this project targets Node.js codebase only
+- UI framework changes — React + Tailwind stays as-is
+- Commits outside the defined range — only a13ff55..ee1ec3f
+- Cherry-picking or reordering commits — strict chronological order
 
 ## Context
 
-**Shipped v1 with:**
-- 484,951 lines of JavaScript
-- 6 phases, 30 plans executed
-- 2 days from start to ship
+**v1 shipped 2026-02-05:** 484,951 lines of JavaScript, 6 phases, 30 plans
+
+**v2 upstream sync:** 102 commits from upstream TypeScript repo need porting
+- Commit range: a13ff55bd9da67d9e7396775250d65ad611fa513..ee1ec3fabaf3421cb467c639a112c963bfe981ba
+- 47 bug fixes, 13 chores, 13 docs, 6 tests, 5 features, 4 security
+- Major areas: agents, feishu, commands, telegram, cron, security
 
 **Tech stack:** Node.js 22+, Rolldown bundler, ESLint with @stylistic, Vitest, pnpm/Bun, React + Tailwind (web UI)
 
-**Known issues:**
+**Known issues (from v1):**
 - Coverage at 50% vs 70% target (pre-existing intentional exclusions)
 - 2 extensions fail to load (matrix, memory-lancedb) due to native module issues
 - scripts/run-node.mjs has pre-existing == vs === lint errors
@@ -92,4 +112,4 @@ The code is human-friendly to senior JavaScript engineers. Every decision — st
 | Private field underscore convention | Matches esbuild output, consistent across codebase | ✓ Good |
 
 ---
-*Last updated: 2026-02-05 after v1 milestone*
+*Last updated: 2026-02-05 after v2 milestone started*
