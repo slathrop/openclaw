@@ -12,6 +12,7 @@ import {
   promptModelAllowlist
 } from './model-picker.js';
 const ANTHROPIC_OAUTH_MODEL_KEYS = [
+  'anthropic/claude-opus-4-6',
   'anthropic/claude-opus-4-5',
   'anthropic/claude-sonnet-4-5',
   'anthropic/claude-haiku-4-5'
@@ -63,7 +64,7 @@ async function promptAuthConfig(cfg, runtime, prompter) {
     config: next,
     prompter,
     allowedKeys: anthropicOAuth ? ANTHROPIC_OAUTH_MODEL_KEYS : void 0,
-    initialSelections: anthropicOAuth ? ['anthropic/claude-opus-4-5'] : void 0,
+    initialSelections: anthropicOAuth ? ['anthropic/claude-opus-4-6'] : void 0,
     message: anthropicOAuth ? 'Anthropic OAuth models' : void 0
   });
   if (allowlistSelection.models) {

@@ -14,7 +14,7 @@ let defaultWarnState = { warned: false };
 
 const DEFAULT_MODEL_ALIASES = {
   // Anthropic (pi-ai catalog uses "latest" ids without date suffix)
-  opus: 'anthropic/claude-opus-4-5',
+  opus: 'anthropic/claude-opus-4-6',
   sonnet: 'anthropic/claude-sonnet-4-5',
 
   // OpenAI

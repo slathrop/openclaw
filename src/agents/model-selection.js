@@ -49,8 +49,14 @@ function normalizeAnthropicModelId(model) {
     return trimmed;
   }
   const lower = trimmed.toLowerCase();
+  if (lower === 'opus-4.6') {
+    return 'claude-opus-4-6';
+  }
   if (lower === 'opus-4.5') {
     return 'claude-opus-4-5';
+  }
+  if (lower === 'opus-4.6') {
+    return 'claude-opus-4-6';
   }
   if (lower === 'sonnet-4.5') {
     return 'claude-sonnet-4-5';

@@ -89,14 +89,14 @@ function resolveImageModelConfigForTool(params) {
   } else if (primary.provider === 'openai' && openaiOk) {
     preferred = 'openai/gpt-5-mini';
   } else if (primary.provider === 'anthropic' && anthropicOk) {
-    preferred = 'anthropic/claude-opus-4-5';
+    preferred = 'anthropic/claude-opus-4-6';
   }
   if (preferred?.trim()) {
     if (openaiOk) {
       addFallback('openai/gpt-5-mini');
     }
     if (anthropicOk) {
-      addFallback('anthropic/claude-opus-4-5');
+      addFallback('anthropic/claude-opus-4-6');
     }
     const pruned = fallbacks.filter((ref) => ref !== preferred);
     return {
@@ -106,7 +106,7 @@ function resolveImageModelConfigForTool(params) {
   }
   if (openaiOk) {
     if (anthropicOk) {
-      addFallback('anthropic/claude-opus-4-5');
+      addFallback('anthropic/claude-opus-4-6');
     }
     return {
       primary: 'openai/gpt-5-mini',
@@ -114,7 +114,7 @@ function resolveImageModelConfigForTool(params) {
     };
   }
   if (anthropicOk) {
-    return { primary: 'anthropic/claude-opus-4-5' };
+    return { primary: 'anthropic/claude-opus-4-6' };
   }
   return null;
 }

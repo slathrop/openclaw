@@ -8,8 +8,10 @@
 import { normalizeProviderId } from './model-selection.js';
 const CLAUDE_MODEL_ALIASES = {
   opus: 'opus',
+  'opus-4.6': 'opus',
   'opus-4.5': 'opus',
   'opus-4': 'opus',
+  'claude-opus-4-6': 'opus',
   'claude-opus-4-5': 'opus',
   'claude-opus-4': 'opus',
   sonnet: 'sonnet',

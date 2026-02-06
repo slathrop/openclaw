@@ -135,7 +135,7 @@ async function describeStickerImage(params) {
     if (entries.length === 0) {
       return void 0;
     }
-    const defaultId = provider2 === 'openai' ? 'gpt-5-mini' : provider2 === 'anthropic' ? 'claude-opus-4-5' : provider2 === 'google' ? 'gemini-3-flash-preview' : 'MiniMax-VL-01';
+    const defaultId = provider2 === 'openai' ? 'gpt-5-mini' : provider2 === 'anthropic' ? 'claude-opus-4-6' : provider2 === 'google' ? 'gemini-3-flash-preview' : 'MiniMax-VL-01';
     const preferred = entries.find((entry) => entry.id === defaultId);
     return preferred ?? entries[0];
   };
