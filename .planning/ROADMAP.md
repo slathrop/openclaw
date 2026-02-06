@@ -1,7 +1,8 @@
 # Roadmap: v2 Upstream Sync
 
 **Created:** 2026-02-05
-**Milestone:** v2 — Port 102 upstream commits to JavaScript codebase
+**Milestone:** v2 — Port 103 upstream commits to JavaScript codebase
+**Commit range (INCLUSIVE):** a13ff55bd..ee1ec3fab
 
 ## Overview
 
@@ -9,9 +10,9 @@
 |-------|------|---------|-------|
 | 7 | Security + Initial Hardening | 1-21 | Security fixes, TUI, Telegram cleanup, CLI extensions |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ACL tests, Discord, Telegram DM threading, Docs |
-| 9 | Threading + Features | 43-62 | Telegram threading, Opus 4.6, Feishu, Cron fixes |
-| 10 | xAI + Cron + Security Scanner | 63-82 | xAI Grok, Cron fixes, Exec approvals, Security scanner |
-| 11 | Agents + Feishu + Gateway Auth | 83-102 | Agent fixes, Feishu multi-account, Gateway security |
+| 9 | Threading + Features | 43-63 | Telegram threading, Opus 4.6, Feishu, Cron fixes |
+| 10 | xAI + Cron + Security Scanner | 64-83 | xAI Grok, Cron fixes, Exec approvals, Security scanner |
+| 11 | Agents + Feishu + Gateway Auth | 84-103 | Agent fixes, Feishu multi-account, Gateway security |
 
 ---
 
@@ -23,6 +24,7 @@
 **Requirements:** SYNC-001 to SYNC-021
 
 **Key changes:**
+- **SYNC-001**: Security: Prevent gateway credential exfiltration via URL override (a13ff55bd)
 - Security: sandboxed media handling, owner-only tools, command auth hardening
 - Telegram: remove @ts-nocheck from bot-message.ts and bot-handlers.ts
 - Voice: anonymous voice allowlist callers
@@ -64,8 +66,8 @@
 
 **Goal:** Port Telegram threading completion, Claude Opus 4.6, Feishu updates, and cron fixes
 
-**Commits:** 43-62 (20 commits)
-**Requirements:** SYNC-043 to SYNC-062
+**Commits:** 43-63 (21 commits)
+**Requirements:** SYNC-043 to SYNC-063
 
 **Key changes:**
 - Telegram: topic auto-threading with parseTelegramTarget, subagent gateway call threading
@@ -89,8 +91,8 @@
 
 **Goal:** Port xAI Grok provider, cron robustness fixes, and security scanner
 
-**Commits:** 63-82 (20 commits)
-**Requirements:** SYNC-063 to SYNC-082
+**Commits:** 64-83 (20 commits)
+**Requirements:** SYNC-064 to SYNC-083
 
 **Key changes:**
 - Features: xAI Grok provider support with grok-4 default model
@@ -115,8 +117,8 @@
 
 **Goal:** Port agent fixes, Feishu multi-account, and critical gateway auth security fixes
 
-**Commits:** 83-102 (20 commits)
-**Requirements:** SYNC-083 to SYNC-102
+**Commits:** 84-103 (20 commits)
+**Requirements:** SYNC-084 to SYNC-103
 
 **Key changes:**
 - Agents: skip tool extraction for aborted/errored messages

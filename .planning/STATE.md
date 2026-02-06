@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-05)
 
 **Core value:** Human-friendly JavaScript that senior engineers will accept and maintain
-**Current focus:** v2 Upstream Sync — 102 commits to port
+**Current focus:** v2 Upstream Sync — 103 commits to port
 
 ## Current Position
 
@@ -14,7 +14,7 @@ Plan: Not yet planned
 Status: Ready to plan phase 7
 Last activity: 2026-02-05 — Roadmap created
 
-Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (0/102 commits ported)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (0/103 commits ported)
 
 ## Phase Summary
 
@@ -28,7 +28,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░░
 
 ## Upstream Sync Context
 
-**Commit range:** a13ff55..ee1ec3f (102 commits)
+**Commit range (INCLUSIVE):** a13ff55bd..ee1ec3fab (103 commits)
 
 **Approach:**
 - 1:1 commit parity (one commit per upstream commit)

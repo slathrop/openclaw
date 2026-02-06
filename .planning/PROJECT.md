@@ -9,7 +9,7 @@ The OpenClaw multi-channel messaging gateway, converted from TypeScript to JavaS
 **Goal:** Port all upstream TypeScript commits to this JavaScript codebase, maintaining 1:1 commit parity with full test verification.
 
 **Scope:**
-- 102 commits from upstream (a13ff55..ee1ec3f)
+- 103 commits from upstream (a13ff55..ee1ec3f, INCLUSIVE)
 - Security fixes, bug fixes, features, docs, tests
 - Each upstream commit becomes one commit here
 - Full test suite run after each ported commit
@@ -77,9 +77,9 @@ The code is human-friendly to senior JavaScript engineers. Every decision — st
 
 **v1 shipped 2026-02-05:** 484,951 lines of JavaScript, 6 phases, 30 plans
 
-**v2 upstream sync:** 102 commits from upstream TypeScript repo need porting
-- Commit range: a13ff55bd9da67d9e7396775250d65ad611fa513..ee1ec3fabaf3421cb467c639a112c963bfe981ba
-- 47 bug fixes, 13 chores, 13 docs, 6 tests, 5 features, 4 security
+**v2 upstream sync:** 103 commits from upstream TypeScript repo need porting
+- Commit range (INCLUSIVE): a13ff55bd..ee1ec3fab
+- 48 bug fixes, 13 chores, 13 docs, 6 tests, 5 features, 5 security
 - Major areas: agents, feishu, commands, telegram, cron, security
 
 **Tech stack:** Node.js 22+, Rolldown bundler, ESLint with @stylistic, Vitest, pnpm/Bun, React + Tailwind (web UI)
