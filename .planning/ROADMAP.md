@@ -121,6 +121,15 @@ Plans:
 
 **Commits:** 43-63 (21 commits)
 **Requirements:** SYNC-043 to SYNC-063
+**Plans:** 6 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Telegram threading completion (SYNC-043 to SYNC-045)
+- [ ] 09-02-PLAN.md — Contributor handle + Ollama docs + CLI NODE_OPTIONS fix (SYNC-046 to SYNC-048)
+- [ ] 09-03-PLAN.md — Claude Opus 4.6 + Feishu expansion (SYNC-049 to SYNC-051)
+- [ ] 09-04-PLAN.md — Compaction orphan repair + cron fixes + chores (SYNC-052 to SYNC-057)
+- [ ] 09-05-PLAN.md — Runtime guard bump + session tokens + workspace updates (SYNC-058 to SYNC-060)
+- [ ] 09-06-PLAN.md — Compaction retries + billing errors + QR revert (SYNC-061 to SYNC-063)
 
 **Key changes:**
 - Telegram: topic auto-threading with parseTelegramTarget, subagent gateway call threading
@@ -220,3 +229,4 @@ Plans:
 *Phase 7.1 planned: 2026-02-06*
 *Phase 8 planned: 2026-02-06*
 *Phase 8 executed: 2026-02-06*
+*Phase 9 planned: 2026-02-06*
