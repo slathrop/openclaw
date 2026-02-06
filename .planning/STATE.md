@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 8 of 11 (Windows ACL + Telegram Threading)
-Plan: 5 of 6 complete
-Status: In progress
-Last activity: 2026-02-06 -- Completed 08-05-PLAN.md (SYNC-035 to SYNC-039)
+Plan: 6 of 6 complete
+Status: Phase complete
+Last activity: 2026-02-06 -- Completed 08-06-PLAN.md (SYNC-040 to SYNC-042)
 
-Progress: [█████████░░░░░░░░░░░░░░░░] 35% (36/104 commits ported)
+Progress: [██████████░░░░░░░░░░░░░░░] 40% (42/104 commits ported)
 
 ## Phase Summary
 
 | Phase | Name | Commits | Status |
 |-------|------|---------|--------|
-| 7 | Security + Initial Hardening | 1-21 | ✓ Complete (21/21 verified) |
-| 7.1 | Single Test Runner Strategy | — | ✓ Complete (8/8 verified) |
-| 8 | Windows ACL + Telegram Threading | 22-42 | In progress (plan 5/6 done) |
+| 7 | Security + Initial Hardening | 1-21 | Complete (21/21 verified) |
+| 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
+| 8 | Windows ACL + Telegram Threading | 22-42 | Complete (6/6 plans done) |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
@@ -63,10 +63,11 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Skip TS-only deps in SYNC-031 | 08-04 | @typescript/native-preview and tsdown not present in JS repo; skipped |
 | Baileys mock pattern modernized | 08-04 | vi.fn() direct assignment replaces mockImplementation per upstream typecheck cleanup |
 | SYNC-030 is changelog-only (not empty tracking) | 08-03 | Upstream PR merge squashed 028+029; only CHANGELOG addition applies as real commit |
+| resolveTelegramAutoThreadId uses parseTelegramTarget | 08-06 | Canonical chat ID comparison mirrors Slack auto-threading pattern |
 
 ### Roadmap Evolution
 
-- Phase 7.1 inserted after Phase 7: Single Test Runner Strategy (URGENT) — reduce redundant test runs during parallel agent execution
+- Phase 7.1 inserted after Phase 7: Single Test Runner Strategy (URGENT) -- reduce redundant test runs during parallel agent execution
 
 ### Blockers/Concerns
 
@@ -83,9 +84,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 08-05-PLAN.md (SYNC-035 to SYNC-039)
+Stopped at: Completed 08-06-PLAN.md (SYNC-040 to SYNC-042)
 Resume file: None
-Next action: Continue Phase 8 plan 06
+Next action: Begin Phase 9 planning (Threading + Features, commits 43-62)
 
 ## v1 Milestone Summary (Archived)
 
