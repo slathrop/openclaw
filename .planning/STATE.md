@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 9 of 11 (Threading + Features)
-Plan: 4 of 6 complete (plans 01, 02, 03, 04)
-Status: In progress
-Last activity: 2026-02-06 -- Completed 09-03-PLAN.md (SYNC-049 to SYNC-051)
+Plan: 5 of 6 complete (plans 01, 02, 03, 04, 06)
+Status: In progress (plan 05 pending)
+Last activity: 2026-02-06 -- Completed 09-06-PLAN.md (SYNC-061 to SYNC-063)
 
-Progress: [██████████████░░░░░░░░░░░] 55% (57/104 commits ported)
+Progress: [██████████████░░░░░░░░░░░] 58% (60/104 commits ported)
 
 ## Phase Summary
 
@@ -23,7 +23,7 @@ Progress: [██████████████░░░░░░░░░
 | 7 | Security + Initial Hardening | 1-21 | Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ✓ Complete (18/18 verified) |
-| 9 | Threading + Features | 43-62 | In progress (plans 01, 02, 03, 04 complete) |
+| 9 | Threading + Features | 43-62 | In progress (plans 01, 02, 03, 04, 06 complete; 05 pending) |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
 
@@ -68,6 +68,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Feishu download types restricted to image/file per API | 09-03 | Audio/video use type="file" with placeholder override per Feishu messageResource.get docs |
 | Bot openId probe at startup for mention detection | 09-03 | probeFeishu fetches bot open_id so group mention gating matches exact bot ID, not any mention |
 | wasMentioned defaults to false without botOpenId | 09-03 | Prevents spurious replies when other users mentioned and bot ID unknown |
+| Counter-based compaction retry replaces boolean | 09-06 | MAX_OVERFLOW_COMPACTION_ATTEMPTS=3 allows recovery from multi-round overflow |
+| BILLING_ERROR_USER_MESSAGE shared constant | 09-06 | Consistent billing error presentation across error handlers and run loop |
 
 ### Roadmap Evolution
 
@@ -88,9 +90,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 09-03-PLAN.md (SYNC-049 to SYNC-051)
+Stopped at: Completed 09-06-PLAN.md (SYNC-061 to SYNC-063)
 Resume file: None
-Next action: Continue Phase 9 plans (05, 06)
+Next action: Complete Phase 9 plan 05, then Phase 10
 
 ## v1 Milestone Summary (Archived)
 
