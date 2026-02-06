@@ -40,6 +40,7 @@ import {
   buildSenderName,
   buildTelegramGroupFrom,
   buildTelegramGroupPeerId,
+  buildTelegramParentPeer,
   buildTypingThreadParams,
   expandTextLinks,
   normalizeForwardedContext,
@@ -133,6 +134,7 @@ const buildTelegramMessageContext = async ({
   const replyThreadId = threadSpec.id;
   const { groupConfig, topicConfig } = resolveTelegramGroupConfig(chatId, resolvedThreadId);
   const peerId = isGroup ? buildTelegramGroupPeerId(chatId, resolvedThreadId) : String(chatId);
+  const parentPeer = buildTelegramParentPeer({ isGroup, resolvedThreadId, chatId });
   const route = resolveAgentRoute({
     cfg,
     channel: 'telegram',
@@ -140,7 +142,8 @@ const buildTelegramMessageContext = async ({
     peer: {
       kind: isGroup ? 'group' : 'dm',
       id: peerId
-    }
+    },
+    parentPeer
   });
   const baseSessionKey = route.sessionKey;
   const dmThreadId = threadSpec.scope === 'dm' ? threadSpec.id : void 0;
@@ -539,7 +542,7 @@ ${replyTarget.body}
       to: String(chatId),
       accountId: route.accountId,
       // Preserve DM topic threadId for replies (fixes #8891)
-      threadId: dmThreadId != null ? String(dmThreadId) : undefined,
+      threadId: dmThreadId != null ? String(dmThreadId) : undefined
     } : void 0,
     onRecordError: (err) => {
       logVerbose(`telegram: failed updating session meta: ${String(err)}`);

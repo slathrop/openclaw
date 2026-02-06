@@ -35,6 +35,7 @@ import {
   buildSenderName,
   buildTelegramGroupFrom,
   buildTelegramGroupPeerId,
+  buildTelegramParentPeer,
   resolveTelegramForumThreadId,
   resolveTelegramThreadSpec
 } from './bot/helpers.js';
@@ -339,6 +340,7 @@ const registerTelegramNativeCommands = ({
             });
             return;
           }
+          const parentPeer = buildTelegramParentPeer({ isGroup, resolvedThreadId, chatId });
           const route = resolveAgentRoute({
             cfg,
             channel: 'telegram',
@@ -346,7 +348,8 @@ const registerTelegramNativeCommands = ({
             peer: {
               kind: isGroup ? 'group' : 'dm',
               id: isGroup ? buildTelegramGroupPeerId(chatId, resolvedThreadId) : String(chatId)
-            }
+            },
+            parentPeer
           });
           const baseSessionKey = route.sessionKey;
           const dmThreadId = threadSpec.scope === 'dm' ? threadSpec.id : void 0;

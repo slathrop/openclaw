@@ -34,6 +34,7 @@ import {
 } from './bot-updates.js';
 import {
   buildTelegramGroupPeerId,
+  buildTelegramParentPeer,
   resolveTelegramForumThreadId,
   resolveTelegramStreamMode
 } from './bot/helpers.js';
@@ -340,11 +341,13 @@ function createTelegramBot(opts) {
       const isForum = reaction.chat.is_forum === true;
       const resolvedThreadId = isForum ? resolveTelegramForumThreadId({ isForum, messageThreadId: void 0 }) : void 0;
       const peerId = isGroup ? buildTelegramGroupPeerId(chatId, resolvedThreadId) : String(chatId);
+      const parentPeer = buildTelegramParentPeer({ isGroup, resolvedThreadId, chatId });
       const route = resolveAgentRoute({
         cfg,
         channel: 'telegram',
         accountId: account.accountId,
-        peer: { kind: isGroup ? 'group' : 'dm', id: peerId }
+        peer: { kind: isGroup ? 'group' : 'dm', id: peerId },
+        parentPeer
       });
       const sessionKey = route.sessionKey;
       for (const r of addedReactions) {
