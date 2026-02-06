@@ -36,6 +36,7 @@ import {
   normalizeDiscordSlug,
   resolveDiscordChannelConfigWithFallback,
   resolveDiscordGuildEntry,
+  resolveDiscordOwnerAllowFrom,
   resolveDiscordUserAllowed
 } from './allow-list.js';
 import { resolveDiscordChannelInfo } from './message-utils.js';
@@ -590,6 +591,11 @@ async function dispatchDiscordCommandInteraction(params) {
     parentPeer: threadParentId ? { kind: 'channel', id: threadParentId } : void 0
   });
   const conversationLabel = isDirectMessage ? user.globalName ?? user.username : channelId;
+  const ownerAllowFrom = resolveDiscordOwnerAllowFrom({
+    channelConfig,
+    guildInfo,
+    sender: { id: sender.id, name: sender.name, tag: sender.tag }
+  });
   const ctxPayload = finalizeInboundContext({
     Body: prompt,
     RawBody: prompt,
@@ -618,6 +624,7 @@ async function dispatchDiscordCommandInteraction(params) {
       });
       return untrustedChannelMetadata ? [untrustedChannelMetadata] : void 0;
     })() : void 0,
+    OwnerAllowFrom: ownerAllowFrom,
     SenderName: user.globalName ?? user.username,
     SenderId: user.id,
     SenderUsername: user.username,

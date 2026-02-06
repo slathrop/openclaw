@@ -84,6 +84,30 @@ function resolveDiscordUserAllowed(params) {
     tag: params.userTag
   });
 }
+// Derive owner allowFrom overrides from Discord per-guild/per-channel user allowlists.
+// Returns the matched allowlist key when the sender matches, undefined otherwise.
+function resolveDiscordOwnerAllowFrom(params) {
+  const rawAllowList = params.channelConfig?.users ?? params.guildInfo?.users;
+  if (!Array.isArray(rawAllowList) || rawAllowList.length === 0) {
+    return void 0;
+  }
+  const allowList = normalizeDiscordAllowList(rawAllowList, ['discord:', 'user:', 'pk:']);
+  if (!allowList) {
+    return void 0;
+  }
+  const match = resolveDiscordAllowListMatch({
+    allowList,
+    candidate: {
+      id: params.sender.id,
+      name: params.sender.name,
+      tag: params.sender.tag
+    }
+  });
+  if (!match.allowed || !match.matchKey || match.matchKey === '*') {
+    return void 0;
+  }
+  return [match.matchKey];
+}
 function resolveDiscordCommandAuthorized(params) {
   if (!params.isDirectMessage) {
     return true;
@@ -281,6 +305,7 @@ export {
   resolveDiscordChannelConfigWithFallback,
   resolveDiscordCommandAuthorized,
   resolveDiscordGuildEntry,
+  resolveDiscordOwnerAllowFrom,
   resolveDiscordShouldRequireMention,
   resolveDiscordUserAllowed,
   resolveGroupDmAllow,

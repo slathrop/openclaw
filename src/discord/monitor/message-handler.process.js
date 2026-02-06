@@ -29,7 +29,7 @@ import { resolveThreadSessionKeys } from '../../routing/session-key.js';
 import { buildUntrustedChannelMetadata } from '../../security/channel-metadata.js';
 import { truncateUtf16Safe } from '../../utils.js';
 import { reactMessageDiscord, removeReactionDiscord } from '../send.js';
-import { normalizeDiscordSlug } from './allow-list.js';
+import { normalizeDiscordSlug, resolveDiscordOwnerAllowFrom } from './allow-list.js';
 import { resolveTimestampMs } from './format.js';
 import {
   buildDiscordMediaPayload,
@@ -136,6 +136,11 @@ async function processDiscordMessage(ctx) {
     (entry) => Boolean(entry)
   );
   const groupSystemPrompt = systemPromptParts.length > 0 ? systemPromptParts.join('\n\n') : void 0;
+  const ownerAllowFrom = resolveDiscordOwnerAllowFrom({
+    channelConfig,
+    guildInfo,
+    sender: { id: sender.id, name: sender.name, tag: sender.tag }
+  });
   const storePath = resolveStorePath(cfg.session?.store, {
     agentId: route.agentId
   });
@@ -267,6 +272,7 @@ ${forumContextLine}`;
     UntrustedContext: untrustedChannelMetadata ? [untrustedChannelMetadata] : void 0,
     GroupSystemPrompt: isGuildMessage ? groupSystemPrompt : void 0,
     GroupSpace: isGuildMessage ? (guildInfo?.id ?? guildSlug) || void 0 : void 0,
+    OwnerAllowFrom: ownerAllowFrom,
     Provider: 'discord',
     Surface: 'discord',
     WasMentioned: effectiveWasMentioned,
