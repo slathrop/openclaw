@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 Phase: 8 of 11 (Windows ACL + Telegram Threading)
 Plan: 6 of 6 complete
-Status: Phase complete
-Last activity: 2026-02-06 -- Completed 08-06-PLAN.md (SYNC-040 to SYNC-042)
+Status: Phase verified
+Last activity: 2026-02-06 -- Phase 8 verified (18/18 must-haves)
 
 Progress: [██████████░░░░░░░░░░░░░░░] 40% (42/104 commits ported)
 
@@ -22,7 +22,7 @@ Progress: [██████████░░░░░░░░░░░░░
 |-------|------|---------|--------|
 | 7 | Security + Initial Hardening | 1-21 | Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
-| 8 | Windows ACL + Telegram Threading | 22-42 | Complete (6/6 plans done) |
+| 8 | Windows ACL + Telegram Threading | 22-42 | ✓ Complete (18/18 verified) |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
@@ -86,7 +86,7 @@ None.
 Last session: 2026-02-06
 Stopped at: Completed 08-06-PLAN.md (SYNC-040 to SYNC-042)
 Resume file: None
-Next action: Begin Phase 9 planning (Threading + Features, commits 43-62)
+Next action: Plan Phase 9 (Threading + Features, commits 43-63)
 
 ## v1 Milestone Summary (Archived)
 

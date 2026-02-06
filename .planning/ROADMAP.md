@@ -89,12 +89,15 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Chrome extension assets + Windows ACL test coverage (SYNC-022 to SYNC-024)
-- [ ] 08-02-PLAN.md — Discord allowlist fixes + version bump (SYNC-025 to SYNC-027)
-- [ ] 08-03-PLAN.md — Telegram DM topic threadId preservation (SYNC-028 to SYNC-030)
-- [ ] 08-04-PLAN.md — Deps update + test helpers + docs streamlining (SYNC-031 to SYNC-034)
-- [ ] 08-05-PLAN.md — CLI help sorting + onboarding docs + appcast reset (SYNC-035 to SYNC-039)
-- [ ] 08-06-PLAN.md — Telegram forum topic threading + final docs (SYNC-040 to SYNC-042)
+- [x] 08-01-PLAN.md — Chrome extension assets + Windows ACL test coverage (SYNC-022 to SYNC-024)
+- [x] 08-02-PLAN.md — Discord allowlist fixes + version bump (SYNC-025 to SYNC-027)
+- [x] 08-03-PLAN.md — Telegram DM topic threadId preservation (SYNC-028 to SYNC-030)
+- [x] 08-04-PLAN.md — Deps update + test helpers + docs streamlining (SYNC-031 to SYNC-034)
+- [x] 08-05-PLAN.md — CLI help sorting + onboarding docs + appcast reset (SYNC-035 to SYNC-039)
+- [x] 08-06-PLAN.md — Telegram forum topic threading + final docs (SYNC-040 to SYNC-042)
+
+**Status:** Complete (2026-02-06)
+**Verification:** 08-VERIFICATION.md — 18/18 must-haves verified
 
 **Key changes:**
 - Tests: Windows ACL coverage, Discord allowlist tests
@@ -216,3 +219,4 @@ Plans:
 *Phase 7 planned: 2026-02-05*
 *Phase 7.1 planned: 2026-02-06*
 *Phase 8 planned: 2026-02-06*
+*Phase 8 executed: 2026-02-06*
