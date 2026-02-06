@@ -5,6 +5,7 @@ function formatModelName(modelString) {
   }
   const modelName = modelString.includes('/') ? modelString.split('/')[1] : modelString;
   const modelMappings = {
+    'claude-opus-4-6': 'Claude Opus 4.6',
     'claude-opus-4-5': 'Claude Opus 4.5',
     'claude-sonnet-4-5': 'Claude Sonnet 4.5',
     'claude-sonnet-3-5': 'Claude Sonnet 3.5',

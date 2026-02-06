@@ -18,9 +18,9 @@ import {
   isTimeoutError
 } from './failover-error.js';
 import {
+  buildConfiguredAllowlistKeys,
   buildModelAliasIndex,
   modelKey,
-  parseModelRef,
   resolveConfiguredModelRef,
   resolveModelRefFromString
 } from './model-selection.js';
@@ -37,30 +37,15 @@ function isAbortError(err) {
 function shouldRethrowAbort(err) {
   return isAbortError(err) && !isTimeoutError(err);
 }
-function buildAllowedModelKeys(cfg, defaultProvider) {
-  const rawAllowlist = (() => {
-    const modelMap = cfg?.agents?.defaults?.models ?? {};
-    return Object.keys(modelMap);
-  })();
-  if (rawAllowlist.length === 0) {
-    return null;
-  }
-  const keys = /* @__PURE__ */ new Set();
-  for (const raw of rawAllowlist) {
-    const parsed = parseModelRef(String(raw ?? ''), defaultProvider);
-    if (!parsed) {
-      continue;
-    }
-    keys.add(modelKey(parsed.provider, parsed.model));
-  }
-  return keys.size > 0 ? keys : null;
-}
 function resolveImageFallbackCandidates(params) {
   const aliasIndex = buildModelAliasIndex({
     cfg: params.cfg ?? {},
     defaultProvider: params.defaultProvider
   });
-  const allowlist = buildAllowedModelKeys(params.cfg, params.defaultProvider);
+  const allowlist = buildConfiguredAllowlistKeys({
+    cfg: params.cfg,
+    defaultProvider: params.defaultProvider
+  });
   const seen = /* @__PURE__ */ new Set();
   const candidates = [];
   const addCandidate = (candidate, enforceAllowlist) => {
@@ -123,7 +108,10 @@ function resolveFallbackCandidates(params) {
     cfg: params.cfg ?? {},
     defaultProvider
   });
-  const allowlist = buildAllowedModelKeys(params.cfg, defaultProvider);
+  const allowlist = buildConfiguredAllowlistKeys({
+    cfg: params.cfg,
+    defaultProvider
+  });
   const seen = /* @__PURE__ */ new Set();
   const candidates = [];
   const addCandidate = (candidate, enforceAllowlist) => {

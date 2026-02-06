@@ -1,7 +1,10 @@
 const __defProp = Object.defineProperty;
 const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
-const OPENCODE_ZEN_DEFAULT_MODEL = 'opencode/claude-opus-4-5';
-const LEGACY_OPENCODE_ZEN_DEFAULT_MODEL = 'opencode-zen/claude-opus-4-5';
+const OPENCODE_ZEN_DEFAULT_MODEL = 'opencode/claude-opus-4-6';
+const LEGACY_OPENCODE_ZEN_DEFAULT_MODELS = new Set([
+  'opencode/claude-opus-4-5',
+  'opencode-zen/claude-opus-4-5'
+]);
 function resolvePrimaryModel(model) {
   if (typeof model === 'string') {
     return model;
@@ -14,7 +17,7 @@ function resolvePrimaryModel(model) {
 __name(resolvePrimaryModel, 'resolvePrimaryModel');
 function applyOpencodeZenModelDefault(cfg) {
   const current = resolvePrimaryModel(cfg.agents?.defaults?.model)?.trim();
-  const normalizedCurrent = current === LEGACY_OPENCODE_ZEN_DEFAULT_MODEL ? OPENCODE_ZEN_DEFAULT_MODEL : current;
+  const normalizedCurrent = current && LEGACY_OPENCODE_ZEN_DEFAULT_MODELS.has(current) ? OPENCODE_ZEN_DEFAULT_MODEL : current;
   if (normalizedCurrent === OPENCODE_ZEN_DEFAULT_MODEL) {
     return { next: cfg, changed: false };
   }

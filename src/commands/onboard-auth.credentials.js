@@ -105,7 +105,7 @@ __name(setVeniceApiKey, 'setVeniceApiKey');
 const ZAI_DEFAULT_MODEL_REF = 'zai/glm-4.7';
 const XIAOMI_DEFAULT_MODEL_REF = 'xiaomi/mimo-v2-flash';
 const OPENROUTER_DEFAULT_MODEL_REF = 'openrouter/auto';
-const VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF = 'vercel-ai-gateway/anthropic/claude-opus-4.5';
+const VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF = 'vercel-ai-gateway/anthropic/claude-opus-4.6';
 async function setZaiApiKey(key, agentDir) {
   upsertAuthProfile({
     profileId: 'zai:default',

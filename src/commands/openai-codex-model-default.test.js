@@ -3,6 +3,7 @@ import {
   applyOpenAICodexModelDefault,
   OPENAI_CODEX_DEFAULT_MODEL
 } from './openai-codex-model-default.js';
+import { OPENAI_DEFAULT_MODEL } from './openai-model-default.js';
 describe('applyOpenAICodexModelDefault', () => {
   it('sets openai-codex default when model is unset', () => {
     const cfg = { agents: { defaults: {} } };
@@ -14,7 +15,7 @@ describe('applyOpenAICodexModelDefault', () => {
   });
   it('sets openai-codex default when model is openai/*', () => {
     const cfg = {
-      agents: { defaults: { model: 'openai/gpt-5.2' } }
+      agents: { defaults: { model: OPENAI_DEFAULT_MODEL } }
     };
     const applied = applyOpenAICodexModelDefault(cfg);
     expect(applied.changed).toBe(true);
@@ -24,7 +25,7 @@ describe('applyOpenAICodexModelDefault', () => {
   });
   it('does not override openai-codex/*', () => {
     const cfg = {
-      agents: { defaults: { model: 'openai-codex/gpt-5.2' } }
+      agents: { defaults: { model: OPENAI_CODEX_DEFAULT_MODEL } }
     };
     const applied = applyOpenAICodexModelDefault(cfg);
     expect(applied.changed).toBe(false);

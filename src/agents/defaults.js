@@ -4,7 +4,7 @@
  */
 const DEFAULT_PROVIDER = 'anthropic';
 const DEFAULT_MODEL = 'claude-opus-4-6';
-// Context window: Opus supports ~200k tokens (per pi-ai models.generated.ts for Opus 4.5).
+// Conservative fallback used when model metadata is unavailable.
 const DEFAULT_CONTEXT_TOKENS = 2e5;
 export {
   DEFAULT_CONTEXT_TOKENS,

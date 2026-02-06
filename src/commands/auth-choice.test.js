@@ -256,7 +256,7 @@ describe('applyAuthChoice', () => {
     );
     expect(result.config.agents?.defaults?.model?.primary).toBe('anthropic/claude-opus-4-5');
     expect(result.config.models?.providers?.['opencode-zen']).toBeUndefined();
-    expect(result.agentModelOverride).toBe('opencode/claude-opus-4-5');
+    expect(result.agentModelOverride).toBe('opencode/claude-opus-4-6');
   });
   it('uses existing OPENROUTER_API_KEY when selecting openrouter-api-key', async () => {
     tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openclaw-auth-'));
@@ -358,7 +358,7 @@ describe('applyAuthChoice', () => {
       mode: 'api_key'
     });
     expect(result.config.agents?.defaults?.model?.primary).toBe(
-      'vercel-ai-gateway/anthropic/claude-opus-4.5'
+      'vercel-ai-gateway/anthropic/claude-opus-4.6'
     );
     const authProfilePath = authProfilePathFor(requireAgentDir());
     const raw = await fs.readFile(authProfilePath, 'utf8');

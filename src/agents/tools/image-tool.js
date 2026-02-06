@@ -24,6 +24,8 @@ import {
   resolveProviderVisionModelFromConfig
 } from './image-tool.helpers.js';
 const DEFAULT_PROMPT = 'Describe the image.';
+const ANTHROPIC_IMAGE_PRIMARY = 'anthropic/claude-opus-4-6';
+const ANTHROPIC_IMAGE_FALLBACK = 'anthropic/claude-opus-4-5';
 const __testing = {
   decodeDataUrl,
   coerceImageAssistantText
@@ -89,14 +91,14 @@ function resolveImageModelConfigForTool(params) {
   } else if (primary.provider === 'openai' && openaiOk) {
     preferred = 'openai/gpt-5-mini';
   } else if (primary.provider === 'anthropic' && anthropicOk) {
-    preferred = 'anthropic/claude-opus-4-6';
+    preferred = ANTHROPIC_IMAGE_PRIMARY;
   }
   if (preferred?.trim()) {
     if (openaiOk) {
       addFallback('openai/gpt-5-mini');
     }
     if (anthropicOk) {
-      addFallback('anthropic/claude-opus-4-6');
+      addFallback(ANTHROPIC_IMAGE_FALLBACK);
     }
     const pruned = fallbacks.filter((ref) => ref !== preferred);
     return {
@@ -106,7 +108,7 @@ function resolveImageModelConfigForTool(params) {
   }
   if (openaiOk) {
     if (anthropicOk) {
-      addFallback('anthropic/claude-opus-4-6');
+      addFallback(ANTHROPIC_IMAGE_FALLBACK);
     }
     return {
       primary: 'openai/gpt-5-mini',
@@ -114,7 +116,10 @@ function resolveImageModelConfigForTool(params) {
     };
   }
   if (anthropicOk) {
-    return { primary: 'anthropic/claude-opus-4-6' };
+    return {
+      primary: ANTHROPIC_IMAGE_PRIMARY,
+      fallbacks: [ANTHROPIC_IMAGE_FALLBACK]
+    };
   }
   return null;
 }

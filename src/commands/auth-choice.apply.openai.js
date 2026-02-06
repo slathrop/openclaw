@@ -1,5 +1,3 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
 // SECURITY: OpenAI API credential configuration
 import { loginOpenAICodex } from '@mariozechner/pi-ai';
 import { resolveEnvApiKey } from '../agents/model-auth.js';
@@ -9,6 +7,7 @@ import {
   normalizeApiKeyInput,
   validateApiKeyInput
 } from './auth-choice.api-key.js';
+import { applyDefaultModelChoice } from './auth-choice.default-model.js';
 import { isRemoteEnvironment } from './oauth-env.js';
 import { createVpsAwareOAuthHandlers } from './oauth-flow.js';
 import { applyAuthProfileConfig, writeOAuthCredentials } from './onboard-auth.js';
@@ -17,12 +16,29 @@ import {
   applyOpenAICodexModelDefault,
   OPENAI_CODEX_DEFAULT_MODEL
 } from './openai-codex-model-default.js';
+import {
+  applyOpenAIConfig,
+  applyOpenAIProviderConfig,
+  OPENAI_DEFAULT_MODEL
+} from './openai-model-default.js';
 async function applyAuthChoiceOpenAI(params) {
   let authChoice = params.authChoice;
   if (authChoice === 'apiKey' && params.opts?.tokenProvider === 'openai') {
     authChoice = 'openai-api-key';
   }
   if (authChoice === 'openai-api-key') {
+    let nextConfig = params.config;
+    let agentModelOverride;
+    const noteAgentModel = async (model) => {
+      if (!params.agentId) {
+        return;
+      }
+      await params.prompter.note(
+        `Default model set to ${model} for agent "${params.agentId}".`,
+        'Model configured'
+      );
+    };
+
     const envKey = resolveEnvApiKey('openai');
     if (envKey) {
       const useExisting = await params.prompter.confirm({
@@ -41,7 +57,19 @@ async function applyAuthChoiceOpenAI(params) {
           `Copied OPENAI_API_KEY to ${result2.path} for launchd compatibility.`,
           'OpenAI API key'
         );
-        return { config: params.config };
+        const applied = await applyDefaultModelChoice({
+          config: nextConfig,
+          setDefaultModel: params.setDefaultModel,
+          defaultModel: OPENAI_DEFAULT_MODEL,
+          applyDefaultConfig: applyOpenAIConfig,
+          applyProviderConfig: applyOpenAIProviderConfig,
+          noteDefault: OPENAI_DEFAULT_MODEL,
+          noteAgentModel,
+          prompter: params.prompter
+        });
+        nextConfig = applied.config;
+        agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+        return { config: nextConfig, agentModelOverride };
       }
     }
     let key;
@@ -63,12 +91,24 @@ async function applyAuthChoiceOpenAI(params) {
       `Saved OPENAI_API_KEY to ${result.path} for launchd compatibility.`,
       'OpenAI API key'
     );
-    return { config: params.config };
+    const applied = await applyDefaultModelChoice({
+      config: nextConfig,
+      setDefaultModel: params.setDefaultModel,
+      defaultModel: OPENAI_DEFAULT_MODEL,
+      applyDefaultConfig: applyOpenAIConfig,
+      applyProviderConfig: applyOpenAIProviderConfig,
+      noteDefault: OPENAI_DEFAULT_MODEL,
+      noteAgentModel,
+      prompter: params.prompter
+    });
+    nextConfig = applied.config;
+    agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+    return { config: nextConfig, agentModelOverride };
   }
   if (params.authChoice === 'openai-codex') {
     let nextConfig = params.config;
     let agentModelOverride;
-    const noteAgentModel = /* @__PURE__ */ __name(async (model) => {
+    const noteAgentModel = async (model) => {
       if (!params.agentId) {
         return;
       }
@@ -76,7 +116,7 @@ async function applyAuthChoiceOpenAI(params) {
         `Default model set to ${model} for agent "${params.agentId}".`,
         'Model configured'
       );
-    }, 'noteAgentModel');
+    };
     const isRemote = isRemoteEnvironment();
     await params.prompter.note(
       isRemote ? [
@@ -103,7 +143,7 @@ async function applyAuthChoiceOpenAI(params) {
       const creds = await loginOpenAICodex({
         onAuth,
         onPrompt,
-        onProgress: /* @__PURE__ */ __name((msg) => spin.update(msg), 'onProgress')
+        onProgress: (msg) => spin.update(msg)
       });
       spin.stop('OpenAI OAuth complete');
       if (creds) {
@@ -139,7 +179,6 @@ async function applyAuthChoiceOpenAI(params) {
   }
   return null;
 }
-__name(applyAuthChoiceOpenAI, 'applyAuthChoiceOpenAI');
 export {
   applyAuthChoiceOpenAI
 };

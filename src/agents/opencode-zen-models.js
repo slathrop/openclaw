@@ -3,21 +3,22 @@
  * OpenCode Zen model catalog, aliases, and API discovery.
  */
 const OPENCODE_ZEN_API_BASE_URL = 'https://opencode.ai/zen/v1';
-const OPENCODE_ZEN_DEFAULT_MODEL = 'claude-opus-4-5';
+const OPENCODE_ZEN_DEFAULT_MODEL = 'claude-opus-4-6';
 const OPENCODE_ZEN_DEFAULT_MODEL_REF = `opencode/${OPENCODE_ZEN_DEFAULT_MODEL}`;
 let cachedModels = null;
 let cacheTimestamp = 0;
 const CACHE_TTL_MS = 60 * 60 * 1e3;
 const OPENCODE_ZEN_MODEL_ALIASES = {
   // Claude
-  opus: 'claude-opus-4-5',
+  opus: 'claude-opus-4-6',
+  'opus-4.6': 'claude-opus-4-6',
   'opus-4.5': 'claude-opus-4-5',
-  'opus-4': 'claude-opus-4-5',
+  'opus-4': 'claude-opus-4-6',
   // Legacy Claude aliases (OpenCode Zen rotates model catalogs; keep old keys working).
-  sonnet: 'claude-opus-4-5',
-  'sonnet-4': 'claude-opus-4-5',
-  haiku: 'claude-opus-4-5',
-  'haiku-3.5': 'claude-opus-4-5',
+  sonnet: 'claude-opus-4-6',
+  'sonnet-4': 'claude-opus-4-6',
+  haiku: 'claude-opus-4-6',
+  'haiku-3.5': 'claude-opus-4-6',
   // GPT-5.x family
   gpt5: 'gpt-5.2',
   'gpt-5': 'gpt-5.2',
@@ -79,6 +80,7 @@ const MODEL_COSTS = {
     cacheRead: 0.107,
     cacheWrite: 0
   },
+  'claude-opus-4-6': { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
   'claude-opus-4-5': { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
   'gemini-3-pro': { input: 2, output: 12, cacheRead: 0.2, cacheWrite: 0 },
   'gpt-5.1-codex-mini': {
@@ -101,6 +103,7 @@ const MODEL_COSTS = {
 const DEFAULT_COST = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 const MODEL_CONTEXT_WINDOWS = {
   'gpt-5.1-codex': 4e5,
+  'claude-opus-4-6': 1e6,
   'claude-opus-4-5': 2e5,
   'gemini-3-pro': 1048576,
   'gpt-5.1-codex-mini': 4e5,
@@ -115,6 +118,7 @@ function getDefaultContextWindow(modelId) {
 }
 const MODEL_MAX_TOKENS = {
   'gpt-5.1-codex': 128e3,
+  'claude-opus-4-6': 128e3,
   'claude-opus-4-5': 64e3,
   'gemini-3-pro': 65536,
   'gpt-5.1-codex-mini': 128e3,
@@ -142,6 +146,7 @@ function buildModelDefinition(modelId) {
 }
 const MODEL_NAMES = {
   'gpt-5.1-codex': 'GPT-5.1 Codex',
+  'claude-opus-4-6': 'Claude Opus 4.6',
   'claude-opus-4-5': 'Claude Opus 4.5',
   'gemini-3-pro': 'Gemini 3 Pro',
   'gpt-5.1-codex-mini': 'GPT-5.1 Codex Mini',
@@ -160,6 +165,7 @@ function formatModelName(modelId) {
 function getOpencodeZenStaticFallbackModels() {
   const modelIds = [
     'gpt-5.1-codex',
+    'claude-opus-4-6',
     'claude-opus-4-5',
     'gemini-3-pro',
     'gpt-5.1-codex-mini',

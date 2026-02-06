@@ -37,6 +37,7 @@ import {
   setXiaomiApiKey,
   setZaiApiKey
 } from '../../onboard-auth.js';
+import { applyOpenAIConfig } from '../../openai-model-default.js';
 import { resolveNonInteractiveApiKey } from '../api-keys.js';
 async function applyNonInteractiveAuthChoice(params) {
   const { authChoice, opts, runtime, baseConfig } = params;
@@ -217,7 +218,7 @@ async function applyNonInteractiveAuthChoice(params) {
     const result = upsertSharedEnvVar({ key: 'OPENAI_API_KEY', value: key });
     process.env.OPENAI_API_KEY = key;
     runtime.log(`Saved OPENAI_API_KEY to ${shortenHomePath(result.path)}`);
-    return nextConfig;
+    return applyOpenAIConfig(nextConfig);
   }
   if (authChoice === 'openrouter-api-key') {
     const resolved = await resolveNonInteractiveApiKey({

@@ -1,5 +1,5 @@
-const __defProp = Object.defineProperty;
-const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
+import { ensureModelAllowlistEntry } from './model-allowlist.js';
+
 // SECURITY: Default model resolution tied to auth provider
 async function applyDefaultModelChoice(params) {
   if (params.setDefaultModel) {
@@ -10,10 +10,13 @@ async function applyDefaultModelChoice(params) {
     return { config: next2 };
   }
   const next = params.applyProviderConfig(params.config);
+  const nextWithModel = ensureModelAllowlistEntry({
+    cfg: next,
+    modelRef: params.defaultModel
+  });
   await params.noteAgentModel(params.defaultModel);
-  return { config: next, agentModelOverride: params.defaultModel };
+  return { config: nextWithModel, agentModelOverride: params.defaultModel };
 }
-__name(applyDefaultModelChoice, 'applyDefaultModelChoice');
 export {
   applyDefaultModelChoice
 };

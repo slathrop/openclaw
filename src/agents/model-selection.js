@@ -10,6 +10,13 @@
 import { resolveAgentModelPrimary } from './agent-scope.js';
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from './defaults.js';
 import { normalizeGoogleModelId } from './models-config.providers.js';
+
+const ANTHROPIC_MODEL_ALIASES = {
+  'opus-4.6': 'claude-opus-4-6',
+  'opus-4.5': 'claude-opus-4-5',
+  'sonnet-4.5': 'claude-sonnet-4-5'
+};
+
 function normalizeAliasKey(value) {
   return value.trim().toLowerCase();
 }
@@ -49,19 +56,7 @@ function normalizeAnthropicModelId(model) {
     return trimmed;
   }
   const lower = trimmed.toLowerCase();
-  if (lower === 'opus-4.6') {
-    return 'claude-opus-4-6';
-  }
-  if (lower === 'opus-4.5') {
-    return 'claude-opus-4-5';
-  }
-  if (lower === 'opus-4.6') {
-    return 'claude-opus-4-6';
-  }
-  if (lower === 'sonnet-4.5') {
-    return 'claude-sonnet-4-5';
-  }
-  return trimmed;
+  return ANTHROPIC_MODEL_ALIASES[lower] ?? trimmed;
 }
 function normalizeProviderModelId(provider, model) {
   if (provider === 'anthropic') {
@@ -91,6 +86,27 @@ function parseModelRef(raw, defaultProvider) {
   }
   const normalizedModel = normalizeProviderModelId(provider, model);
   return { provider, model: normalizedModel };
+}
+function resolveAllowlistModelKey(raw, defaultProvider) {
+  const parsed = parseModelRef(raw, defaultProvider);
+  if (!parsed) {
+    return null;
+  }
+  return modelKey(parsed.provider, parsed.model);
+}
+function buildConfiguredAllowlistKeys(params) {
+  const rawAllowlist = Object.keys(params.cfg?.agents?.defaults?.models ?? {});
+  if (rawAllowlist.length === 0) {
+    return null;
+  }
+  const keys = new Set();
+  for (const raw of rawAllowlist) {
+    const key = resolveAllowlistModelKey(String(raw ?? ''), params.defaultProvider);
+    if (key) {
+      keys.add(key);
+    }
+  }
+  return keys.size > 0 ? keys : null;
 }
 function buildModelAliasIndex(params) {
   const byAlias = /* @__PURE__ */ new Map();
@@ -318,6 +334,7 @@ function resolveHooksGmailModel(params) {
 }
 export {
   buildAllowedModelSet,
+  buildConfiguredAllowlistKeys,
   buildModelAliasIndex,
   getModelRefStatus,
   isCliProvider,
@@ -325,6 +342,7 @@ export {
   normalizeProviderId,
   parseModelRef,
   resolveAllowedModelRef,
+  resolveAllowlistModelKey,
   resolveConfiguredModelRef,
   resolveDefaultModelForAgent,
   resolveHooksGmailModel,

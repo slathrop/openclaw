@@ -247,7 +247,8 @@ function isClaudeModel(id) {
   return /\bclaude-/i.test(id);
 }
 function isClaude45OrHigher(id) {
-  return /\bclaude-[^\s/]*?(?:-4-?5\b|4\.5\b)/i.test(id);
+  // Match claude-*-4-5+, claude-*-45+, claude-*4.5+, or future 5.x+ majors.
+  return /\bclaude-[^\s/]*?(?:-4-?(?:[5-9]|[1-9]\d)\b|4\.(?:[5-9]|[1-9]\d)\b|-[5-9](?:\b|[.-]))/i.test(id);
 }
 function collectModelHygieneFindings(cfg) {
   const findings = [];

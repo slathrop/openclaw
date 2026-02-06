@@ -345,7 +345,7 @@ vi.mock('../config/config.js', async () => {
       const fileAgents = fileConfig.agents && typeof fileConfig.agents === 'object' && !Array.isArray(fileConfig.agents) ? fileConfig.agents : {};
       const fileDefaults = fileAgents.defaults && typeof fileAgents.defaults === 'object' && !Array.isArray(fileAgents.defaults) ? fileAgents.defaults : {};
       const defaults = {
-        model: { primary: 'anthropic/claude-opus-4-5' },
+        model: { primary: 'anthropic/claude-opus-4-6' },
         workspace: path.join(os.tmpdir(), 'openclaw-gateway-test'),
         ...fileDefaults,
         ...testState.agentConfig

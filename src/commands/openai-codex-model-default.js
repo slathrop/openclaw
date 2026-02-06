@@ -1,6 +1,6 @@
 const __defProp = Object.defineProperty;
 const __name = (target, value) => __defProp(target, 'name', { value, configurable: true });
-const OPENAI_CODEX_DEFAULT_MODEL = 'openai-codex/gpt-5.2';
+const OPENAI_CODEX_DEFAULT_MODEL = 'openai-codex/gpt-5.3-codex';
 function shouldSetOpenAICodexModel(model) {
   const trimmed = model?.trim();
   if (!trimmed) {

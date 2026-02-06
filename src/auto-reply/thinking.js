@@ -13,6 +13,7 @@ function isBinaryThinkingProvider(provider) {
 }
 const XHIGH_MODEL_REFS = [
   'openai/gpt-5.2',
+  'openai-codex/gpt-5.3-codex',
   'openai-codex/gpt-5.2-codex',
   'openai-codex/gpt-5.1-codex'
 ];
