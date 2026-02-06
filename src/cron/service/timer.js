@@ -21,7 +21,6 @@ function armTimer(state) {
       state.deps.log.error({ err: String(err) }, 'cron: timer tick failed');
     });
   }, clampedDelay);
-  state.timer.unref?.();
 }
 async function onTimer(state) {
   if (state.running) {

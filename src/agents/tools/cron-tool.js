@@ -5,6 +5,7 @@
 import { Type } from '@sinclair/typebox';
 import { loadConfig } from '../../config/config.js';
 import { normalizeCronJobCreate, normalizeCronJobPatch } from '../../cron/normalize.js';
+import { parseAgentSessionKey } from '../../sessions/session-key-utils.js';
 import { truncateUtf16Safe } from '../../utils.js';
 import { resolveSessionAgentId } from '../agent-scope.js';
 import { optionalStringEnum, stringEnum } from '../schema/typebox.js';
@@ -126,6 +127,85 @@ async function buildReminderContextLines(params) {
     return [];
   }
 }
+/** @param {unknown} value */
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Strip :thread:... suffix from session key so delivery targets the parent peer.
+ * @param {string} sessionKey
+ * @returns {string}
+ */
+function stripThreadSuffixFromSessionKey(sessionKey) {
+  const normalized = sessionKey.toLowerCase();
+  const idx = normalized.lastIndexOf(':thread:');
+  if (idx <= 0) {
+    return sessionKey;
+  }
+  const parent = sessionKey.slice(0, idx).trim();
+  return parent ? parent : sessionKey;
+}
+
+/**
+ * Infer delivery target (channel, to, mode) from the agent session key.
+ * Returns null when nothing useful can be inferred.
+ * @param {string} [agentSessionKey]
+ * @returns {{ mode: string, to: string, channel?: string } | null}
+ */
+function inferDeliveryFromSessionKey(agentSessionKey) {
+  const rawSessionKey = agentSessionKey?.trim();
+  if (!rawSessionKey) {
+    return null;
+  }
+  const parsed = parseAgentSessionKey(stripThreadSuffixFromSessionKey(rawSessionKey));
+  if (!parsed || !parsed.rest) {
+    return null;
+  }
+  const parts = parsed.rest.split(':').filter(Boolean);
+  if (parts.length === 0) {
+    return null;
+  }
+  const head = parts[0]?.trim().toLowerCase();
+  if (!head || head === 'main' || head === 'subagent' || head === 'acp') {
+    return null;
+  }
+
+  // buildAgentPeerSessionKey encodes peers as:
+  // - dm:<peerId>
+  // - <channel>:dm:<peerId>
+  // - <channel>:<accountId>:dm:<peerId>
+  // - <channel>:group:<peerId>
+  // - <channel>:channel:<peerId>
+  // Threaded sessions append :thread:<id>, which we strip so delivery targets the parent peer.
+  // NOTE: Telegram forum topics encode as <chatId>:topic:<topicId> and should be preserved.
+  const markerIndex = parts.findIndex(
+    (part) => part === 'dm' || part === 'group' || part === 'channel'
+  );
+  if (markerIndex === -1) {
+    return null;
+  }
+  const peerId = parts
+    .slice(markerIndex + 1)
+    .join(':')
+    .trim();
+  if (!peerId) {
+    return null;
+  }
+
+  /** @type {string | undefined} */
+  let channel;
+  if (markerIndex >= 1) {
+    channel = parts[0]?.trim().toLowerCase();
+  }
+
+  const delivery = { mode: 'announce', to: peerId };
+  if (channel) {
+    delivery.channel = channel;
+  }
+  return delivery;
+}
+
 function createCronTool(opts) {
   return {
     label: 'Cron',
@@ -213,6 +293,35 @@ Use jobId as the canonical identifier; id is accepted for compatibility. Use con
               job.agentId = agentId;
             }
           }
+
+          // Infer delivery target from session key for isolated jobs if not provided
+          if (
+            opts?.agentSessionKey &&
+            job &&
+            typeof job === 'object' &&
+            'payload' in job &&
+            job.payload?.kind === 'agentTurn'
+          ) {
+            const deliveryValue = job.delivery;
+            const delivery = isRecord(deliveryValue) ? deliveryValue : undefined;
+            const modeRaw = typeof delivery?.mode === 'string' ? delivery.mode : '';
+            const mode = modeRaw.trim().toLowerCase();
+            const hasTarget =
+              (typeof delivery?.channel === 'string' && delivery.channel.trim()) ||
+              (typeof delivery?.to === 'string' && delivery.to.trim());
+            const shouldInfer =
+              (deliveryValue == null || delivery) && mode !== 'none' && !hasTarget;
+            if (shouldInfer) {
+              const inferred = inferDeliveryFromSessionKey(opts.agentSessionKey);
+              if (inferred) {
+                job.delivery = {
+                  ...delivery,
+                  ...inferred
+                };
+              }
+            }
+          }
+
           const contextMessages = typeof params.contextMessages === 'number' && Number.isFinite(params.contextMessages) ? params.contextMessages : 0;
           if (job && typeof job === 'object' && 'payload' in job && job.payload?.kind === 'systemEvent') {
             const payload = job.payload;
