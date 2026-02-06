@@ -124,12 +124,15 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Telegram threading completion (SYNC-043 to SYNC-045)
-- [ ] 09-02-PLAN.md — Contributor handle + Ollama docs + CLI NODE_OPTIONS fix (SYNC-046 to SYNC-048)
-- [ ] 09-03-PLAN.md — Claude Opus 4.6 + Feishu expansion (SYNC-049 to SYNC-051)
-- [ ] 09-04-PLAN.md — Compaction orphan repair + cron fixes + chores (SYNC-052 to SYNC-057)
-- [ ] 09-05-PLAN.md — Runtime guard bump + session tokens + workspace updates (SYNC-058 to SYNC-060)
-- [ ] 09-06-PLAN.md — Compaction retries + billing errors + QR revert (SYNC-061 to SYNC-063)
+- [x] 09-01-PLAN.md — Telegram threading completion (SYNC-043 to SYNC-045)
+- [x] 09-02-PLAN.md — Contributor handle + Ollama docs + CLI NODE_OPTIONS fix (SYNC-046 to SYNC-048)
+- [x] 09-03-PLAN.md — Claude Opus 4.6 + Feishu expansion (SYNC-049 to SYNC-051)
+- [x] 09-04-PLAN.md — Compaction orphan repair + cron fixes + chores (SYNC-052 to SYNC-057)
+- [x] 09-05-PLAN.md — Runtime guard bump + session tokens + workspace updates (SYNC-058 to SYNC-060)
+- [x] 09-06-PLAN.md — Compaction retries + billing errors + QR revert (SYNC-061 to SYNC-063)
+
+**Status:** Complete (2026-02-06)
+**Verification:** 09-VERIFICATION.md — 9/9 must-haves verified
 
 **Key changes:**
 - Telegram: topic auto-threading with parseTelegramTarget, subagent gateway call threading
@@ -230,3 +233,4 @@ Plans:
 *Phase 8 planned: 2026-02-06*
 *Phase 8 executed: 2026-02-06*
 *Phase 9 planned: 2026-02-06*
+*Phase 9 executed: 2026-02-06*
