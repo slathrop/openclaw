@@ -9,6 +9,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveSessionAgentId } from '../../agents/agent-scope.js';
+import { assertMediaNotDataUrl, resolveSandboxedMediaSource } from '../../agents/sandbox-paths.js';
 import {
   readNumberParam,
   readStringArrayParam,
@@ -189,6 +190,45 @@ function normalizeBase64Payload(params) {
     base64: payload,
     contentType: params.contentType ?? mime
   };
+}
+async function normalizeSandboxMediaParams(params) {
+  const sandboxRoot = params.sandboxRoot?.trim();
+  const mediaKeys = ['media', 'path', 'filePath'];
+  for (const key of mediaKeys) {
+    const raw = readStringParam(params.args, key, { trim: false });
+    if (!raw) {
+      continue;
+    }
+    assertMediaNotDataUrl(raw);
+    if (!sandboxRoot) {
+      continue;
+    }
+    const normalized = await resolveSandboxedMediaSource({ media: raw, sandboxRoot });
+    if (normalized !== raw) {
+      params.args[key] = normalized;
+    }
+  }
+}
+async function normalizeSandboxMediaList(params) {
+  const sandboxRoot = params.sandboxRoot?.trim();
+  const normalized = [];
+  const seen = new Set();
+  for (const value of params.values) {
+    const raw = value?.trim();
+    if (!raw) {
+      continue;
+    }
+    assertMediaNotDataUrl(raw);
+    const resolved = sandboxRoot
+      ? await resolveSandboxedMediaSource({ media: raw, sandboxRoot })
+      : raw;
+    if (seen.has(resolved)) {
+      continue;
+    }
+    seen.add(resolved);
+    normalized.push(resolved);
+  }
+  return normalized;
 }
 async function hydrateSetGroupIconParams(params) {
   if (params.action !== 'setGroupIcon') {
@@ -489,6 +529,12 @@ async function handleSendAction(ctx) {
     pushMedia(url);
   }
   pushMedia(parsed.mediaUrl);
+  const normalizedMediaUrls = await normalizeSandboxMediaList({
+    values: mergedMediaUrls,
+    sandboxRoot: input.sandboxRoot
+  });
+  mergedMediaUrls.length = 0;
+  mergedMediaUrls.push(...normalizedMediaUrls);
   message = parsed.text;
   params.message = message;
   if (!params.replyTo && parsed.replyToId) {
@@ -717,6 +763,10 @@ async function runMessageAction(input) {
     params.accountId = accountId;
   }
   const dryRun = Boolean(input.dryRun ?? readBooleanParam(params, 'dryRun'));
+  await normalizeSandboxMediaParams({
+    args: params,
+    sandboxRoot: input.sandboxRoot
+  });
   await hydrateSendAttachmentParams({
     cfg,
     channel,

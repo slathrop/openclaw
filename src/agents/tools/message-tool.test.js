@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { setActivePluginRegistry } from '../../plugins/runtime.js';
 import { createTestRegistry } from '../../test-utils/channel-plugins.js';
@@ -140,46 +137,8 @@ describe('message tool description', () => {
     setActivePluginRegistry(createTestRegistry([]));
   });
 });
-describe('message tool sandbox path validation', () => {
-  it('rejects filePath that escapes sandbox root', async () => {
-    const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), 'msg-sandbox-'));
-    try {
-      const tool = createMessageTool({
-        config: {},
-        sandboxRoot: sandboxDir
-      });
-      await expect(
-        tool.execute('1', {
-          action: 'send',
-          target: 'telegram:123',
-          filePath: '/etc/passwd',
-          message: ''
-        })
-      ).rejects.toThrow(/sandbox/i);
-    } finally {
-      await fs.rm(sandboxDir, { recursive: true, force: true });
-    }
-  });
-  it('rejects path param with traversal sequence', async () => {
-    const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), 'msg-sandbox-'));
-    try {
-      const tool = createMessageTool({
-        config: {},
-        sandboxRoot: sandboxDir
-      });
-      await expect(
-        tool.execute('1', {
-          action: 'send',
-          target: 'telegram:123',
-          path: '../../../etc/shadow',
-          message: ''
-        })
-      ).rejects.toThrow(/sandbox/i);
-    } finally {
-      await fs.rm(sandboxDir, { recursive: true, force: true });
-    }
-  });
-  it('allows filePath inside sandbox root', async () => {
+describe('message tool sandbox passthrough', () => {
+  it('forwards sandboxRoot to runMessageAction', async () => {
     mocks.runMessageAction.mockClear();
     mocks.runMessageAction.mockResolvedValue({
       kind: 'send',
@@ -190,24 +149,19 @@ describe('message tool sandbox path validation', () => {
       payload: {},
       dryRun: true
     });
-    const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), 'msg-sandbox-'));
-    try {
-      const tool = createMessageTool({
-        config: {},
-        sandboxRoot: sandboxDir
-      });
-      await tool.execute('1', {
-        action: 'send',
-        target: 'telegram:123',
-        filePath: './data/file.txt',
-        message: ''
-      });
-      expect(mocks.runMessageAction).toHaveBeenCalledTimes(1);
-    } finally {
-      await fs.rm(sandboxDir, { recursive: true, force: true });
-    }
+    const tool = createMessageTool({
+      config: {},
+      sandboxRoot: '/tmp/sandbox'
+    });
+    await tool.execute('1', {
+      action: 'send',
+      target: 'telegram:123',
+      message: ''
+    });
+    const call = mocks.runMessageAction.mock.calls[0]?.[0];
+    expect(call?.sandboxRoot).toBe('/tmp/sandbox');
   });
-  it('skips validation when no sandboxRoot is set', async () => {
+  it('omits sandboxRoot when not configured', async () => {
     mocks.runMessageAction.mockClear();
     mocks.runMessageAction.mockResolvedValue({
       kind: 'send',
@@ -224,9 +178,9 @@ describe('message tool sandbox path validation', () => {
     await tool.execute('1', {
       action: 'send',
       target: 'telegram:123',
-      filePath: '/etc/passwd',
       message: ''
     });
-    expect(mocks.runMessageAction).toHaveBeenCalledTimes(1);
+    const call = mocks.runMessageAction.mock.calls[0]?.[0];
+    expect(call?.sandboxRoot).toBeUndefined();
   });
 });
