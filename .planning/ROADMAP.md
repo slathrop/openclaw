@@ -22,6 +22,16 @@
 
 **Commits:** 1-21 (21 commits)
 **Requirements:** SYNC-001 to SYNC-021
+**Plans:** 7 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Security foundation (credential exfil, TUI env, sandboxed media)
+- [ ] 07-02-PLAN.md — Telegram bot-message cleanup + voice allowlist
+- [ ] 07-03-PLAN.md — Owner-only tools + bot-handlers cleanup
+- [ ] 07-04-PLAN.md — Message schema + owner allowlist + auth inference
+- [ ] 07-05-PLAN.md — Plugin versions + cron formatters + appcast + notes
+- [ ] 07-06-PLAN.md — Thinking downgrade + Discord hint + cron cleanup
+- [ ] 07-07-PLAN.md — CLI extension path resolution (4 commits)
 
 **Key changes:**
 - **SYNC-001**: Security: Prevent gateway credential exfiltration via URL override (a13ff55bd)
@@ -163,3 +173,4 @@
 ---
 
 *Roadmap created: 2026-02-05*
+*Phase 7 planned: 2026-02-05*
