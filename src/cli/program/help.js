@@ -37,6 +37,9 @@ function configureProgramHelp(program, ctx) {
   );
   program.option('--no-color', 'Disable ANSI colors', false);
   program.configureHelp({
+    // sort options and subcommands alphabetically
+    sortSubcommands: true,
+    sortOptions: true,
     optionTerm: /* @__PURE__ */ __name((option) => theme.option(option.flags), 'optionTerm'),
     subcommandTerm: /* @__PURE__ */ __name((cmd) => theme.command(cmd.name()), 'subcommandTerm')
   });
