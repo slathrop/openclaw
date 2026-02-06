@@ -9,6 +9,7 @@
 | Phase | Name | Commits | Focus |
 |-------|------|---------|-------|
 | 7 | Security + Initial Hardening | 1-21 | Security fixes, TUI, Telegram cleanup, CLI extensions |
+| 7.1 | Single Test Runner Strategy | — | Parallel agent test coordination (INSERTED) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ACL tests, Discord, Telegram DM threading, Docs |
 | 9 | Threading + Features | 43-63 | Telegram threading, Opus 4.6, Feishu, Cron fixes |
 | 10 | xAI + Cron + Security Scanner | 64-83 | xAI Grok, Cron fixes, Exec approvals, Security scanner |
@@ -49,6 +50,27 @@ Plans:
 2. Telegram bot handlers load without @ts-nocheck
 3. CLI extension install works for bundled extensions
 4. Full test suite passes after each commit
+
+---
+
+## Phase 7.1: Single Test Runner Strategy (INSERTED)
+
+**Goal:** Wave-level test gate replaces per-agent full suite runs; agents use targeted tests during parallel waves
+
+**Depends on:** Phase 7
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07.1-01-PLAN.md — Wave-level test gate in orchestrator + parallel-testing reference doc
+- [ ] 07.1-02-PLAN.md — Executor and planner agent guidance updates
+
+**Details:**
+Current approach runs full test suite after each commit by each parallel agent. This creates redundant test runs and potential race conditions.
+
+New strategy:
+- Single designated "test runner" agent executes project unit tests once per wave
+- Other parallel agents can see test results and handle their own internal issues
+- Reduces test execution overhead during multi-agent parallel execution
 
 ---
 
@@ -177,3 +199,4 @@ Plans:
 
 *Roadmap created: 2026-02-05*
 *Phase 7 planned: 2026-02-05*
+*Phase 7.1 planned: 2026-02-06*
