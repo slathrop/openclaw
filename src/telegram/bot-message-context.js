@@ -54,10 +54,7 @@ import {
  * @typedef {object} TelegramMediaRef
  * @property {string} path
  * @property {string} [contentType]
- * @property {object} [stickerMetadata]
- * @property {string} [stickerMetadata.emoji]
- * @property {string} [stickerMetadata.setName]
- * @property {string} [stickerMetadata.cachedDescription]
+ * @property {import('./bot/types.js').StickerMetadata} [stickerMetadata]
  */
 
 /**
