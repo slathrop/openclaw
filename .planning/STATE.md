@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 8 of 11 (Windows ACL + Telegram Threading)
-Plan: 0 of ? (planning needed)
-Status: Ready to plan
-Last activity: 2026-02-06 -- Completed Phase 7.1 (Single Test Runner Strategy verified)
+Plan: 1 of 6 complete
+Status: In progress
+Last activity: 2026-02-06 -- Completed 08-01-PLAN.md (SYNC-022 to SYNC-024)
 
-Progress: [█████░░░░░░░░░░░░░░░░░░░░] 20% (21/104 commits ported)
+Progress: [██████░░░░░░░░░░░░░░░░░░░] 23% (24/104 commits ported)
 
 ## Phase Summary
 
@@ -22,7 +22,7 @@ Progress: [█████░░░░░░░░░░░░░░░░░░
 |-------|------|---------|--------|
 | 7 | Security + Initial Hardening | 1-21 | ✓ Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | — | ✓ Complete (8/8 verified) |
-| 8 | Windows ACL + Telegram Threading | 22-42 | Pending |
+| 8 | Windows ACL + Telegram Threading | 22-42 | In progress (plan 1/6 done) |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
@@ -56,6 +56,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | SYNC-007 is JSDoc-only in JS | 07-03 | Upstream TS removed casts/type imports; JS equivalent is StickerMetadata JSDoc dedup |
 | Wave-level test gate replaces per-agent full suite | 07.1-01 | Single pnpm test + pnpm check per wave eliminates CPU contention from parallel vitest workers |
 | Agents use --no-verify during parallel waves | 07.1-01 | Pre-commit hook conflicts (index.lock) between concurrent agents; wave lint gate is replacement |
+| Walk-up traversal for chrome extension assets | 08-01 | Upstream replaced fixed candidate paths with directory walk-up (resolveBundledExtensionRootDir) |
+| Deterministic os.userInfo mocking for Windows ACL tests | 08-01 | vi.mock('node:os') with MOCK_USERNAME ensures cross-platform test stability |
 
 ### Roadmap Evolution
 
@@ -76,9 +78,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 07.1-02-PLAN.md (Phase 7.1 complete)
+Stopped at: Completed 08-01-PLAN.md (SYNC-022 to SYNC-024)
 Resume file: None
-Next action: Execute Phase 8 (Windows ACL + Telegram Threading)
+Next action: Continue Phase 8 plans 02-06
 
 ## v1 Milestone Summary (Archived)
 
