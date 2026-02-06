@@ -56,10 +56,10 @@ const baileys = await import('@whiskeysockets/baileys');
 function resetBaileysMocks() {
   const recreated = createMockBaileys();
   globalThis[/* @__PURE__ */ Symbol.for('openclaw:lastSocket')] = recreated.lastSocket;
-  baileys.makeWASocket.mockImplementation(recreated.mod.makeWASocket);
-  baileys.useMultiFileAuthState.mockImplementation(recreated.mod.useMultiFileAuthState);
-  baileys.fetchLatestBaileysVersion.mockImplementation(recreated.mod.fetchLatestBaileysVersion);
-  baileys.makeCacheableSignalKeyStore.mockImplementation(recreated.mod.makeCacheableSignalKeyStore);
+  baileys.makeWASocket = vi.fn(recreated.mod.makeWASocket);
+  baileys.useMultiFileAuthState = vi.fn(recreated.mod.useMultiFileAuthState);
+  baileys.fetchLatestBaileysVersion = vi.fn(recreated.mod.fetchLatestBaileysVersion);
+  baileys.makeCacheableSignalKeyStore = vi.fn(recreated.mod.makeCacheableSignalKeyStore);
 }
 function getLastSocket() {
   const getter = globalThis[/* @__PURE__ */ Symbol.for('openclaw:lastSocket')];
