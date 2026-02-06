@@ -148,6 +148,56 @@ describe('runMessageAction threading auto-injection', () => {
     expect(call?.ctx?.params?.threadId).toBe('42');
   });
 
+  it('skips telegram auto-threading when target chat differs', async () => {
+    mocks.executeSendAction.mockResolvedValue({
+      handledBy: 'plugin',
+      payload: {}
+    });
+
+    await runMessageAction({
+      cfg: telegramConfig,
+      action: 'send',
+      params: {
+        channel: 'telegram',
+        target: 'telegram:999',
+        message: 'hi'
+      },
+      toolContext: {
+        currentChannelId: 'telegram:123',
+        currentThreadTs: '42'
+      },
+      agentId: 'main'
+    });
+
+    const call = mocks.executeSendAction.mock.calls[0]?.[0];
+    expect(call?.ctx?.params?.threadId).toBeUndefined();
+  });
+
+  it('matches telegram target with internal prefix variations', async () => {
+    mocks.executeSendAction.mockResolvedValue({
+      handledBy: 'plugin',
+      payload: {}
+    });
+
+    await runMessageAction({
+      cfg: telegramConfig,
+      action: 'send',
+      params: {
+        channel: 'telegram',
+        target: 'telegram:group:123',
+        message: 'hi'
+      },
+      toolContext: {
+        currentChannelId: 'telegram:123',
+        currentThreadTs: '42'
+      },
+      agentId: 'main'
+    });
+
+    const call = mocks.executeSendAction.mock.calls[0]?.[0];
+    expect(call?.ctx?.params?.threadId).toBe('42');
+  });
+
   it('uses explicit telegram threadId when provided', async () => {
     mocks.executeSendAction.mockResolvedValue({
       handledBy: 'plugin',
