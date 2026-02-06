@@ -127,17 +127,24 @@ async function sendMessageFeishu(client, receiveId, content, opts = {}) {
         finalContent = { file_key: fileKey };
       }
       if (typeof contentText === 'string' && contentText.trim()) {
-        const mediaRes = await client.im.message.create({
-          params: { receive_id_type: receiveIdType },
-          data: {
-            receive_id: receiveId,
-            msg_type: msgType,
-            content: JSON.stringify(finalContent)
+        const mediaContent = JSON.stringify(finalContent);
+        if (opts.replyToMessageId) {
+          await replyMessageFeishu(client, opts.replyToMessageId, mediaContent, msgType, {
+            replyInThread: opts.replyInThread
+          });
+        } else {
+          const mediaRes = await client.im.message.create({
+            params: { receive_id_type: receiveIdType },
+            data: {
+              receive_id: receiveId,
+              msg_type: msgType,
+              content: mediaContent
+            }
+          });
+          if (mediaRes.code !== 0) {
+            logger.error(`Feishu media send failed: ${mediaRes.code} - ${mediaRes.msg}`);
+            throw new Error(`Feishu API Error: ${mediaRes.msg}`);
           }
-        });
-        if (mediaRes.code !== 0) {
-          logger.error(`Feishu media send failed: ${mediaRes.code} - ${mediaRes.msg}`);
-          throw new Error(`Feishu API Error: ${mediaRes.msg}`);
         }
         const textRes = await client.im.message.create({
           params: { receive_id_type: receiveIdType },
@@ -174,6 +181,12 @@ async function sendMessageFeishu(client, receiveId, content, opts = {}) {
     }
   }
   const contentStr = typeof finalContent === 'string' ? finalContent : JSON.stringify(finalContent);
+  // Use reply API if replyToMessageId is provided
+  if (opts.replyToMessageId) {
+    return replyMessageFeishu(client, opts.replyToMessageId, contentStr, msgType, {
+      replyInThread: opts.replyInThread
+    });
+  }
   try {
     const res = await client.im.message.create({
       params: { receive_id_type: receiveIdType },
@@ -193,7 +206,38 @@ async function sendMessageFeishu(client, receiveId, content, opts = {}) {
     throw err;
   }
 }
+/**
+ * Reply to a specific message in Feishu.
+ * Uses the Feishu reply API: POST /open-apis/im/v1/messages/:message_id/reply
+ * @param {object} client
+ * @param {string} messageId
+ * @param {string} content
+ * @param {string} msgType
+ * @param {{replyInThread?: boolean}} [opts]
+ * @returns {Promise<object|null>}
+ */
+async function replyMessageFeishu(client, messageId, content, msgType, opts = {}) {
+  try {
+    const res = await client.im.message.reply({
+      path: { message_id: messageId },
+      data: {
+        msg_type: msgType,
+        content: content,
+        reply_in_thread: opts.replyInThread ?? false
+      }
+    });
+    if (res.code !== 0) {
+      logger.error(`Feishu reply failed: ${res.code} - ${res.msg}`);
+      throw new Error(`Feishu API Error: ${res.msg}`);
+    }
+    return res.data ?? null;
+  } catch (err) {
+    logger.error(`Feishu reply error: ${formatErrorMessage(err)}`);
+    throw err;
+  }
+}
 export {
+  replyMessageFeishu,
   sendMessageFeishu,
   uploadFileFeishu,
   uploadImageFeishu

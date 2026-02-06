@@ -56,7 +56,8 @@ async function probeFeishu(appId, appSecret, timeoutMs = 5e3, domain) {
     result.bot = {
       appId,
       appName: botJson.bot?.app_name ?? null,
-      avatarUrl: botJson.bot?.avatar_url ?? null
+      avatarUrl: botJson.bot?.avatar_url ?? null,
+      openId: botJson.bot?.open_id ?? null
     };
     result.elapsedMs = Date.now() - started;
     return result;

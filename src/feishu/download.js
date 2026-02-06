@@ -2,6 +2,20 @@ import { formatErrorMessage } from '../infra/errors.js';
 import { getChildLogger } from '../logging.js';
 import { saveMediaBuffer } from '../media/store.js';
 const logger = getChildLogger({ module: 'feishu-download' });
+
+/**
+ * Download a resource from a user message using messageResource.get
+ * This is the correct API for downloading resources from messages sent by users.
+ *
+ * @param {object} client
+ * @param {string} messageId
+ * @param {string} fileKey
+ * @param {"image"|"file"} type - Resource type: "image" or "file" only (per Feishu API docs).
+ *                                Audio/video must use type="file" despite being different media types.
+ * @param {number} [maxBytes]
+ * @returns {Promise<{path: string, contentType: string, placeholder: string}>}
+ * @see https://open.feishu.cn/document/server-docs/im-v1/message/get-2
+ */
 async function downloadFeishuMessageResource(client, messageId, fileKey, type, maxBytes = 30 * 1024 * 1024) {
   logger.debug(`Downloading Feishu ${type}: messageId=${messageId}, fileKey=${fileKey}`);
   const res = await client.im.messageResource.get({
@@ -92,26 +106,41 @@ async function resolveFeishuMedia(client, message, maxBytes = 30 * 1024 * 1024) 
         );
       }
     } else if (msgType === 'audio') {
+      // Note: Feishu API only supports type="image" or type="file" for messageResource.get
+      // Audio must be downloaded using type="file" per official docs:
+      // https://open.feishu.cn/document/server-docs/im-v1/message/get-2
       const content = JSON.parse(rawContent);
       if (content.file_key) {
-        return await downloadFeishuMessageResource(
+        const result = await downloadFeishuMessageResource(
           client,
           messageId,
           content.file_key,
-          'audio',
+          'file', // Use "file" type for audio download (API limitation)
           maxBytes
         );
+        // Override placeholder to indicate audio content
+        return {
+          ...result,
+          placeholder: '<media:audio>'
+        };
       }
     } else if (msgType === 'media') {
+      // Video message: content = { file_key: "...", image_key: "..." (thumbnail) }
+      // Note: Video must also be downloaded using type="file" per Feishu API docs
       const content = JSON.parse(rawContent);
       if (content.file_key) {
-        return await downloadFeishuMessageResource(
+        const result = await downloadFeishuMessageResource(
           client,
           messageId,
           content.file_key,
-          'video',
+          'file', // Use "file" type for video download (API limitation)
           maxBytes
         );
+        // Override placeholder to indicate video content
+        return {
+          ...result,
+          placeholder: '<media:video>'
+        };
       }
     } else if (msgType === 'sticker') {
       logger.debug('Sticker messages are not supported for download');
@@ -122,7 +151,90 @@ async function resolveFeishuMedia(client, message, maxBytes = 30 * 1024 * 1024) 
   }
   return null;
 }
+
+/**
+ * Extract image keys from post (rich text) message content.
+ * Post content structure: { post: { locale: { content: [[{ tag: "img", image_key: "..." }]] } } }
+ * @param {unknown} content
+ * @returns {string[]}
+ */
+function extractPostImageKeys(content) {
+  const imageKeys = [];
+
+  if (!content || typeof content !== 'object') {
+    return imageKeys;
+  }
+
+  const obj = content;
+
+  // Handle locale-wrapped format: { post: { zh_cn: { content: [...] } } }
+  let postData = obj;
+  if (obj.post && typeof obj.post === 'object') {
+    const post = obj.post;
+    const localeKey = Object.keys(post).find((key) => post[key] && typeof post[key] === 'object');
+    if (localeKey) {
+      postData = post[localeKey];
+    }
+  }
+
+  // Extract image_key from content elements
+  const contentArray = postData.content;
+  if (!Array.isArray(contentArray)) {
+    return imageKeys;
+  }
+
+  for (const line of contentArray) {
+    if (!Array.isArray(line)) {
+      continue;
+    }
+    for (const element of line) {
+      if (
+        element &&
+        typeof element === 'object' &&
+        element.tag === 'img' &&
+        typeof element.image_key === 'string'
+      ) {
+        imageKeys.push(element.image_key);
+      }
+    }
+  }
+
+  return imageKeys;
+}
+
+/**
+ * Download embedded images from a post (rich text) message.
+ * @param {object} client
+ * @param {string} messageId
+ * @param {string[]} imageKeys
+ * @param {number} [maxBytes]
+ * @param {number} [maxImages]
+ * @returns {Promise<Array<{path: string, contentType: string, placeholder: string}>>}
+ */
+async function downloadPostImages(client, messageId, imageKeys, maxBytes = 30 * 1024 * 1024, maxImages = 5) {
+  const results = [];
+
+  for (const imageKey of imageKeys.slice(0, maxImages)) {
+    try {
+      const media = await downloadFeishuMessageResource(
+        client,
+        messageId,
+        imageKey,
+        'image',
+        maxBytes
+      );
+      results.push(media);
+    } catch (err) {
+      logger.warn(`Failed to download post image ${imageKey}: ${formatErrorMessage(err)}`);
+    }
+  }
+
+  return results;
+}
+
 export {
   downloadFeishuMessageResource,
+  downloadPostImages,
+  extractPostImageKeys,
   resolveFeishuMedia
 };
