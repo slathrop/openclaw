@@ -158,7 +158,7 @@ async function processFeishuMessage(client, data, appId, options = {}) {
   const botOpenId = options.botOpenId?.trim();
   const wasMentioned = botOpenId
     ? mentions.some((m) => m.id?.open_id === botOpenId || m.id?.user_id === botOpenId)
-    : mentions.length > 0;
+    : false;
 
   if (isGroup) {
     const { groupConfig } = resolveFeishuGroupConfig({ cfg, accountId, chatId });
