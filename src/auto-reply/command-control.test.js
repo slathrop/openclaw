@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { setActivePluginRegistry } from '../plugins/runtime.js';
-import { createTestRegistry } from '../test-utils/channel-plugins.js';
+import { createOutboundTestPlugin, createTestRegistry } from '../test-utils/channel-plugins.js';
 import { resolveCommandAuthorization } from './command-auth.js';
 import { hasControlCommand, hasInlineCommandTokens } from './command-detection.js';
 import { listChatCommands } from './commands-registry.js';
@@ -114,6 +114,18 @@ describe('resolveCommandAuthorization', () => {
   });
 
   it('uses owner allowlist override from context when configured', () => {
+    setActivePluginRegistry(
+      createTestRegistry([
+        {
+          pluginId: 'discord',
+          plugin: createOutboundTestPlugin({
+            id: 'discord',
+            outbound: { deliveryMode: 'direct' }
+          }),
+          source: 'test'
+        }
+      ])
+    );
     const cfg = {
       channels: { discord: {} }
     };
@@ -130,9 +142,7 @@ describe('resolveCommandAuthorization', () => {
       commandAuthorized: true
     });
     expect(auth.senderIsOwner).toBe(true);
-    // In test environment without Discord plugin registered, the prefix is not stripped.
-    // In production the ownerList would be ['123'].
-    expect(auth.ownerList).toEqual(['discord:123']);
+    expect(auth.ownerList).toEqual(['123']);
   });
 
   it('uses explicit owner allowlist when allowFrom is wildcard', () => {
