@@ -25,13 +25,16 @@
 **Plans:** 7 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Security foundation (credential exfil, TUI env, sandboxed media)
-- [ ] 07-02-PLAN.md — Telegram bot-message cleanup + voice allowlist
-- [ ] 07-03-PLAN.md — Owner-only tools + bot-handlers cleanup
-- [ ] 07-04-PLAN.md — Message schema + owner allowlist + auth inference
-- [ ] 07-05-PLAN.md — Plugin versions + cron formatters + appcast + notes
-- [ ] 07-06-PLAN.md — Thinking downgrade + Discord hint + cron cleanup
-- [ ] 07-07-PLAN.md — CLI extension path resolution (4 commits)
+- [x] 07-01-PLAN.md — Security foundation (credential exfil, TUI env, sandboxed media)
+- [x] 07-02-PLAN.md — Telegram bot-message cleanup + voice allowlist
+- [x] 07-03-PLAN.md — Owner-only tools + bot-handlers cleanup
+- [x] 07-04-PLAN.md — Message schema + owner allowlist + auth inference
+- [x] 07-05-PLAN.md — Plugin versions + cron formatters + appcast + notes
+- [x] 07-06-PLAN.md — Thinking downgrade + Discord hint + cron cleanup
+- [x] 07-07-PLAN.md — CLI extension path resolution (4 commits)
+
+**Status:** Complete (2026-02-06)
+**Verification:** 07-VERIFICATION.md — 21/21 commits verified
 
 **Key changes:**
 - **SYNC-001**: Security: Prevent gateway credential exfiltration via URL override (a13ff55bd)
