@@ -71,3 +71,6 @@ USER.md
 
 # local tooling
 .serena/
+
+# GSD planning test results
+.planning/test-results/
