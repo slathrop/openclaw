@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 7 of 11 (Security + Initial Hardening)
-Plan: 07 of 7 (07-01, 07-02, 07-05, 07-06, 07-07 complete; 07-03, 07-04 remaining)
+Plan: 07 of 7 (07-01, 07-02, 07-04, 07-05, 07-06, 07-07 complete; 07-03 remaining)
 Status: In progress
-Last activity: 2026-02-06 -- Completed 07-07-PLAN.md (SYNC-018, SYNC-019, SYNC-020, SYNC-021)
+Last activity: 2026-02-06 -- Completed 07-04-PLAN.md (SYNC-008, SYNC-009, SYNC-010)
 
-Progress: [████░░░░░░░░░░░░░░░░░░░░░] 15% (16/104 commits ported)
+Progress: [█████░░░░░░░░░░░░░░░░░░░░] 19% (19/104 commits ported)
 
 ## Phase Summary
 
 | Phase | Name | Commits | Status |
 |-------|------|---------|--------|
-| 7 | Security + Initial Hardening | 1-21 | In Progress (07-01, 07-02, 07-05, 07-06, 07-07 done) |
+| 7 | Security + Initial Hardening | 1-21 | In Progress (07-01, 07-02, 07-04, 07-05, 07-06, 07-07 done) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | Pending |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
@@ -49,6 +49,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Empty tracking commits for already-synced content | 07-05 | SYNC-013/014 appcast+changelog already applied; created empty commits for 1:1 upstream parity |
 | Bypass pre-commit hook for Swift-only commits | 07-05 | eslint cannot process .swift files and hook reverts changes under multi-agent concurrency |
 | Adapted SYNC-018 path for JS project | 07-07 | Upstream used ../assets (works from dist root only); kept ../../assets for dev mode compatibility; SYNC-020 adds both as candidates |
+| SYNC-008/009 already committed by parallel agent | 07-04 | 07-06 agent committed media schema and owner allowlist changes; verified rather than duplicated |
+| Auth-choice-inference uses flat flag map | 07-04 | Matches upstream TypeScript pattern exactly; centralized in AUTH_CHOICE_FLAG_MAP |
 
 ### Blockers/Concerns
 
@@ -57,9 +59,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 07-07-PLAN.md
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
-Next action: Continue phase 7 wave 2 (07-03, 07-04 remaining)
+Next action: Continue phase 7 wave 2 (07-03 remaining)
 
 ## v1 Milestone Summary (Archived)
 
