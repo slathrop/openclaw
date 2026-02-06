@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 ## Current Position
 
-Phase: 9 of 11 (Threading + Features)
-Plan: 6 of 6 complete (all plans)
-Status: Phase complete
-Last activity: 2026-02-06 -- Phase 9 verified (9/9 must-haves)
+Phase: 9.1 of 11 (Formalize Upstream Sync Process)
+Plan: 1 of 2 complete
+Status: In progress
+Last activity: 2026-02-06 -- Completed 09.1-01-PLAN.md
 
 Progress: [███████████████░░░░░░░░░░] 61% (63/104 commits ported)
 
@@ -24,6 +24,7 @@ Progress: [███████████████░░░░░░░░
 | 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ✓ Complete (18/18 verified) |
 | 9 | Threading + Features | 43-63 | ✓ Complete (9/9 must-haves verified) |
+| 9.1 | Formalize Upstream Sync Process | -- | In Progress (1/2 plans) |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
 
@@ -72,10 +73,13 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | BILLING_ERROR_USER_MESSAGE shared constant | 09-06 | Consistent billing error presentation across error handlers and run loop |
 | Strip __name boilerplate from auth-choice.apply.openai.js | 09-05 | esbuild keepNames artifact breaks vitest; standard cleanup pattern |
 | Skip zh-CN docs in SYNC-060 | 09-05 | Generated docs per CLAUDE.md; only English docs updated |
+| Downstream Divergence sections appended at end of codebase docs | 09.1-01 | Preserves existing upstream documentation content unchanged |
+| SYNC-STATE.md records v2 range endpoint as target | 09.1-01 | Shows in-progress status with 63/104 commits ported |
 
 ### Roadmap Evolution
 
 - Phase 7.1 inserted after Phase 7: Single Test Runner Strategy (URGENT) -- reduce redundant test runs during parallel agent execution
+- Phase 9.1 inserted after Phase 9: Formalize Upstream Sync Process -- dual-codebase tracking + /gsd:sync-upstream command
 
 ### Blockers/Concerns
 
@@ -92,9 +96,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Phase 9 verified (9/9 must-haves)
+Stopped at: Completed 09.1-01-PLAN.md
 Resume file: None
-Next action: Plan Phase 10 (xAI + Cron + Security Scanner, commits 64-83)
+Next action: Execute 09.1-02-PLAN.md (sync-upstream workflow command)
 
 ## v1 Milestone Summary (Archived)
 
