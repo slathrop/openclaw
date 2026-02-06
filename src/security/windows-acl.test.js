@@ -62,7 +62,7 @@ Successfully processed 1 files`;
     });
 
     it('parses entries with inheritance flags', () => {
-      const output = `C:\\test\\dir BUILTIN\\Users:(OI)(CI)(R)`;
+      const output = 'C:\\test\\dir BUILTIN\\Users:(OI)(CI)(R)';
       const entries = parseIcaclsOutput(output, 'C:\\test\\dir');
       expect(entries).toHaveLength(1);
       expect(entries[0].rights).toEqual(['R']);
@@ -87,7 +87,7 @@ Successfully processed 1 files`;
     });
 
     it('handles quoted target paths', () => {
-      const output = `"C:\\path with spaces\\file.txt" BUILTIN\\Administrators:(F)`;
+      const output = '"C:\\path with spaces\\file.txt" BUILTIN\\Administrators:(F)';
       const entries = parseIcaclsOutput(output, 'C:\\path with spaces\\file.txt');
       expect(entries).toHaveLength(1);
     });

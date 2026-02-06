@@ -4,14 +4,14 @@ import { buildTelegramMessageContext } from './bot-message-context.js';
 // Mock recordInboundSession to capture updateLastRoute parameter
 const recordInboundSessionMock = vi.fn().mockResolvedValue(undefined);
 vi.mock('../channels/session.js', () => ({
-  recordInboundSession: (...args) => recordInboundSessionMock(...args),
+  recordInboundSession: (...args) => recordInboundSessionMock(...args)
 }));
 
 describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#8891)', () => {
   const baseConfig = {
     agents: { defaults: { model: 'anthropic/claude-opus-4-5', workspace: '/tmp/openclaw' } },
     channels: { telegram: {} },
-    messages: { groupChat: { mentionPatterns: [] } },
+    messages: { groupChat: { mentionPatterns: [] } }
   };
 
   beforeEach(() => {
@@ -27,9 +27,9 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
           date: 1700000000,
           text: 'hello',
           message_thread_id: 42, // DM Topic ID
-          from: { id: 42, first_name: 'Alice' },
+          from: { id: 42, first_name: 'Alice' }
         },
-        me: { id: 7, username: 'bot' },
+        me: { id: 7, username: 'bot' }
       },
       allMedia: [],
       storeAllowFrom: [],
@@ -37,8 +37,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       bot: {
         api: {
           sendChatAction: vi.fn(),
-          setMessageReaction: vi.fn(),
-        },
+          setMessageReaction: vi.fn()
+        }
       },
       cfg: baseConfig,
       account: { accountId: 'default' },
@@ -53,8 +53,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       resolveGroupRequireMention: () => false,
       resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
-        topicConfig: undefined,
-      }),
+        topicConfig: undefined
+      })
     });
 
     expect(ctx).not.toBeNull();
@@ -75,9 +75,9 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
           date: 1700000000,
           text: 'hello',
           // No message_thread_id
-          from: { id: 42, first_name: 'Alice' },
+          from: { id: 42, first_name: 'Alice' }
         },
-        me: { id: 7, username: 'bot' },
+        me: { id: 7, username: 'bot' }
       },
       allMedia: [],
       storeAllowFrom: [],
@@ -85,8 +85,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       bot: {
         api: {
           sendChatAction: vi.fn(),
-          setMessageReaction: vi.fn(),
-        },
+          setMessageReaction: vi.fn()
+        }
       },
       cfg: baseConfig,
       account: { accountId: 'default' },
@@ -101,8 +101,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       resolveGroupRequireMention: () => false,
       resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
-        topicConfig: undefined,
-      }),
+        topicConfig: undefined
+      })
     });
 
     expect(ctx).not.toBeNull();
@@ -123,9 +123,9 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
           date: 1700000000,
           text: '@bot hello',
           message_thread_id: 99,
-          from: { id: 42, first_name: 'Alice' },
+          from: { id: 42, first_name: 'Alice' }
         },
-        me: { id: 7, username: 'bot' },
+        me: { id: 7, username: 'bot' }
       },
       allMedia: [],
       storeAllowFrom: [],
@@ -133,8 +133,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       bot: {
         api: {
           sendChatAction: vi.fn(),
-          setMessageReaction: vi.fn(),
-        },
+          setMessageReaction: vi.fn()
+        }
       },
       cfg: baseConfig,
       account: { accountId: 'default' },
@@ -149,8 +149,8 @@ describe('buildTelegramMessageContext DM topic threadId in deliveryContext (#889
       resolveGroupRequireMention: () => false,
       resolveTelegramGroupConfig: () => ({
         groupConfig: { requireMention: false },
-        topicConfig: undefined,
-      }),
+        topicConfig: undefined
+      })
     });
 
     expect(ctx).not.toBeNull();
