@@ -30,6 +30,16 @@ function resolveAgentRunContext(opts) {
   if ((merged.currentThreadTs === null || merged.currentThreadTs === undefined) && opts.threadId !== null && opts.threadId !== undefined && opts.threadId !== '' && opts.threadId !== null) {
     merged.currentThreadTs = String(opts.threadId);
   }
+
+  // Populate currentChannelId from the outbound target so that
+  // resolveTelegramAutoThreadId can match the originating chat.
+  if (!merged.currentChannelId && opts.to) {
+    const trimmedTo = opts.to.trim();
+    if (trimmedTo) {
+      merged.currentChannelId = trimmedTo;
+    }
+  }
+
   return merged;
 }
 __name(resolveAgentRunContext, 'resolveAgentRunContext');
