@@ -15,6 +15,43 @@ import {
 } from '../utils/message-channel.js';
 import { GatewayClient } from './client.js';
 import { PROTOCOL_VERSION } from './protocol/index.js';
+
+/**
+ * Resolve explicit auth from options (token/password).
+ * @param {{ token?: string; password?: string }} opts
+ * @returns {{ token?: string; password?: string }}
+ */
+function resolveExplicitGatewayAuth(opts) {
+  const token =
+    typeof opts?.token === 'string' && opts.token.trim().length > 0 ? opts.token.trim() : void 0;
+  const password =
+    typeof opts?.password === 'string' && opts.password.trim().length > 0
+      ? opts.password.trim()
+      : void 0;
+  return { token, password };
+}
+
+/**
+ * Ensure explicit credentials when url override is set.
+ * @param {{ urlOverride?: string; auth: { token?: string; password?: string }; errorHint: string; configPath?: string }} params
+ */
+function ensureExplicitGatewayAuth(params) {
+  if (!params.urlOverride) {
+    return;
+  }
+  if (params.auth.token || params.auth.password) {
+    return;
+  }
+  const message = [
+    'gateway url override requires explicit credentials',
+    params.errorHint,
+    params.configPath ? `Config: ${params.configPath}` : void 0
+  ]
+    .filter(Boolean)
+    .join('\n');
+  throw new Error(message);
+}
+
 function buildGatewayConnectionDetails(options = {}) {
   const config = options.config ?? loadConfig();
   const configPath = options.configPath ?? resolveConfigPath(process.env, resolveStateDir(process.env));
@@ -55,6 +92,13 @@ async function callGateway(opts) {
   const isRemoteMode = config.gateway?.mode === 'remote';
   const remote = isRemoteMode ? config.gateway?.remote : void 0;
   const urlOverride = typeof opts.url === 'string' && opts.url.trim().length > 0 ? opts.url.trim() : void 0;
+  const explicitAuth = resolveExplicitGatewayAuth({ token: opts.token, password: opts.password });
+  ensureExplicitGatewayAuth({
+    urlOverride,
+    auth: explicitAuth,
+    errorHint: 'Fix: pass --token or --password (or gatewayToken in tools).',
+    configPath: opts.configPath ?? resolveConfigPath(process.env, resolveStateDir(process.env))
+  });
   const remoteUrl = typeof remote?.url === 'string' && remote.url.trim().length > 0 ? remote.url.trim() : void 0;
   if (isRemoteMode && !urlOverride && !remoteUrl) {
     const configPath = opts.configPath ?? resolveConfigPath(process.env, resolveStateDir(process.env));
@@ -79,8 +123,32 @@ async function callGateway(opts) {
   const remoteTlsFingerprint = isRemoteMode && !urlOverride && remoteUrl && typeof remote?.tlsFingerprint === 'string' ? remote.tlsFingerprint.trim() : void 0;
   const overrideTlsFingerprint = typeof opts.tlsFingerprint === 'string' ? opts.tlsFingerprint.trim() : void 0;
   const tlsFingerprint = overrideTlsFingerprint || remoteTlsFingerprint || (tlsRuntime?.enabled ? tlsRuntime.fingerprintSha256 : void 0);
-  const token = (typeof opts.token === 'string' && opts.token.trim().length > 0 ? opts.token.trim() : void 0) || (isRemoteMode ? typeof remote?.token === 'string' && remote.token.trim().length > 0 ? remote.token.trim() : void 0 : process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || process.env.CLAWDBOT_GATEWAY_TOKEN?.trim() || (typeof authToken === 'string' && authToken.trim().length > 0 ? authToken.trim() : void 0));
-  const password = (typeof opts.password === 'string' && opts.password.trim().length > 0 ? opts.password.trim() : void 0) || process.env.OPENCLAW_GATEWAY_PASSWORD?.trim() || process.env.CLAWDBOT_GATEWAY_PASSWORD?.trim() || (isRemoteMode ? typeof remote?.password === 'string' && remote.password.trim().length > 0 ? remote.password.trim() : void 0 : typeof authPassword === 'string' && authPassword.trim().length > 0 ? authPassword.trim() : void 0);
+  const token =
+    explicitAuth.token ||
+    (!urlOverride
+      ? isRemoteMode
+        ? typeof remote?.token === 'string' && remote.token.trim().length > 0
+          ? remote.token.trim()
+          : void 0
+        : process.env.OPENCLAW_GATEWAY_TOKEN?.trim() ||
+          process.env.CLAWDBOT_GATEWAY_TOKEN?.trim() ||
+          (typeof authToken === 'string' && authToken.trim().length > 0
+            ? authToken.trim()
+            : void 0)
+      : void 0);
+  const password =
+    explicitAuth.password ||
+    (!urlOverride
+      ? process.env.OPENCLAW_GATEWAY_PASSWORD?.trim() ||
+        process.env.CLAWDBOT_GATEWAY_PASSWORD?.trim() ||
+        (isRemoteMode
+          ? typeof remote?.password === 'string' && remote.password.trim().length > 0
+            ? remote.password.trim()
+            : void 0
+          : typeof authPassword === 'string' && authPassword.trim().length > 0
+            ? authPassword.trim()
+            : void 0)
+      : void 0);
   const formatCloseError = (code, reason) => {
     const reasonText = reason?.trim() || 'no close reason';
     const hint = code === 1006 ? 'abnormal closure (no close frame)' : code === 1e3 ? 'normal closure' : '';
@@ -158,5 +226,7 @@ function randomIdempotencyKey() {
 export {
   buildGatewayConnectionDetails,
   callGateway,
-  randomIdempotencyKey
+  ensureExplicitGatewayAuth,
+  randomIdempotencyKey,
+  resolveExplicitGatewayAuth
 };
