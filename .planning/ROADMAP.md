@@ -152,6 +152,24 @@ Plans:
 
 ---
 
+## Phase 9.1: Formalize Upstream Sync Process (INSERTED)
+
+**Goal:** Establish sustainable infrastructure for ongoing upstream sync: dual-codebase tracking in .planning/codebase/ and a /gsd:sync-upstream command
+
+**Depends on:** Phase 9
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09.1-01-PLAN.md — Dual-codebase docs (downstream divergence) + sync state file
+- [ ] 09.1-02-PLAN.md — /gsd:sync-upstream workflow creation
+
+**Success criteria:**
+1. .planning/codebase/ documents both upstream and downstream state
+2. /gsd:sync-upstream command creates valid milestone from commit range
+3. Sync progress tracked persistently across sessions
+
+---
+
 ## Phase 10: xAI + Cron + Security Scanner
 
 **Goal:** Port xAI Grok provider, cron robustness fixes, and security scanner
@@ -234,3 +252,4 @@ Plans:
 *Phase 8 executed: 2026-02-06*
 *Phase 9 planned: 2026-02-06*
 *Phase 9 executed: 2026-02-06*
+*Phase 9.1 planned: 2026-02-06*
