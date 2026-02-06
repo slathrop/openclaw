@@ -27,22 +27,27 @@ if (process.argv.includes('--no-color')) {
 const EXPERIMENTAL_WARNING_FLAG = '--disable-warning=ExperimentalWarning';
 
 /**
- * @param {string} nodeOptions
  * @returns {boolean}
  */
-function hasExperimentalWarningSuppressed(nodeOptions) {
-  if (!nodeOptions) {
-    return false;
-  }
-  return (
+function hasExperimentalWarningSuppressed() {
+  const nodeOptions = process.env.NODE_OPTIONS ?? '';
+  if (
     nodeOptions.includes(EXPERIMENTAL_WARNING_FLAG) ||
     nodeOptions.includes('--no-warnings')
-  );
+  ) {
+    return true;
+  }
+  for (const arg of process.execArgv) {
+    if (arg === EXPERIMENTAL_WARNING_FLAG || arg === '--no-warnings') {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
  * Checks if experimental warning suppression is needed and respawns
- * the process with the correct NODE_OPTIONS if so.
+ * the process with the correct CLI flags if so.
  * @returns {boolean} true if respawned (caller should stop)
  */
 function ensureExperimentalWarningSuppressed() {
@@ -52,18 +57,16 @@ function ensureExperimentalWarningSuppressed() {
   if (isTruthyEnvValue(process.env.OPENCLAW_NODE_OPTIONS_READY)) {
     return false;
   }
-  const nodeOptions = process.env.NODE_OPTIONS ?? '';
-  if (hasExperimentalWarningSuppressed(nodeOptions)) {
+  if (hasExperimentalWarningSuppressed()) {
     return false;
   }
 
+  // Respawn guard (and keep recursion bounded if something goes wrong).
   process.env.OPENCLAW_NODE_OPTIONS_READY = '1';
-  process.env.NODE_OPTIONS =
-    `${nodeOptions} ${EXPERIMENTAL_WARNING_FLAG}`.trim();
-
+  // Pass flag as a Node CLI option, not via NODE_OPTIONS (--disable-warning is disallowed in NODE_OPTIONS).
   const child = spawn(
     process.execPath,
-    [...process.execArgv, ...process.argv.slice(1)],
+    [EXPERIMENTAL_WARNING_FLAG, ...process.execArgv, ...process.argv.slice(1)],
     {
       stdio: 'inherit',
       env: process.env
