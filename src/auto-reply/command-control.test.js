@@ -134,6 +134,28 @@ describe('resolveCommandAuthorization', () => {
     // In production the ownerList would be ['123'].
     expect(auth.ownerList).toEqual(['discord:123']);
   });
+
+  it('uses explicit owner allowlist when allowFrom is wildcard', () => {
+    const cfg = {
+      channels: { whatsapp: { allowFrom: ['*'] } },
+      commands: { ownerAllowFrom: ['+15551234567'] }
+    };
+    const ctx = {
+      Provider: 'whatsapp',
+      Surface: 'whatsapp',
+      From: 'whatsapp:+15551234567',
+      SenderId: '+15551234567',
+      SenderE164: '+15551234567'
+    };
+    const auth = resolveCommandAuthorization({
+      ctx,
+      cfg,
+      commandAuthorized: true
+    });
+    expect(auth.senderIsOwner).toBe(true);
+    expect(auth.ownerList).toEqual(['+15551234567']);
+    expect(auth.isAuthorizedSender).toBe(true);
+  });
 });
 describe('control command parsing', () => {
   it('requires slash for send policy', () => {

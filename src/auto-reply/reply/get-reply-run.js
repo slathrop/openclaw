@@ -281,6 +281,7 @@ ${queueMessageIdHint}` : queueBodyBase;
       senderName: sessionCtx.SenderName?.trim() || void 0,
       senderUsername: sessionCtx.SenderUsername?.trim() || void 0,
       senderE164: sessionCtx.SenderE164?.trim() || void 0,
+      senderIsOwner: command.senderIsOwner,
       sessionFile,
       workspaceDir,
       config: cfg,

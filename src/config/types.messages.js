@@ -99,6 +99,8 @@
  * @property {boolean} [restart]
  * Enforce access-group allowlists/policies for commands (default: true).
  * @property {boolean} [useAccessGroups]
+ * Explicit owner allowlist for owner-only tools/commands (channel-native IDs).
+ * @property {Array<string|number>} [ownerAllowFrom]
  */
 
 /**

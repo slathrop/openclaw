@@ -191,7 +191,7 @@ function resolveCommandAuthorization(params) {
   const senderIsOwner = Boolean(matchedSender);
   const ownerAllowlistConfigured = ownerAllowAll || explicitOwners.length > 0;
   const requireOwner = enforceOwner || ownerAllowlistConfigured;
-  /* eslint-disable no-nested-ternary */
+   
   const isOwnerForCommands = !requireOwner
     ? true
     : ownerAllowAll
@@ -199,7 +199,7 @@ function resolveCommandAuthorization(params) {
       : ownerAllowlistConfigured
         ? senderIsOwner
         : allowAll || ownerCandidatesForCommands.length === 0 || Boolean(matchedCommandOwner);
-  /* eslint-enable no-nested-ternary */
+   
   const isAuthorizedSender = commandAuthorized && isOwnerForCommands;
   return {
     providerId,

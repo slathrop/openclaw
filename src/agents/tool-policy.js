@@ -69,9 +69,33 @@ const TOOL_PROFILES = {
   },
   full: {}
 };
+const OWNER_ONLY_TOOL_NAMES = new Set(['whatsapp_login']);
 function normalizeToolName(name) {
   const normalized = name.trim().toLowerCase();
   return TOOL_NAME_ALIASES[normalized] ?? normalized;
+}
+function isOwnerOnlyToolName(name) {
+  return OWNER_ONLY_TOOL_NAMES.has(normalizeToolName(name));
+}
+function applyOwnerOnlyToolPolicy(tools, senderIsOwner) {
+  const withGuard = tools.map((tool) => {
+    if (!isOwnerOnlyToolName(tool.name)) {
+      return tool;
+    }
+    if (senderIsOwner || !tool.execute) {
+      return tool;
+    }
+    return {
+      ...tool,
+      execute: async () => {
+        throw new Error('Tool restricted to owner senders.');
+      }
+    };
+  });
+  if (senderIsOwner) {
+    return withGuard;
+  }
+  return withGuard.filter((tool) => !isOwnerOnlyToolName(tool.name));
 }
 function normalizeToolList(list) {
   if (!list) {
@@ -215,11 +239,13 @@ function resolveToolProfilePolicy(profile) {
 }
 export {
   TOOL_GROUPS,
+  applyOwnerOnlyToolPolicy,
   buildPluginToolGroups,
   collectExplicitAllowlist,
   expandPluginGroups,
   expandPolicyWithPluginGroups,
   expandToolGroups,
+  isOwnerOnlyToolName,
   normalizeToolList,
   normalizeToolName,
   resolveToolProfilePolicy,

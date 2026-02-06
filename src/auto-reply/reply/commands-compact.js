@@ -82,6 +82,7 @@ const handleCompactCommand = async (params) => {
       defaultLevel: 'off'
     },
     customInstructions,
+    senderIsOwner: params.command.senderIsOwner,
     ownerNumbers: params.command.ownerList.length > 0 ? params.command.ownerList : void 0
   });
   const compactLabel = result.ok ? result.compacted ? result.result?.tokensBefore !== null && result.result?.tokensBefore !== undefined && result.result?.tokensAfter !== null && result.result?.tokensAfter !== undefined ? `Compacted (${formatTokenCount(result.result.tokensBefore)} \u2192 ${formatTokenCount(result.result.tokensAfter)})` : result.result?.tokensBefore ? `Compacted (${formatTokenCount(result.result.tokensBefore)} before)` : 'Compacted' : 'Compaction skipped' : 'Compaction failed';

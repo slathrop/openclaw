@@ -42,6 +42,7 @@ import {
 } from './pi-tools.read.js';
 import { cleanToolSchemaForGemini, normalizeToolParameters } from './pi-tools.schema.js';
 import {
+  applyOwnerOnlyToolPolicy,
   buildPluginToolGroups,
   collectExplicitAllowlist,
   expandPolicyWithPluginGroups,
@@ -272,11 +273,13 @@ function createOpenClawCodingTools(options) {
       requesterAgentIdOverride: agentId
     })
   ];
+  const senderIsOwner = options?.senderIsOwner === true;
+  const toolsByAuthorization = applyOwnerOnlyToolPolicy(tools, senderIsOwner);
   const coreToolNames = new Set(
-    tools.filter((tool) => !getPluginToolMeta(tool)).map((tool) => normalizeToolName(tool.name)).filter(Boolean)
+    toolsByAuthorization.filter((tool) => !getPluginToolMeta(tool)).map((tool) => normalizeToolName(tool.name)).filter(Boolean)
   );
   const pluginGroups = buildPluginToolGroups({
-    tools,
+    tools: toolsByAuthorization,
     toolMeta: (tool) => getPluginToolMeta(tool)
   });
   const resolvePolicy = (policy, label) => {
@@ -309,7 +312,7 @@ function createOpenClawCodingTools(options) {
   const groupPolicyExpanded = resolvePolicy(groupPolicy, 'group tools.allow');
   const sandboxPolicyExpanded = expandPolicyWithPluginGroups(sandbox?.tools, pluginGroups);
   const subagentPolicyExpanded = expandPolicyWithPluginGroups(subagentPolicy, pluginGroups);
-  const toolsFiltered = profilePolicyExpanded ? filterToolsByPolicy(tools, profilePolicyExpanded) : tools;
+  const toolsFiltered = profilePolicyExpanded ? filterToolsByPolicy(toolsByAuthorization, profilePolicyExpanded) : toolsByAuthorization;
   const providerProfileFiltered = providerProfileExpanded ? filterToolsByPolicy(toolsFiltered, providerProfileExpanded) : toolsFiltered;
   const globalFiltered = globalPolicyExpanded ? filterToolsByPolicy(providerProfileFiltered, globalPolicyExpanded) : providerProfileFiltered;
   const globalProviderFiltered = globalProviderExpanded ? filterToolsByPolicy(globalFiltered, globalProviderExpanded) : globalFiltered;

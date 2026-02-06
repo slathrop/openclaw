@@ -265,6 +265,7 @@ const FIELD_LABELS = {
   'commands.debug': 'Allow /debug',
   'commands.restart': 'Allow Restart',
   'commands.useAccessGroups': 'Use Access Groups',
+  'commands.ownerAllowFrom': 'Command Owners',
   'ui.seamColor': 'Accent Color',
   'ui.assistant.name': 'Assistant Name',
   'ui.assistant.avatar': 'Assistant Avatar',
@@ -625,6 +626,8 @@ const FIELD_HELP = {
   'commands.debug': 'Allow /debug chat command for runtime-only overrides (default: false).',
   'commands.restart': 'Allow /restart and gateway restart tool actions (default: false).',
   'commands.useAccessGroups': 'Enforce access-group allowlists/policies for commands.',
+  'commands.ownerAllowFrom':
+    'Explicit owner allowlist for owner-only tools and commands. Entries may be channel-native IDs or prefixed with a channel name (e.g. "telegram:12345").',
   'session.dmScope':
     'DM session scoping: "main" keeps continuity; "per-peer", "per-channel-peer", or "per-account-channel-peer" isolates DM history (recommended for shared inboxes/multi-account).',
   'session.identityLinks':
