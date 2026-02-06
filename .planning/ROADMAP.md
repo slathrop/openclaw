@@ -160,13 +160,21 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 09.1-01-PLAN.md — Dual-codebase docs (downstream divergence) + sync state file
-- [ ] 09.1-02-PLAN.md — /gsd:sync-upstream workflow creation
+- [x] 09.1-01-PLAN.md — Dual-codebase docs (downstream divergence) + sync state file
+- [x] 09.1-02-PLAN.md — /gsd:sync-upstream workflow creation
+
+**Status:** Complete (2026-02-06)
+**Verification:** 09.1-VERIFICATION.md — 8/8 must-haves verified
+
+**Key changes:**
+- 5 codebase docs updated with `## Downstream Divergence` sections
+- `.planning/SYNC-STATE.md` created for persistent sync tracking
+- `/gsd:sync-upstream` workflow created (616 lines, 10 steps)
 
 **Success criteria:**
-1. .planning/codebase/ documents both upstream and downstream state
-2. /gsd:sync-upstream command creates valid milestone from commit range
-3. Sync progress tracked persistently across sessions
+1. .planning/codebase/ documents both upstream and downstream state ✓
+2. /gsd:sync-upstream command creates valid milestone from commit range ✓
+3. Sync progress tracked persistently across sessions ✓
 
 ---
 
