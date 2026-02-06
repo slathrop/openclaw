@@ -61,16 +61,22 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07.1-01-PLAN.md — Wave-level test gate in orchestrator + parallel-testing reference doc
-- [ ] 07.1-02-PLAN.md — Executor and planner agent guidance updates
+- [x] 07.1-01-PLAN.md — Wave-level test gate in orchestrator + parallel-testing reference doc
+- [x] 07.1-02-PLAN.md — Executor and planner agent guidance updates
 
-**Details:**
-Current approach runs full test suite after each commit by each parallel agent. This creates redundant test runs and potential race conditions.
+**Status:** Complete (2026-02-06)
+**Verification:** 07.1-VERIFICATION.md — 8/8 must-haves verified
 
-New strategy:
-- Single designated "test runner" agent executes project unit tests once per wave
-- Other parallel agents can see test results and handle their own internal issues
-- Reduces test execution overhead during multi-agent parallel execution
+**Key changes:**
+- Wave-level test gate added to execute-phase.md (pnpm test + pnpm check once per wave)
+- parallel-testing.md reference doc created for planners and executors
+- gsd-executor.md updated with targeted test patterns and --no-verify commit guidance
+- gsd-planner.md updated with verification guidance for parallel waves
+
+**Success criteria:**
+1. Execute-phase orchestrator runs tests once per wave ✓
+2. Agents use targeted tests during parallel execution ✓
+3. Pre-commit hook conflicts eliminated via --no-verify ✓
 
 ---
 

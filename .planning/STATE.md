@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 ## Current Position
 
-Phase: 7.1 of 11 (Single Test Runner Strategy — INSERTED)
-Plan: 2 of 2 (phase complete)
-Status: Phase complete
-Last activity: 2026-02-06 -- Completed 07.1-02-PLAN.md
+Phase: 8 of 11 (Windows ACL + Telegram Threading)
+Plan: 0 of ? (planning needed)
+Status: Ready to plan
+Last activity: 2026-02-06 -- Completed Phase 7.1 (Single Test Runner Strategy verified)
 
 Progress: [█████░░░░░░░░░░░░░░░░░░░░] 20% (21/104 commits ported)
 
@@ -21,7 +21,7 @@ Progress: [█████░░░░░░░░░░░░░░░░░░
 | Phase | Name | Commits | Status |
 |-------|------|---------|--------|
 | 7 | Security + Initial Hardening | 1-21 | ✓ Complete (21/21 verified) |
-| 7.1 | Single Test Runner Strategy | — | Complete (2/2 plans) |
+| 7.1 | Single Test Runner Strategy | — | ✓ Complete (8/8 verified) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | Pending |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
