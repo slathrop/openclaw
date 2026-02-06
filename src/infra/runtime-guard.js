@@ -9,7 +9,7 @@
 import process from 'node:process';
 import {defaultRuntime} from '../runtime.js';
 
-const MIN_NODE = {major: 22, minor: 0, patch: 0};
+const MIN_NODE = {major: 22, minor: 12, patch: 0};
 
 const SEMVER_RE = /(\d+)\.(\d+)\.(\d+)/;
 
@@ -107,7 +107,7 @@ export function assertSupportedRuntime(runtime = defaultRuntime, details = detec
 
   runtime.error(
     [
-      'openclaw requires Node >=22.0.0.',
+      'openclaw requires Node >=22.12.0.',
       `Detected: ${runtimeLabel} (exec: ${execLabel}).`,
       `PATH searched: ${details.pathEnv}`,
       'Install Node: https://nodejs.org/en/download',
