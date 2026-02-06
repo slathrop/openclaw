@@ -366,6 +366,21 @@ try {
 - Creates test plugin registry
 - Initializes isolated home directory
 
+## Downstream Divergence
+
+**Analysis Date:** 2026-02-06
+
+This section describes how the downstream JavaScript testing setup differs from the upstream TypeScript testing described above.
+
+- **Config file:** vitest.config.js (not vitest.config.ts); glob patterns inside still target .ts for unconverted UI code
+- **Test files:** All converted tests use .test.js extension (not .test.ts)
+- **Test setup:** test/setup.js (was test/setup.ts)
+- **vi.mock patterns:** Same Vitest API; must avoid esbuild keepNames __name boilerplate in converted files (strip __defProp/__name wrappers post-conversion)
+- **Coverage thresholds:** Same as upstream -- 70% lines/functions/statements, 55% branches
+- **Mock patterns:** Named function declarations needed for constructor mocks (oxfmt converts anonymous functions to arrows, breaking `new`)
+- **E2E/live configs:** vitest.e2e.config.ts, vitest.live.config.ts naming unchanged (not yet converted)
+- **Pool strategy, worker counts, timeouts:** All identical to upstream
+
 ---
 
 *Testing analysis: 2026-02-04*

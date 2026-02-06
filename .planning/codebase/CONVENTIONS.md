@@ -182,6 +182,22 @@ vi.useRealTimers();
 - Common pattern: `await withProgress(options, async (progress) => { ... })`
 - Private async functions: prefix with `async function` in module scope
 
+## Downstream Divergence
+
+**Analysis Date:** 2026-02-06
+
+This section describes how the downstream JavaScript codebase conventions differ from the upstream TypeScript conventions described above.
+
+- **File extensions:** All .ts files converted to .js throughout src/; test files are .test.js (not .test.ts)
+- **Import paths:** Same .js extension convention in import specifiers (upstream also uses .js in imports, so no change needed)
+- **Type annotations:** `import type` statements removed; JSDoc @typedef and @param used where they aid comprehension (not exhaustively)
+- **Type exports:** `export type` becomes JSDoc @typedef in module-level comments; standalone @typedef outside JSDoc blocks avoided (causes ESLint parsing errors)
+- **No `any` enforcement:** Upstream uses oxlint typescript/no-explicit-any as ERROR; downstream ESLint does not enforce this rule
+- **Comments style:** JSDoc comments generally do NOT end in a period (not treated as complete sentences)
+- **Private fields:** Underscore prefix convention retained (matches esbuild keepNames output from bulk conversion)
+- **Barrel files:** Same pattern but use index.js instead of index.ts
+- **Linting tool:** ESLint with @stylistic/eslint-plugin replaces Oxlint; rules configured to approximate upstream style
+
 ---
 
 *Convention analysis: 2026-02-04*

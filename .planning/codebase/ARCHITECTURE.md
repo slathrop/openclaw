@@ -243,6 +243,19 @@
 - Memory updates: Last-write-wins for session state
 - Gateway: Message sequencing via `seq` field in protocol frames
 
+## Downstream Divergence
+
+**Analysis Date:** 2026-02-06
+
+This section describes how the downstream JavaScript codebase architecture differs from the upstream TypeScript architecture described above.
+
+- **Same layered architecture:** All layers (Entry, CLI, Command, Routing, Gateway, Channel, Agent, Provider, Plugin, Config, Infrastructure, UI) preserved identically
+- **Type safety approach:** Relies on JSDoc annotations + Zod runtime validation instead of the TypeScript compiler for type checking
+- **Module design:** Same exports/imports pattern; `export type` syntax replaced by JSDoc @typedef in module-level comments
+- **Error handling:** Same patterns throughout; `instanceof` checks, Error subclasses, and cause chaining work identically in JavaScript
+- **Plugin system:** Same dynamic import mechanism; jiti resolves openclaw/plugin-sdk at runtime
+- **No architectural differences:** The TypeScript-to-JavaScript conversion preserved all abstractions, data flows, and module boundaries without modification
+
 ---
 
 *Architecture analysis: 2026-02-04*

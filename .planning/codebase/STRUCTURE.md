@@ -324,6 +324,21 @@ openclaw-simplified/
 - Committed: No
 - Pattern: Managed by pnpm; checked for consistency via pnpm-lock.yaml
 
+## Downstream Divergence
+
+**Analysis Date:** 2026-02-06
+
+This section describes how the downstream JavaScript codebase structure differs from the upstream TypeScript structure described above.
+
+- **Source files:** All `src/**/*.ts` files are now `src/**/*.js`; test files are `src/**/*.test.js`
+- **Config files renamed:** vitest.config.ts -> vitest.config.js, rolldown.config.js (replaces tsdown.config.ts)
+- **No tsconfig.json for builds:** Kept only for IDE support if present; build uses Rolldown directly on .js files
+- **Directory layout identical:** No directories added, removed, or renamed; only file extensions changed
+- **Entry points:** src/index.js, src/entry.js (were .ts); openclaw.mjs wrapper unchanged
+- **Test fixtures:** test/setup.js (was test/setup.ts)
+- **ui/ directory:** NOT yet converted -- still contains TypeScript (.ts) files, converts in Phase 5
+- **Type definition files:** src/types/*.d.ts retained (still valid for untyped package stubs)
+
 ---
 
 *Structure analysis: 2026-02-04*

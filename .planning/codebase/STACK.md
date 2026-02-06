@@ -164,6 +164,21 @@
 - Optional: Tailscale for secure tunneling
 - Optional: Docker for containerized deployments (includes `docker-compose.yml` and `Dockerfile.sandbox`)
 
+## Downstream Divergence
+
+**Analysis Date:** 2026-02-06
+
+This section describes how the downstream JavaScript codebase differs from the upstream TypeScript codebase described above.
+
+- **Language:** Upstream uses TypeScript 5.9.3; downstream uses JavaScript (ESM) with JSDoc annotations for type documentation where it aids comprehension
+- **Build tooling:** Upstream uses tsdown 0.20.1; downstream uses Rolldown (natively processes .js files, no tsc needed). Rolldown requires explicit `external` config for node_modules
+- **Linting:** Upstream uses Oxlint + Oxfmt; downstream uses ESLint with @stylistic/eslint-plugin (Google Style base, comma-dangle: 'never' deviation). Run `pnpm check` to lint
+- **Test config:** Upstream vitest.config.ts; downstream vitest.config.js (glob patterns inside still target .ts for unconverted UI code)
+- **No TypeScript compiler:** No tsconfig.json used at build time; kept only for IDE support if present
+- **Config files renamed:** tsdown.config.ts -> rolldown.config.js, vitest.config.ts -> vitest.config.js
+- **Runtime deps identical:** All messaging SDKs, AI provider clients, infrastructure deps, and utilities are the same versions as upstream
+- **ui/ directory:** NOT yet converted (still TypeScript, converts in Phase 5)
+
 ---
 
 *Stack analysis: 2026-02-04*
