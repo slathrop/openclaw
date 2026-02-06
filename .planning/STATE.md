@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 9 of 11 (Threading + Features)
-Plan: 2 of ? in phase
+Plan: 2 of 6 complete (plans 01, 02)
 Status: In progress
-Last activity: 2026-02-06 -- Completed 09-02-PLAN.md (SYNC-046 to SYNC-048)
+Last activity: 2026-02-06 -- Completed 09-01-PLAN.md (SYNC-043 to SYNC-045)
 
-Progress: [███████████░░░░░░░░░░░░░░] 43% (45/104 commits ported)
+Progress: [████████████░░░░░░░░░░░░░] 46% (48/104 commits ported)
 
 ## Phase Summary
 
@@ -23,7 +23,7 @@ Progress: [███████████░░░░░░░░░░░░
 | 7 | Security + Initial Hardening | 1-21 | Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ✓ Complete (18/18 verified) |
-| 9 | Threading + Features | 43-62 | In progress (plan 02 complete) |
+| 9 | Threading + Features | 43-62 | In progress (plans 01, 02 complete) |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
 
@@ -64,6 +64,7 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Baileys mock pattern modernized | 08-04 | vi.fn() direct assignment replaces mockImplementation per upstream typecheck cleanup |
 | SYNC-030 is changelog-only (not empty tracking) | 08-03 | Upstream PR merge squashed 028+029; only CHANGELOG addition applies as real commit |
 | resolveTelegramAutoThreadId uses parseTelegramTarget | 08-06 | Canonical chat ID comparison mirrors Slack auto-threading pattern |
+| Applied SYNC-043/045 parseTelegramTarget oscillation exactly as upstream | 09-01 | SYNC-043 removes parseTelegramTarget, SYNC-045 restores it; maintains 1:1 commit parity |
 
 ### Roadmap Evolution
 
@@ -84,9 +85,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 09-02-PLAN.md (SYNC-046 to SYNC-048)
+Stopped at: Completed 09-01-PLAN.md (SYNC-043 to SYNC-045)
 Resume file: None
-Next action: Continue Phase 9 plans
+Next action: Continue Phase 9 plans (03-06)
 
 ## v1 Milestone Summary (Archived)
 
