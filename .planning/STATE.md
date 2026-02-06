@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 
 ## Current Position
 
-Phase: 8 of 11 (Windows ACL + Telegram Threading)
-Plan: 0 of ? (planning needed)
-Status: Ready to plan
-Last activity: 2026-02-06 -- Completed Phase 7 (21/21 commits verified)
+Phase: 7.1 of 11 (Single Test Runner Strategy — INSERTED)
+Plan: 2 of 2 (phase complete)
+Status: Phase complete
+Last activity: 2026-02-06 -- Completed 07.1-02-PLAN.md
 
 Progress: [█████░░░░░░░░░░░░░░░░░░░░] 20% (21/104 commits ported)
 
@@ -21,7 +21,8 @@ Progress: [█████░░░░░░░░░░░░░░░░░░
 | Phase | Name | Commits | Status |
 |-------|------|---------|--------|
 | 7 | Security + Initial Hardening | 1-21 | ✓ Complete (21/21 verified) |
-| 8 | Windows ACL + Telegram Threading | 22-42 | Ready to plan |
+| 7.1 | Single Test Runner Strategy | — | Complete (2/2 plans) |
+| 8 | Windows ACL + Telegram Threading | 22-42 | Pending |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
@@ -54,16 +55,26 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Bypass pre-commit for broad eslint errors | 07-03 | Pre-commit runs eslint --fix on entire project; pre-existing UI/extension errors fail hook |
 | SYNC-007 is JSDoc-only in JS | 07-03 | Upstream TS removed casts/type imports; JS equivalent is StickerMetadata JSDoc dedup |
 
+### Roadmap Evolution
+
+- Phase 7.1 inserted after Phase 7: Single Test Runner Strategy (URGENT) — reduce redundant test runs during parallel agent execution
+
 ### Blockers/Concerns
 
 None.
 
+### Phase 7.1 Outcomes
+
+- parallel-testing.md reference doc created (plan 01)
+- GSD executor and planner agents updated with parallel wave testing guidance (plan 02)
+- Agents now use targeted vitest runs and --no-verify commits during parallel waves
+
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed Phase 7 verification
+Stopped at: Completed 07.1-02-PLAN.md (Phase 7.1 complete)
 Resume file: None
-Next action: Plan Phase 8 (Windows ACL + Telegram Threading)
+Next action: Execute Phase 8 (Windows ACL + Telegram Threading)
 
 ## v1 Milestone Summary (Archived)
 
