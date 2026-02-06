@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 8 of 11 (Windows ACL + Telegram Threading)
-Plan: 1 of 6 complete
+Plan: 2 of 6 complete
 Status: In progress
-Last activity: 2026-02-06 -- Completed 08-01-PLAN.md (SYNC-022 to SYNC-024)
+Last activity: 2026-02-06 -- Completed 08-02-PLAN.md (SYNC-025 to SYNC-027)
 
-Progress: [██████░░░░░░░░░░░░░░░░░░░] 23% (24/104 commits ported)
+Progress: [███████░░░░░░░░░░░░░░░░░░] 26% (27/104 commits ported)
 
 ## Phase Summary
 
@@ -22,7 +22,7 @@ Progress: [██████░░░░░░░░░░░░░░░░░
 |-------|------|---------|--------|
 | 7 | Security + Initial Hardening | 1-21 | ✓ Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | — | ✓ Complete (8/8 verified) |
-| 8 | Windows ACL + Telegram Threading | 22-42 | In progress (plan 1/6 done) |
+| 8 | Windows ACL + Telegram Threading | 22-42 | In progress (plan 2/6 done) |
 | 9 | Threading + Features | 43-62 | Pending |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
@@ -58,6 +58,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | Agents use --no-verify during parallel waves | 07.1-01 | Pre-commit hook conflicts (index.lock) between concurrent agents; wave lint gate is replacement |
 | Walk-up traversal for chrome extension assets | 08-01 | Upstream replaced fixed candidate paths with directory walk-up (resolveBundledExtensionRootDir) |
 | Deterministic os.userInfo mocking for Windows ACL tests | 08-01 | vi.mock('node:os') with MOCK_USERNAME ensures cross-platform test stability |
+| SYNC-025 changes interleaved with parallel agent | 08-02 | command-control.test.js changes committed by parallel agent; re-committed as standalone SYNC-025 |
+| SYNC-027 code fix already applied in Phase 7 | 08-02 | resolveDiscordOwnerAllowFrom already uses resolveDiscordAllowListMatch; commit adds tests only |
 
 ### Roadmap Evolution
 
@@ -78,9 +80,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 08-01-PLAN.md (SYNC-022 to SYNC-024)
+Stopped at: Completed 08-02-PLAN.md (SYNC-025 to SYNC-027)
 Resume file: None
-Next action: Continue Phase 8 plans 02-06
+Next action: Continue Phase 8 plans 03-06
 
 ## v1 Milestone Summary (Archived)
 
