@@ -29,9 +29,11 @@ import {
 import { normalizeProviderId } from '../model-selection.js';
 import { ensureOpenClawModelsJson } from '../models-config.js';
 import {
+  BILLING_ERROR_USER_MESSAGE,
   classifyFailoverReason,
   formatAssistantErrorText,
   isAuthAssistantError,
+  isBillingAssistantError,
   isCompactionFailureError,
   isContextOverflowError,
   isFailoverAssistantError,
@@ -473,6 +475,7 @@ async function runEmbeddedPiAgent(params) {
           }
           const authFailure = isAuthAssistantError(lastAssistant);
           const rateLimitFailure = isRateLimitAssistantError(lastAssistant);
+          const billingFailure = isBillingAssistantError(lastAssistant);
           const failoverFailure = isFailoverAssistantError(lastAssistant);
           const assistantFailoverReason = classifyFailoverReason(lastAssistant?.errorMessage ?? '');
           const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
@@ -517,7 +520,7 @@ async function runEmbeddedPiAgent(params) {
               const message = (lastAssistant ? formatAssistantErrorText(lastAssistant, {
                 cfg: params.config,
                 sessionKey: params.sessionKey ?? params.sessionId
-              }) : void 0) || lastAssistant?.errorMessage?.trim() || (timedOut ? 'LLM request timed out.' : rateLimitFailure ? 'LLM request rate limited.' : authFailure ? 'LLM request unauthorized.' : 'LLM request failed.');
+              }) : void 0) || lastAssistant?.errorMessage?.trim() || (timedOut ? 'LLM request timed out.' : rateLimitFailure ? 'LLM request rate limited.' : billingFailure ? BILLING_ERROR_USER_MESSAGE : authFailure ? 'LLM request unauthorized.' : 'LLM request failed.');
               const status = resolveFailoverStatus(assistantFailoverReason ?? 'unknown') ?? (isTimeoutErrorMessage(message) ? 408 : void 0);
               throw new FailoverError(message, {
                 reason: assistantFailoverReason ?? 'unknown',

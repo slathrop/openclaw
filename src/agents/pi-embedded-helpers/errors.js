@@ -3,6 +3,8 @@
  * @module agents/pi-embedded-helpers/errors
  */
 import { formatSandboxToolPolicyBlockedMessage } from '../sandbox.js';
+const BILLING_ERROR_USER_MESSAGE =
+  '\u26a0\ufe0f API provider returned a billing error \u2014 your API key has run out of credits or has an insufficient balance. Check your provider\'s billing dashboard and top up or switch to a different API key.';
 function isContextOverflowError(errorMessage) {
   if (!errorMessage) {
     return false;
@@ -275,6 +277,9 @@ function formatAssistantErrorText(msg, opts) {
   if (isOverloadedErrorMessage(raw)) {
     return 'The AI service is temporarily overloaded. Please try again in a moment.';
   }
+  if (isBillingErrorMessage(raw)) {
+    return BILLING_ERROR_USER_MESSAGE;
+  }
   if (isLikelyHttpErrorText(raw) || isRawApiErrorPayload(raw)) {
     return formatRawAssistantErrorForUi(raw);
   }
@@ -297,6 +302,9 @@ function sanitizeUserFacingText(text) {
   }
   if (isContextOverflowError(trimmed)) {
     return 'Context overflow: prompt too large for the model. Try again with less input or a larger-context model.';
+  }
+  if (isBillingErrorMessage(trimmed)) {
+    return BILLING_ERROR_USER_MESSAGE;
   }
   if (isRawApiErrorPayload(trimmed) || isLikelyHttpErrorText(trimmed)) {
     return formatRawAssistantErrorForUi(trimmed);
@@ -495,6 +503,7 @@ function isFailoverAssistantError(msg) {
   return isFailoverErrorMessage(msg.errorMessage ?? '');
 }
 export {
+  BILLING_ERROR_USER_MESSAGE,
   classifyFailoverReason,
   formatAssistantErrorText,
   formatRawAssistantErrorForUi,

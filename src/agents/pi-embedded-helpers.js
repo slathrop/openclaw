@@ -10,6 +10,7 @@ import {
   stripThoughtSignatures
 } from './pi-embedded-helpers/bootstrap.js';
 import {
+  BILLING_ERROR_USER_MESSAGE,
   classifyFailoverReason,
   formatRawAssistantErrorForUi,
   formatAssistantErrorText,
@@ -55,6 +56,7 @@ import {
 } from './pi-embedded-helpers/turns.js';
 import { isValidCloudCodeAssistToolId, sanitizeToolCallId } from './tool-call-id.js';
 export {
+  BILLING_ERROR_USER_MESSAGE,
   DEFAULT_BOOTSTRAP_MAX_CHARS,
   buildBootstrapContextFiles,
   classifyFailoverReason,
