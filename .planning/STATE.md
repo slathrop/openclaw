@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-05)
 ## Current Position
 
 Phase: 9 of 11 (Threading + Features)
-Plan: 5 of 6 complete (plans 01, 02, 03, 04, 06)
-Status: In progress (plan 05 pending)
-Last activity: 2026-02-06 -- Completed 09-06-PLAN.md (SYNC-061 to SYNC-063)
+Plan: 6 of 6 complete (all plans)
+Status: Phase complete
+Last activity: 2026-02-06 -- Completed 09-05-PLAN.md (SYNC-058 to SYNC-060)
 
-Progress: [██████████████░░░░░░░░░░░] 58% (60/104 commits ported)
+Progress: [███████████████░░░░░░░░░░] 61% (63/104 commits ported)
 
 ## Phase Summary
 
@@ -23,7 +23,7 @@ Progress: [██████████████░░░░░░░░░
 | 7 | Security + Initial Hardening | 1-21 | Complete (21/21 verified) |
 | 7.1 | Single Test Runner Strategy | -- | Complete (8/8 verified) |
 | 8 | Windows ACL + Telegram Threading | 22-42 | ✓ Complete (18/18 verified) |
-| 9 | Threading + Features | 43-62 | In progress (plans 01, 02, 03, 04, 06 complete; 05 pending) |
+| 9 | Threading + Features | 43-63 | Complete (all 6 plans, 63/63 commits verified) |
 | 10 | xAI + Cron + Security Scanner | 63-82 | Pending |
 | 11 | Agents + Feishu + Gateway Auth | 83-102 | Pending |
 
@@ -70,6 +70,8 @@ Key decisions are archived in PROJECT.md Key Decisions table.
 | wasMentioned defaults to false without botOpenId | 09-03 | Prevents spurious replies when other users mentioned and bot ID unknown |
 | Counter-based compaction retry replaces boolean | 09-06 | MAX_OVERFLOW_COMPACTION_ATTEMPTS=3 allows recovery from multi-round overflow |
 | BILLING_ERROR_USER_MESSAGE shared constant | 09-06 | Consistent billing error presentation across error handlers and run loop |
+| Strip __name boilerplate from auth-choice.apply.openai.js | 09-05 | esbuild keepNames artifact breaks vitest; standard cleanup pattern |
+| Skip zh-CN docs in SYNC-060 | 09-05 | Generated docs per CLAUDE.md; only English docs updated |
 
 ### Roadmap Evolution
 
@@ -90,9 +92,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 09-06-PLAN.md (SYNC-061 to SYNC-063)
+Stopped at: Completed 09-05-PLAN.md (SYNC-058 to SYNC-060) -- Phase 9 complete
 Resume file: None
-Next action: Complete Phase 9 plan 05, then Phase 10
+Next action: Phase 10 (xAI + Cron + Security Scanner)
 
 ## v1 Milestone Summary (Archived)
 
